@@ -12,13 +12,11 @@ BASE_URL = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8000")
 app = FastAPI()
 DATA_FILE = "data.json"
 
-# টেলিগ্রামের অফিশিয়াল ভেরিফায়েড এনিমেটেড স্টিকার ফাইল আইডি
-STICKER_START = "CAACAgIAAxkBAAEClG5lnRzGfXo0Y5tqG9s-AAGwL_W7EwACCAADwZxgDG8e-7e9b0WnNAQ"   # কিউট ওয়েলকাম লাভ
-STICKER_PHOTO_WAIT = "CAACAgIAAxkBAAEClHBlnRzq-Bq_02N0t6-fAAGuM_O9FAACBgADwZxgDOe2_6S7x577NAQ" # লাভ ক্যামেরা/ছবি
-STICKER_MSG1_WAIT = "CAACAgIAAxkBAAEClHJlnRz1_5M4-Gv2tL6bAAGzN_Q-FgACDQADwZxgDI0vG2P7Y8S8NAQ"  # প্রেমপত্র লেখার স্টিকার
-STICKER_AUDIO_WAIT = "CAACAgIAAxkBAAEClHRlnRz7V3eX5N74vb-dAAG3O_T7HgACDwADwZxgDJc83kL9kM9WNAQ" # মিউজিক হার্ট
-STICKER_MSG2_WAIT = "CAACAgIAAxkBAAEClHZlnR0BlG795Qz1vf6dAAG5P_U8JwACEwADwZxgDK-Z0L76p0GgNAQ"  # রোমান্টিক মনের কথা
-STICKER_DONE = "CAACAgIAAxkBAAEClHhlnR0I4v6_6eP2vv2bAAG7Q_W9LAACGAADwZxgDC5p6g-9kS_INAQ"       # জমকালো হার্ট ব্লাস্ট
+# চলন্ত রোমান্টিক এনিমেশন (GIF URLs)
+GIF_START = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N5enRjczVwcmtyazJjZXVyYWZqN2RwbndycTRsN3pnbGk5c2o4MyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26BRv0ThflsDTjDUs/giphy.gif"
+GIF_PHOTO_OK = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHc3Ym9hZ2R0NGt5OGY0Z2Qxb2U5dHR6NnBpYWtzNDI0dDVsczBzOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/M90mJvfWfd5mbUuULX/giphy.gif"
+GIF_AUDIO_WAIT = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHlzajF6OHpsNXczNGtxNGRwbmtvdnRxcnhlcXpsYjJ5dmt0N2h3ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l4pTdcifPZLpDjL1e/giphy.gif"
+GIF_DONE = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2F3OXp4OHF3a3JqcGZtbzZkOGl1OTFvaTJnczg5dnN6bWZ2MHl3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/R6gVNROjZa40w/giphy.gif"
 
 def load_data():
     if os.path.exists(DATA_FILE):
@@ -32,25 +30,20 @@ def save_data(data):
 
 user_sessions = {}
 
-async def reply_with_sticker(update: Update, sticker_id: str, text: str):
-    """আগে স্টিকার পাঠাবে, তারপর লেখা পাঠাবে"""
-    try:
-        await update.message.reply_sticker(sticker=sticker_id)
-    except Exception:
-        pass
-    await update.message.reply_text(text, parse_mode="Markdown")
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_sessions[chat_id] = {"step": 1, "data": {}}
     
     msg = (
-        "✨ *ভালোবাসার সারপ্রাইজ পেজ মেকারে স্বাগতম!* 💖\n"
+        "✨ *ভালোবাসার সারপ্রাইজ মেকারে স্বাগতম!* 💖\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
-        "আপনার বিশেষ মানুষটির মুখে হাসি ফোটাতে নিচের ধাপগুলো পূরণ করুন।\n\n"
+        "আপনার বিশেষ মানুষটির জন্য আকর্ষণীয় ওয়েব পেজ বানাতে নিচের ধাপগুলো পূরণ করুন।\n\n"
         "📸 *ধাপ ১:* প্রথমে আপনার সঙ্গীর একটি সুন্দর *ছবি* পাঠান:"
     )
-    await reply_with_sticker(update, STICKER_START, msg)
+    try:
+        await update.message.reply_animation(animation=GIF_START, caption=msg, parse_mode="Markdown")
+    except Exception:
+        await update.message.reply_text(msg, parse_mode="Markdown")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -62,7 +55,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     step = session["step"]
 
-    # ধাপ ১: ছবি পাওয়ার পর ১ম মেসেজ চাওয়া
+    # ধাপ ১: ছবি পাওয়ার পর
     if step == 1:
         file = None
         if update.message.photo:
@@ -76,25 +69,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             session["step"] = 2
             
             msg = (
-                "🌸 *ছবিটি সফলভাবে নেওয়া হয়েছে!* 🥰\n\n"
-                "✍️ *ধাপ ২:* এবার খামের ভেতর চিঠি খোলার সময় টাইপরাইটার অ্যানিমেশনে যে ভালোবাসার কথাটি ফুটবে (১ম মেসেজ), সেটি লিখে পাঠান:"
+                "🌸 *ছবিটি পাওয়া গেছে!* 🥰\n\n"
+                "✍️ *ধাপ ২:* এবার খামের ভেতর চিঠি খোলার সময় যে রোমান্টিক বার্তাটি টাইপ হয়ে উঠবে (১ম মেসেজ), সেটি লিখে পাঠান:"
             )
-            await reply_with_sticker(update, STICKER_MSG1_WAIT, msg)
+            try:
+                await update.message.reply_animation(animation=GIF_PHOTO_OK, caption=msg, parse_mode="Markdown")
+            except Exception:
+                await update.message.reply_text(msg, parse_mode="Markdown")
         else:
             await update.message.reply_text("⚠️ দয়া করে একটি সঠিক *ছবি* পাঠান।", parse_mode="Markdown")
 
-    # ধাপ ২: ১ম মেসেজ পাওয়ার পর অডিও চাওয়া
+    # ধাপ ২: ১ম মেসেজ পাওয়ার পর
     elif step == 2:
         session["data"]["msg1"] = update.message.text
         session["step"] = 3
         
         msg = (
-            "💌 *প্রথম রোমান্টিক চিঠি তৈরি হয়ে গেছে!* ✨\n\n"
-            "🎧 *ধাপ ৩:* এবার ব্যাকগ্রাউন্ডে প্লে করার মতো যেকোনো একটি মিষ্টি গান, অডিও ফাইল (.mp3/.wav) বা আপনার নিজের *ভয়েস মেসেজ* পাঠান:"
+            "💌 *প্রথম বার্তা সংরক্ষিত হয়েছে!* ✨\n\n"
+            "🎧 *ধাপ ৩:* এবার ব্যাকগ্রাউন্ডে প্লে করার জন্য যেকোনো মিষ্টি গান, অডিও ফাইল (.mp3/.wav) বা আপনার *ভয়েস মেসেজ* পাঠান:"
         )
-        await reply_with_sticker(update, STICKER_AUDIO_WAIT, msg)
+        try:
+            await update.message.reply_animation(animation=GIF_AUDIO_WAIT, caption=msg, parse_mode="Markdown")
+        except Exception:
+            await update.message.reply_text(msg, parse_mode="Markdown")
 
-    # ধাপ ৩: অডিও পাওয়ার পর শেষ মেসেজ চাওয়া
+    # ধাপ ৩: অডিও পাওয়ার পর
     elif step == 3:
         media = None
         if update.message.audio:
@@ -113,14 +112,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             session["step"] = 4
             
             msg = (
-                "🎵 *অডিও গানটি সফলভাবে যুক্ত হয়েছে!* 🎶\n\n"
-                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে মনের কথা বা প্রপোজাল বার্তাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:"
+                "🎵 *অডিও গানটি যোগ করা হয়েছে!* 🎶\n\n"
+                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে মনের কথাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:"
             )
-            await reply_with_sticker(update, STICKER_MSG2_WAIT, msg)
+            await update.message.reply_text(msg, parse_mode="Markdown")
         else:
             await update.message.reply_text("⚠️ দয়া করে একটি সঠিক *অডিও গান (.mp3)* বা *ভয়েস মেসেজ* পাঠান।", parse_mode="Markdown")
 
-    # ধাপ ৪: শেষ মেসেজ পাওয়া এবং লিংক দেওয়া
+    # ধাপ ৪: শেষ মেসেজ এবং লিংক প্রদান
     elif step == 4:
         session["data"]["msg2"] = update.message.text
         token = str(uuid.uuid4())[:8]
@@ -136,15 +135,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         del user_sessions[chat_id]
 
         finish_card = (
-            "🎉 *অভিনন্দন! আপনার ম্যাজিকাল সারপ্রাইজ পেজ তৈরি!* 💖\n"
+            "🎉 *অভিনন্দন! আপনার সারপ্রাইজ লিংক তৈরি!* 💖\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔗 *আপনার স্পেশাল লিংক:*\n`{link}`\n\n"
+            f"🔗 *স্পেশাল লিংক:*\n`{link}`\n\n"
             "✨ *নির্দেশনা:*\n"
-            "উপরের লিংকটি কপি করে আপনার ভালোবাসার মানুষের কাছে পাঠিয়ে দিন। সে লিংকে প্রবেশ করলেই এখানে স্বয়ংক্রিয় নোটিফিকেশন চলে আসবে! 🔔\n"
+            "উপরের লিংকটি আপনার প্রিয় মানুষের কাছে পাঠান। সে লিংকে ঢুকলে এখানে সাথে সাথে নোটিফিকেশন আসবে! 🔔\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             "❤️ *All the best!* 🌹"
         )
-        await reply_with_sticker(update, STICKER_DONE, finish_card)
+        try:
+            await update.message.reply_animation(animation=GIF_DONE, caption=finish_card, parse_mode="Markdown")
+        except Exception:
+            await update.message.reply_text(finish_card, parse_mode="Markdown")
 
 tg_app = Application.builder().token(TOKEN).build()
 tg_app.add_handler(CommandHandler("start", start))
@@ -189,7 +191,7 @@ async def notify_creator(request: Request):
         if action == "opened":
             await tg_app.bot.send_message(
                 chat_id=chat_id, 
-                text="🔔 *নোটিফিকেশন:* আপনার পাঠানো সারপ্রাইজ পেজটি এইমাত্র সে ওপেন করেছে! 💖👀",
+                text="🔔 *নোটিফিকেশন:* আপনার সারপ্রাইজ পেজটি এইমাত্র সে ওপেন করেছে! 💖👀",
                 parse_mode="Markdown"
             )
         elif action == "yes":
