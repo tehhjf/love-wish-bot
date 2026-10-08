@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>A Special Surprise ❤️</title>
+    <style>
+        :root { --primary: #ff4d6d; --bg: #fff0f3; --text: #590d22; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fec5d0 0%, #fde2e4 100%);
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px;
+            overflow: hidden;
+        }
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 15px 40px;
+            font-size: 1.2rem; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+            font-weight: bold; transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .envelope-container {
+            position: relative; width: 280px; height: 180px; cursor: pointer;
+            perspective: 1000px;
+        }
+        .envelope {
+            position: absolute; width: 100%; height: 100%;
+            background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .flap {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ff4d6d; clip-path: polygon(0 0, 100% 0, 50% 50%);
+            transform-origin: top; transition: transform 0.6s ease-in-out; z-index: 3;
+        }
+        .envelope.open .flap { transform: rotateX(180deg); }
+
+        .card-content {
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 25px; width: 100%; max-width: 350px;
+            background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .profile-pic {
+            width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+            border: 4px solid var(--primary); margin-bottom: 15px;
+        }
+        .message-text {
+            font-size: 1.1rem; color: #333; margin-bottom: 20px; line-height: 1.6;
+        }
+        .question { font-size: 1.4rem; color: var(--primary); font-weight: bold; margin-bottom: 20px; }
+        .buttons { display: flex; gap: 20px; }
+        .btn-yes { background: #4caf50; }
+        .btn-no { background: #9e9e9e; }
+        
+        .cursor { display: inline-block; width: 3px; background: var(--primary); animation: blink 0.7s infinite; margin-left: 2px; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="state-welcome" style="text-align: center;">
+        <h2 style="color: var(--text); margin-bottom: 20px;">আপনার জন্য একটি বার্তা আছে...</h2>
+        <button class="btn" onclick="startExperience()">Open ❤️</button>
+    </div>
+
+    <div id="state-typewriter" class="hidden" style="text-align: center; max-width: 350px;">
+        <div id="typewriter-output" style="font-size: 1.25rem; color: var(--text); min-height: 60px; line-height: 1.6;"></div>
+    </div>
+
+    <div id="state-envelope" class="hidden" style="text-align: center;">
+        <div class="envelope-container" id="envelope" onclick="openEnvelope()">
+            <div class="envelope">
+                <div class="flap"></div>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff4d6d; font-size: 2.5rem;">💌</div>
+            </div>
+        </div>
+        <p style="margin-top: 20px; color: var(--text); opacity: 0.8; font-weight: 500;">খামটি খুলতে ট্যাপ করুন</p>
+    </div>
+
+    <div id="state-card" class="card-content">
+        <img id="target-pic" src="" alt="Profile" class="profile-pic">
+        <div id="final-message" class="message-text"></div>
+        <div class="question">Do you love me? 🥺</div>
+        <div class="buttons">
+            <button class="btn btn-yes" onclick="sendAnswer('yes')">Yes</button>
+            <button class="btn btn-no" onclick="sendAnswer('no')">No</button>
+        </div>
+    </div>
+
+    <audio id="bg-music" loop></audio>
+
+    <script>
+        const token = window.location.pathname.replace('/', '');
+        let appData = null;
+        let typewriterIndex = 0;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch(`/api/data/${token}`);
+                if (res.ok) {
+                    appData = await res.json();
+                    document.getElementById('bg-music').src = appData.audio_url;
+                    document.getElementById('target-pic').src = appData.photo_url;
+                    document.getElementById('final-message').innerText = appData.msg2;
+                }
+            } catch (err) {
+                console.error("Data load failed", err);
+            }
+        });
+
+        async function startExperience() {
+            fetch('/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token, action: 'opened' })
+            }).catch(e => console.log(e));
+
+            document.getElementById('state-welcome').classList.add('hidden');
+            document.getElementById('state-typewriter').classList.remove('hidden');
+
+            const audio = document.getElementById('bg-music');
+            audio.play().catch(e => console.log("Audio autoplay prevented", e));
+
+            startTypewriter();
+        }
+
+        function startTypewriter() {
+            const text = appData ? appData.msg1 : "তোমার জন্য কিছু কথা...";
+            const output = document.getElementById('typewriter-output');
+            
+            const interval = setInterval(() => {
+                if (typewriterIndex < text.length) {
+                    output.innerHTML = text.substring(0, typewriterIndex + 1) + '<span class="cursor"></span>';
+                    typewriterIndex++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('state-typewriter').classList.add('hidden');
+                        document.getElementById('state-envelope').classList.remove('hidden');
+                    }, 1000);
+                }
+            }, 60);
+        }
+
+        function openEnvelope() {
+            document.getElementById('envelope').classList.add('open');
+            setTimeout(() => {
+                document.getElementById('state-envelope').classList.add('hidden');
+                document.getElementById('state-card').style.display = 'flex';
+            }, 800);
+        }
+
+        async function sendAnswer(ans) {
+            document.querySelectorAll('.buttons button').forEach(b => b.disabled = true);
+            
+            fetch('/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token, action: ans })
+            }).catch(e => console.log(e));
+
+            const card = document.getElementById('state-card');
+            if (ans === 'yes') {
+                card.innerHTML = '<h2 style="color: #4caf50; font-size: 2rem;">Thank You! ❤️</h2><p style="margin-top: 15px; color: #555;">তোমার উত্তর পেয়ে আমি অনেক খুশি হয়েছি!</p>';
+            } else {
+                card.innerHTML = '<h2 style="color: #9e9e9e; font-size: 2rem;">It\'s Okay 🥺</h2><p style="margin-top: 15px; color: #555;">তবুও তোমার উত্তর দেওয়ার জন্য ধন্যবাদ।</p>';
+            }
+        }
+    </script>
+</body>
+</html>
