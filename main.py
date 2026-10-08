@@ -46,23 +46,38 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             session["data"]["photo_url"] = file.file_path
             session["step"] = 2
             await update.message.reply_text("ছবি পাওয়া গেছে! এবার টাইপরাইটার অ্যানিমেশনের জন্য প্রথম মেসেজটি লিখুন:")
+        elif update.message.document and update.message.document.mime_type and update.message.document.mime_type.startswith("image/"):
+            file = await update.message.document.get_file()
+            session["data"]["photo_url"] = file.file_path
+            session["step"] = 2
+            await update.message.reply_text("ছবি পাওয়া গেছে! এবার টাইপরাইটার অ্যানিমেশনের জন্য প্রথম মেসেজটি লিখুন:")
         else:
             await update.message.reply_text("দয়া করে একটি ছবি পাঠান।")
 
     elif step == 2:
         session["data"]["msg1"] = update.message.text
         session["step"] = 3
-        await update.message.reply_text("প্রথম মেসেজ সংরক্ষিত হয়েছে! এবার অডিও/ভয়েস মেসেজ পাঠান:")
+        await update.message.reply_text("প্রথম মেসেজ সংরক্ষিত হয়েছে! এবার অডিও বা ভয়েস মেসেজ পাঠান:")
 
     elif step == 3:
-        if update.message.audio or update.message.voice:
-            media = update.message.audio or update.message.voice
+        media = None
+        if update.message.audio:
+            media = update.message.audio
+        elif update.message.voice:
+            media = update.message.voice
+        elif update.message.document:
+            mime = update.message.document.mime_type or ""
+            fname = (update.message.document.file_name or "").lower()
+            if mime.startswith("audio/") or fname.endswith((".mp3", ".wav", ".m4a", ".ogg", ".aac")):
+                media = update.message.document
+
+        if media:
             file = await media.get_file()
             session["data"]["audio_url"] = file.file_path
             session["step"] = 4
             await update.message.reply_text("অডিও পাওয়া গেছে! এবার খামের ভেতরের মূল লাভ মেসেজটি লিখুন:")
         else:
-            await update.message.reply_text("দয়া করে একটি অডিও ফাইল বা ভয়েস মেসেজ পাঠান।")
+            await update.message.reply_text("দয়া করে একটি অডিও ফাইল (.mp3, .wav) বা ভয়েস মেসেজ পাঠান।")
 
     elif step == 4:
         session["data"]["msg2"] = update.message.text
