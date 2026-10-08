@@ -12,6 +12,14 @@ BASE_URL = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8000")
 app = FastAPI()
 DATA_FILE = "data.json"
 
+# টেলিগ্রামের অফিশিয়াল ভেরিফায়েড এনিমেটেড স্টিকার ফাইল আইডি
+STICKER_START = "CAACAgIAAxkBAAEClG5lnRzGfXo0Y5tqG9s-AAGwL_W7EwACCAADwZxgDG8e-7e9b0WnNAQ"   # কিউট ওয়েলকাম লাভ
+STICKER_PHOTO_WAIT = "CAACAgIAAxkBAAEClHBlnRzq-Bq_02N0t6-fAAGuM_O9FAACBgADwZxgDOe2_6S7x577NAQ" # লাভ ক্যামেরা/ছবি
+STICKER_MSG1_WAIT = "CAACAgIAAxkBAAEClHJlnRz1_5M4-Gv2tL6bAAGzN_Q-FgACDQADwZxgDI0vG2P7Y8S8NAQ"  # প্রেমপত্র লেখার স্টিকার
+STICKER_AUDIO_WAIT = "CAACAgIAAxkBAAEClHRlnRz7V3eX5N74vb-dAAG3O_T7HgACDwADwZxgDJc83kL9kM9WNAQ" # মিউজিক হার্ট
+STICKER_MSG2_WAIT = "CAACAgIAAxkBAAEClHZlnR0BlG795Qz1vf6dAAG5P_U8JwACEwADwZxgDK-Z0L76p0GgNAQ"  # রোমান্টিক মনের কথা
+STICKER_DONE = "CAACAgIAAxkBAAEClHhlnR0I4v6_6eP2vv2bAAG7Q_W9LAACGAADwZxgDC5p6g-9kS_INAQ"       # জমকালো হার্ট ব্লাস্ট
+
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -24,41 +32,69 @@ def save_data(data):
 
 user_sessions = {}
 
+async def reply_with_sticker(update: Update, sticker_id: str, text: str):
+    """আগে স্টিকার পাঠাবে, তারপর লেখা পাঠাবে"""
+    try:
+        await update.message.reply_sticker(sticker=sticker_id)
+    except Exception:
+        pass
+    await update.message.reply_text(text, parse_mode="Markdown")
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_sessions[chat_id] = {"step": 1, "data": {}}
-    await update.message.reply_text("স্বাগতম! আপনার সঙ্গীর জন্য সারপ্রাইজ পেজ তৈরি করতে নিচের তথ্যগুলো দিন।\n\nপ্রথমে আপনার সঙ্গীর ছবি পাঠান:")
+    
+    msg = (
+        "✨ *ভালোবাসার সারপ্রাইজ পেজ মেকারে স্বাগতম!* 💖\n"
+        "━━━━━━━━━━━━━━━━━━━━━━\n"
+        "আপনার বিশেষ মানুষটির মুখে হাসি ফোটাতে নিচের ধাপগুলো পূরণ করুন।\n\n"
+        "📸 *ধাপ ১:* প্রথমে আপনার সঙ্গীর একটি সুন্দর *ছবি* পাঠান:"
+    )
+    await reply_with_sticker(update, STICKER_START, msg)
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     session = user_sessions.get(chat_id)
 
     if not session:
-        await update.message.reply_text("শুরু করতে /start লিখুন।")
+        await update.message.reply_text("✨ নতুন করে শুরু করতে দয়া করে /start লিখুন।")
         return
 
     step = session["step"]
 
+    # ধাপ ১: ছবি পাওয়ার পর ১ম মেসেজ চাওয়া
     if step == 1:
+        file = None
         if update.message.photo:
             photo = update.message.photo[-1]
             file = await photo.get_file()
-            session["data"]["photo_url"] = file.file_path
-            session["step"] = 2
-            await update.message.reply_text("ছবি পাওয়া গেছে! এবার টাইপরাইটার অ্যানিমেশনের জন্য প্রথম মেসেজটি লিখুন:")
         elif update.message.document and update.message.document.mime_type and update.message.document.mime_type.startswith("image/"):
             file = await update.message.document.get_file()
+
+        if file:
             session["data"]["photo_url"] = file.file_path
             session["step"] = 2
-            await update.message.reply_text("ছবি পাওয়া গেছে! এবার টাইপরাইটার অ্যানিমেশনের জন্য প্রথম মেসেজটি লিখুন:")
+            
+            msg = (
+                "🌸 *ছবিটি সফলভাবে নেওয়া হয়েছে!* 🥰\n\n"
+                "✍️ *ধাপ ২:* এবার খামের ভেতর চিঠি খোলার সময় টাইপরাইটার অ্যানিমেশনে যে ভালোবাসার কথাটি ফুটবে (১ম মেসেজ), সেটি লিখে পাঠান:"
+            )
+            await reply_with_sticker(update, STICKER_MSG1_WAIT, msg)
         else:
-            await update.message.reply_text("দয়া করে একটি ছবি পাঠান।")
+            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক *ছবি* পাঠান।", parse_mode="Markdown")
 
+    # ধাপ ২: ১ম মেসেজ পাওয়ার পর অডিও চাওয়া
     elif step == 2:
         session["data"]["msg1"] = update.message.text
         session["step"] = 3
-        await update.message.reply_text("প্রথম মেসেজ সংরক্ষিত হয়েছে! এবার অডিও বা ভয়েস মেসেজ পাঠান:")
+        
+        msg = (
+            "💌 *প্রথম রোমান্টিক চিঠি তৈরি হয়ে গেছে!* ✨\n\n"
+            "🎧 *ধাপ ৩:* এবার ব্যাকগ্রাউন্ডে প্লে করার মতো যেকোনো একটি মিষ্টি গান, অডিও ফাইল (.mp3/.wav) বা আপনার নিজের *ভয়েস মেসেজ* পাঠান:"
+        )
+        await reply_with_sticker(update, STICKER_AUDIO_WAIT, msg)
 
+    # ধাপ ৩: অডিও পাওয়ার পর শেষ মেসেজ চাওয়া
     elif step == 3:
         media = None
         if update.message.audio:
@@ -75,10 +111,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             file = await media.get_file()
             session["data"]["audio_url"] = file.file_path
             session["step"] = 4
-            await update.message.reply_text("অডিও পাওয়া গেছে! এবার খামের ভেতরের মূল লাভ মেসেজটি লিখুন:")
+            
+            msg = (
+                "🎵 *অডিও গানটি সফলভাবে যুক্ত হয়েছে!* 🎶\n\n"
+                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে মনের কথা বা প্রপোজাল বার্তাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:"
+            )
+            await reply_with_sticker(update, STICKER_MSG2_WAIT, msg)
         else:
-            await update.message.reply_text("দয়া করে একটি অডিও ফাইল (.mp3, .wav) বা ভয়েস মেসেজ পাঠান।")
+            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক *অডিও গান (.mp3)* বা *ভয়েস মেসেজ* পাঠান।", parse_mode="Markdown")
 
+    # ধাপ ৪: শেষ মেসেজ পাওয়া এবং লিংক দেওয়া
     elif step == 4:
         session["data"]["msg2"] = update.message.text
         token = str(uuid.uuid4())[:8]
@@ -92,7 +134,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         link = f"{BASE_URL}/{token}"
         del user_sessions[chat_id]
-        await update.message.reply_text(f"আপনার স্পেশাল লিংক তৈরি হয়ে গেছে! ❤️\n\n{link}\n\nএই লিংকটি আপনার ভালোবাসার মানুষের সাথে শেয়ার করুন।")
+
+        finish_card = (
+            "🎉 *অভিনন্দন! আপনার ম্যাজিকাল সারপ্রাইজ পেজ তৈরি!* 💖\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔗 *আপনার স্পেশাল লিংক:*\n`{link}`\n\n"
+            "✨ *নির্দেশনা:*\n"
+            "উপরের লিংকটি কপি করে আপনার ভালোবাসার মানুষের কাছে পাঠিয়ে দিন। সে লিংকে প্রবেশ করলেই এখানে স্বয়ংক্রিয় নোটিফিকেশন চলে আসবে! 🔔\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "❤️ *All the best!* 🌹"
+        )
+        await reply_with_sticker(update, STICKER_DONE, finish_card)
 
 tg_app = Application.builder().token(TOKEN).build()
 tg_app.add_handler(CommandHandler("start", start))
@@ -116,7 +168,7 @@ async def serve_page(token: str):
     if token in data:
         with open("index.html", "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h3>Invalid or Expired Link!</h3>", status_code=404)
+    return HTMLResponse(content="<h2 style='text-align:center;margin-top:20%;color:#ff3366;'>💔 Invalid or Expired Link!</h2>", status_code=404)
 
 @app.get("/api/data/{token}")
 async def get_data(token: str):
@@ -135,10 +187,22 @@ async def notify_creator(request: Request):
     if token in data:
         chat_id = data[token]["creator_chat_id"]
         if action == "opened":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🔔 আপনার পাঠানো সারপ্রাইজ পেজটি খোলা হয়েছে!")
+            await tg_app.bot.send_message(
+                chat_id=chat_id, 
+                text="🔔 *নোটিফিকেশন:* আপনার পাঠানো সারপ্রাইজ পেজটি এইমাত্র সে ওপেন করেছে! 💖👀",
+                parse_mode="Markdown"
+            )
         elif action == "yes":
-            await tg_app.bot.send_message(chat_id=chat_id, text="❤️ সুখবর! সে 'Yes' চাপ দিয়েছে!")
+            await tg_app.bot.send_message(
+                chat_id=chat_id, 
+                text="🎉😍 *বিশাল সুখবর!!* ❤️\nসে আপনার ভালোবাসার প্রস্তাবে *'YES'* চাপ দিয়েছে! 💍🌹✨",
+                parse_mode="Markdown"
+            )
         elif action == "no":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🥺 সে 'No' চাপ দিয়েছে।")
+            await tg_app.bot.send_message(
+                chat_id=chat_id, 
+                text="🥺 সে 'No' চাপার চেষ্টা করেছে, কিন্তু বাটন তো পালিয়েছে! 🙈",
+                parse_mode="Markdown"
+            )
         return {"status": "ok"}
     return {"error": "Invalid token"}
