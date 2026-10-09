@@ -29,6 +29,17 @@ def save_data(data):
 
 tg_app = Application.builder().token(TOKEN).concurrent_updates(True).build()
 
+async def auto_keepalive_loop():
+    """কোডের ভেতর থেকেই বটকে সারাক্ষণ সজাগ রাখার অটো সিস্টেম"""
+    await asyncio.sleep(10)
+    while True:
+        try:
+            # টেলিগ্রাম সার্ভারে ছোট একটি সিগন্যাল পাঠিয়ে বটকে জাগ্রত রাখা
+            await tg_app.bot.get_me()
+        except Exception:
+            pass
+        await asyncio.sleep(180)  # প্রতি ৩ মিনিট পর পর অটো সিগন্যাল
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_sessions[chat_id] = {"step": 1, "data": {}}
@@ -44,13 +55,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     session = user_sessions.get(chat_id)
 
+    # যদি ইউজার হিস্ট্রি ডিলিট করে টেক্সট পাঠায় তবে স্বয়ংক্রিয়ভাবে ধাপ ১ শুরু হবে
     if not session:
-        await update.message.reply_text("✨ নতুন পেজ তৈরি করতে /start পাঠান।")
+        user_sessions[chat_id] = {"step": 1, "data": {}}
+        welcome_text = (
+            "✨💖 *সাইবার ইমন এর লাভ বটে আপনাকে স্বাগতম!* 💖✨\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "📸 *ধাপ ১:* আপনার সঙ্গীর সুন্দর একটি *ছবি* পাঠান:"
+        )
+        await update.message.reply_text(welcome_text, parse_mode="Markdown")
         return
 
     step = session["step"]
 
-    # ধাপ ১: ছবি গ্রহণ
+    # ধাপ ১: ছবি পাওয়া মাত্র সেকেন্ডের মধ্যে রিপ্লাই
     if step == 1:
         file_obj = None
         if update.message.photo:
@@ -71,7 +89,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text("⚠️ দয়া করে একটি সঠিক ছবি পাঠান।")
 
-    # ধাপ ২: ১ম বার্তা গ্রহণ
+    # ধাপ ২: ১ম বার্তা
     elif step == 2:
         session["data"]["msg1"] = update.message.text
         session["step"] = 3
@@ -82,7 +100,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
 
-    # ধাপ ৩: অডিও গ্রহণ
+    # ধাপ ৩: অডিও পাওয়া মাত্র রিপ্লাই
     elif step == 3:
         media = None
         if update.message.audio:
@@ -90,9 +108,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif update.message.voice:
             media = update.message.voice
         elif update.message.document:
-            mime = update.message.document.mime_type or ""
             fname = (update.message.document.file_name or "").lower()
-            if mime.startswith("audio/") or fname.endswith((".mp3", ".wav", ".m4a", ".ogg", ".aac")):
+            if fname.endswith((".mp3", ".wav", ".m4a", ".ogg", ".aac")):
                 media = update.message.document
 
         if media:
@@ -102,11 +119,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             await update.message.reply_text(
                 "🎵 *গান সফলভাবে যুক্ত হয়েছে!* 🎶\n\n"
-                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে মনের কথাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:",
+                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল মনের কথাটি (লাস্ট মেসেজ) লিখে পাঠান:",
                 parse_mode="Markdown"
             )
         else:
-            await update.message.reply_text("⚠️ দয়া করে একটি অডিও গান (.mp3) বা ভয়েস পাঠান।")
+            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক গান (.mp3) বা ভয়েস পাঠান।")
 
     # ধাপ ৪: লিংক জেনারেট
     elif step == 4:
@@ -127,7 +144,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🎉 *আপনার সারপ্রাইজ লিংক তৈরি হয়ে গেছে!* 💖\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             f"🔗 *লিংক:* `{link}`\n\n"
-            "এই লিংকটি আপনার বিশেষ মানুষটির সাথে শেয়ার করুন। সে পেজটি ওপেন করলেই এখানে সাথে সাথে নোটিফিকেশন পাবেন! 🔔"
+            "এই লিংকটি শেয়ার করুন। ওপেন করলেই সাথে সাথে নোটিফিকেশন পাবেন! 🔔"
         )
         await update.message.reply_text(finish_text, parse_mode="Markdown")
 
@@ -139,6 +156,8 @@ async def lifespan(app: FastAPI):
     await tg_app.initialize()
     await tg_app.start()
     await tg_app.updater.start_polling(drop_pending_updates=True)
+    # ব্যাকগ্রাউন্ডে স্বয়ংক্রিয় কিপ-অ্যালাইভ লুপ চালু
+    asyncio.create_task(auto_keepalive_loop())
     yield
     await tg_app.updater.stop()
     await tg_app.stop()
@@ -146,13 +165,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.get("/")
+async def root():
+    return {"status": "running"}
+
 @app.get("/{token}", response_class=HTMLResponse)
 async def serve_page(token: str):
     data = load_data()
     if token in data:
         with open("index.html", "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h2 style='text-align:center;margin-top:20%;color:#ff3366;'>💔 Invalid or Expired Link!</h2>", status_code=404)
+    return HTMLResponse(content="<h2 style='text-align:center;margin-top:20%;color:#ff3366;'>💔 Invalid Link!</h2>", status_code=404)
 
 @app.get("/api/data/{token}")
 async def get_data(token: str):
@@ -171,10 +194,10 @@ async def notify_creator(request: Request):
     if token in data:
         chat_id = data[token]["creator_chat_id"]
         if action == "opened":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🔔 সে সারপ্রাইজ পেজটি ওপেন করেছে! 💖")
+            await tg_app.bot.send_message(chat_id=chat_id, text="🔔 সে পেজটি ওপেন করেছে! 💖")
         elif action == "yes":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🎉 সে ভালোবাসার প্রস্তাবে 'YES' চাপ দিয়েছে! 💍❤️")
+            await tg_app.bot.send_message(chat_id=chat_id, text="🎉 সে 'YES' চাপ দিয়েছে! 💍❤️")
         elif action == "no":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🥺 সে 'No' চাপার চেষ্টা করেছে, কিন্তু বাটনটি সরে গেছে!")
+            await tg_app.bot.send_message(chat_id=chat_id, text="💔 সে 'No' চাপ দিয়েছে!")
         return {"status": "ok"}
     return {"error": "Invalid token"}
