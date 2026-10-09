@@ -29,10 +29,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_sessions[chat_id] = {"step": 1, "data": {}}
     
     welcome_msg = (
-        "✨💖 *ভালোবাসার সারপ্রাইজ পেজ মেকারে স্বাগতম!* 💖✨\n"
+        "✨💖 *ভালোবাসার সারপ্রাইজ পেজ মেকার* 💖✨\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
-        "আপনার মনের মানুষের জন্য চমৎকার একটি পেজ বানাতে নিচের তথ্যগুলো দিন।\n\n"
-        "📸 *ধাপ ১:* প্রথমে আপনার সঙ্গীর একটি সুন্দর *ছবি* পাঠান:"
+        "📸 *ধাপ ১:* আপনার সঙ্গীর একটি সুন্দর *ছবি* পাঠান:"
     )
     await update.message.reply_text(welcome_msg, parse_mode="Markdown")
 
@@ -41,44 +40,44 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = user_sessions.get(chat_id)
 
     if not session:
-        await update.message.reply_text("✨ নতুন করে শুরু করতে /start চাপুন।")
+        await update.message.reply_text("✨ শুরু করতে /start লিখুন।")
         return
 
     step = session["step"]
 
-    # ধাপ ১: ছবি গ্রহণ
+    # ধাপ ১: ছবি পাওয়া মাত্র সেকেন্ডের মধ্যে রিপ্লাই
     if step == 1:
-        file = None
+        file_obj = None
         if update.message.photo:
-            photo = update.message.photo[-1]
-            file = await photo.get_file()
+            file_obj = update.message.photo[-1]
         elif update.message.document and update.message.document.mime_type and update.message.document.mime_type.startswith("image/"):
-            file = await update.message.document.get_file()
+            file_obj = update.message.document
 
-        if file:
-            session["data"]["photo_url"] = file.file_path
+        if file_obj:
+            f = await file_obj.get_file()
+            session["data"]["photo_url"] = f.file_path
             session["step"] = 2
             
             msg = (
-                "🌸 *ছবিটি পাওয়া গেছে!* 🥰✨\n\n"
-                "✍️ *ধাপ ২:* এবার খামের ভেতর চিঠি খোলার সময় যে লেখাটি টাইপ হয়ে উঠবে (১ম বার্তা), সেটি লিখে পাঠান:"
+                "🌸 *ছবি সংরক্ষিত হয়েছে!* 🥰✨\n\n"
+                "✍️ *ধাপ ২:* খামের ভেতর চিঠি খোলার সময় যে লেখাটি টাইপ হবে (১ম বার্তা), সেটি লিখে পাঠান:"
             )
             await update.message.reply_text(msg, parse_mode="Markdown")
         else:
-            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক *ছবি* পাঠান।", parse_mode="Markdown")
+            await update.message.reply_text("⚠️ দয়া করে একটি ছবি পাঠান।")
 
-    # ধাপ ২: ১ম বার্তা গ্রহণ
+    # ধাপ ২: ১ম বার্তা
     elif step == 2:
         session["data"]["msg1"] = update.message.text
         session["step"] = 3
         
         msg = (
             "💌 *প্রথম বার্তা সংরক্ষিত হয়েছে!* 🌹\n\n"
-            "🎧 *ধাপ ৩:* এবার পেজের ব্যাকগ্রাউন্ডে বাজানোর জন্য অডিও গান (.mp3) অথবা ভয়েস মেসেজ পাঠান:"
+            "🎧 *ধাপ ৩:* এবার পেজের ব্যাকগ্রাউন্ড মিউজিকের জন্য গান (.mp3) বা ভয়েস পাঠান:"
         )
         await update.message.reply_text(msg, parse_mode="Markdown")
 
-    # ধাপ ৩: অডিও গ্রহণ
+    # ধাপ ৩: অডিও পাওয়া মাত্র রিপ্লাই
     elif step == 3:
         media = None
         if update.message.audio:
@@ -92,19 +91,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 media = update.message.document
 
         if media:
-            file = await media.get_file()
-            session["data"]["audio_url"] = file.file_path
+            f = await media.get_file()
+            session["data"]["audio_url"] = f.file_path
             session["step"] = 4
             
             msg = (
-                "🎵 *অডিও যোগ করা হয়েছে!* 🎶\n\n"
-                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে ভালোবাসার বার্তাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:"
+                "🎵 *অডিও গান যুক্ত হয়েছে!* 🎶\n\n"
+                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে মনের কথাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:"
             )
             await update.message.reply_text(msg, parse_mode="Markdown")
         else:
-            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক *গান (.mp3)* বা *ভয়েস মেসেজ* পাঠান।", parse_mode="Markdown")
+            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক গান (.mp3) বা ভয়েস দিন।")
 
-    # ধাপ ৪: লিংক তৈরি
+    # ধাপ ৪: লিংক জেনারেট
     elif step == 4:
         session["data"]["msg2"] = update.message.text
         token = str(uuid.uuid4())[:8]
@@ -120,17 +119,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         del user_sessions[chat_id]
 
         finish_card = (
-            "🎉 *অভিনন্দন! আপনার সারপ্রাইজ লিংক তৈরি হয়ে গেছে!* 💖\n"
+            "🎉 *আপনার সারপ্রাইজ লিংক তৈরি হয়ে গেছে!* 💖\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔗 *স্পেশাল লিংক:*\n`{link}`\n\n"
-            "✨ *নির্দেশনা:*\n"
-            "এই লিংকটি আপনার ভালোবাসার মানুষের সাথে শেয়ার করুন। সে পেজটি ওপেন করলেই এখানে সাথে সাথে নোটিফিকেশন আসবে! 🔔\n"
-            "━━━━━━━━━━━━━━━━━━━━━━\n"
-            "❤️ *Good Luck!* 🌹"
+            f"🔗 *লিংক:* `{link}`\n\n"
+            "লিংকটি আপনার সঙ্গীকে পাঠান। সে পেজ খুললেই সাথে সাথে নোটিফিকেশন পাবেন! 🔔"
         )
         await update.message.reply_text(finish_card, parse_mode="Markdown")
 
-tg_app = Application.builder().token(TOKEN).build()
+tg_app = Application.builder().token(TOKEN).concurrent_updates(True).build()
 tg_app.add_handler(CommandHandler("start", start))
 tg_app.add_handler(MessageHandler(filters.ALL, handle_message))
 
@@ -138,7 +134,7 @@ tg_app.add_handler(MessageHandler(filters.ALL, handle_message))
 async def on_startup():
     await tg_app.initialize()
     await tg_app.start()
-    await tg_app.updater.start_polling()
+    await tg_app.updater.start_polling(drop_pending_updates=True)
 
 @app.on_event("shutdown")
 async def on_shutdown():
@@ -171,22 +167,10 @@ async def notify_creator(request: Request):
     if token in data:
         chat_id = data[token]["creator_chat_id"]
         if action == "opened":
-            await tg_app.bot.send_message(
-                chat_id=chat_id, 
-                text="🔔 *নোটিফিকেশন:* আপনার সারপ্রাইজ পেজটি এইমাত্র সে ওপেন করেছে! 💖👀",
-                parse_mode="Markdown"
-            )
+            await tg_app.bot.send_message(chat_id=chat_id, text="🔔 সারপ্রাইজ পেজটি এইমাত্র সে ওপেন করেছে! 💖")
         elif action == "yes":
-            await tg_app.bot.send_message(
-                chat_id=chat_id, 
-                text="🎉😍 *বিশাল সুখবর!!* ❤️\nসে আপনার ভালোবাসার প্রস্তাবে *'YES'* চাপ দিয়েছে! 💍🌹✨",
-                parse_mode="Markdown"
-            )
+            await tg_app.bot.send_message(chat_id=chat_id, text="🎉 সে ভালোবাসার প্রস্তাবে 'YES' চাপ দিয়েছে! 💍❤️")
         elif action == "no":
-            await tg_app.bot.send_message(
-                chat_id=chat_id, 
-                text="🥺 সে 'No' চাপার চেষ্টা করেছে, কিন্তু বাটনটি সরে গেছে! 🙈",
-                parse_mode="Markdown"
-            )
+            await tg_app.bot.send_message(chat_id=chat_id, text="🥺 সে 'No' চাপার চেষ্টা করেছে, বাটন সরে গেছে!")
         return {"status": "ok"}
     return {"error": "Invalid token"}
