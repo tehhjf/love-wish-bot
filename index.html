@@ -31,7 +31,6 @@
       position: relative;
     }
 
-    /* Falling Hearts Animation */
     .heart-fall {
       position: fixed;
       top: -10%;
@@ -71,7 +70,7 @@
     }
 
     .glass-card {
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.8);
       border-radius: 28px;
@@ -110,18 +109,17 @@
       50% { transform: scale(1.05); box-shadow: 0 12px 30px rgba(255, 51, 102, 0.6); }
     }
 
-    /* Screen 2: 3D Envelope */
+    /* 3D Realistic Rose-Gold Envelope */
     .envelope-box {
       position: relative;
       width: 290px;
       height: 190px;
-      margin: 20px auto 25px auto;
-      background: #e63956;
+      margin: 30px auto 25px auto;
+      background: linear-gradient(145deg, #ff4d6d, #c9184a);
       border-radius: 12px;
-      box-shadow: 0 18px 38px rgba(180, 20, 50, 0.3);
+      box-shadow: 0 20px 40px rgba(201, 24, 74, 0.35);
       cursor: pointer;
       perspective: 1000px;
-      transition: transform 0.3s ease;
     }
 
     .envelope-flap {
@@ -130,7 +128,7 @@
       left: 0;
       border-left: 145px solid transparent;
       border-right: 145px solid transparent;
-      border-top: 105px solid #d62846;
+      border-top: 105px solid #a4133c;
       transform-origin: top;
       transition: transform 0.6s ease;
       z-index: 5;
@@ -140,9 +138,9 @@
       position: absolute;
       bottom: 0;
       left: 0;
-      border-left: 145px solid #f24b67;
-      border-right: 145px solid #f24b67;
-      border-bottom: 95px solid #e63956;
+      border-left: 145px solid #ff758f;
+      border-right: 145px solid #ff758f;
+      border-bottom: 95px solid #c9184a;
       border-top: 95px solid transparent;
       border-radius: 0 0 12px 12px;
       z-index: 4;
@@ -150,19 +148,19 @@
 
     .wax-seal {
       position: absolute;
-      top: 80px;
+      top: 85px;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 46px;
-      height: 46px;
-      background: radial-gradient(circle, #ffd700, #b8860b);
+      width: 48px;
+      height: 48px;
+      background: radial-gradient(circle, #ffe066, #d4a373, #a26a31);
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.35);
       z-index: 6;
-      font-size: 22px;
+      font-size: 24px;
       transition: all 0.4s ease;
     }
 
@@ -182,30 +180,31 @@
       left: 15px;
       right: 15px;
       bottom: 15px;
-      background: #fffdf9;
-      border-radius: 8px;
-      padding: 15px 12px;
+      background: #fffefb;
+      border-radius: 10px;
+      padding: 16px 14px;
       z-index: 2;
-      transition: transform 0.7s ease, opacity 0.7s ease;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.12);
+      transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      color: #7a1f33;
+      justify-content: flex-start;
+      color: #590d22;
       font-weight: 600;
       font-size: 15px;
-      line-height: 1.5;
+      line-height: 1.6;
+      text-align: center;
+      overflow-y: auto;
     }
 
     .envelope-box.open .letter {
-      transform: translateY(-120px) scale(1.04);
+      transform: translateY(-130px) scale(1.03);
       z-index: 10;
-      height: 250px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+      height: 260px;
+      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.25);
     }
 
-    /* Screen 3: Photo + Last Message + Proposal */
     .profile-img-box {
       width: 140px;
       height: 140px;
@@ -267,9 +266,7 @@
       transition: transform 0.2s ease;
     }
 
-    .btn-yes:active {
-      transform: scale(0.95);
-    }
+    .btn-yes:active { transform: scale(0.95); }
 
     .btn-no {
       background: #7d8a99;
@@ -284,9 +281,7 @@
       transition: transform 0.2s ease;
     }
 
-    .btn-no:active {
-      transform: scale(0.95);
-    }
+    .btn-no:active { transform: scale(0.95); }
 
     .icon-big {
       font-size: 65px;
@@ -297,25 +292,28 @@
 </head>
 <body>
 
+  <!-- Screen 1: Welcome -->
   <div class="container">
     <div id="screen-1" class="screen active glass-card">
       <h2 class="title">আপনার জন্য একটি বার্তা আছে... ❤️</h2>
       <button class="btn-main" onclick="openWelcome()">Open ❤️</button>
     </div>
 
+    <!-- Screen 2: Envelope + 1st Letter Message with Typewriter Sound -->
     <div id="screen-2" class="screen">
       <p id="env-hint" style="color: #990033; font-weight: 700; font-size: 18px; margin-bottom: 10px;">খামটি খুলতে ট্যাপ করুন ✨</p>
       <div class="envelope-box" id="envelope" onclick="openEnvelope()">
         <div class="envelope-flap"></div>
         <div class="wax-seal">💌</div>
         <div class="letter">
-          <div id="typewriter" style="max-height: 180px; overflow-y: auto; padding: 4px;"></div>
+          <div id="typewriter"></div>
         </div>
         <div class="envelope-pocket"></div>
       </div>
-      <button id="btn-to-proposal" class="btn-main" style="display:none; margin-top: 15px;" onclick="goToProposal()">সারপ্রাইজ দেখুন ❤️</button>
+      <button id="btn-to-proposal" class="btn-main" style="display:none; margin-top: 20px;" onclick="goToProposal()">সারপ্রাইজ দেখুন ❤️</button>
     </div>
 
+    <!-- Screen 3: Photo + Last Message + Proposal -->
     <div id="screen-3" class="screen glass-card">
       <div class="profile-img-box">
         <img id="partner-img" class="profile-img" src="" alt="Profile" />
@@ -329,12 +327,14 @@
       </div>
     </div>
 
+    <!-- Screen 4: Yes Response -->
     <div id="screen-4" class="screen glass-card">
       <div class="icon-big">💖</div>
       <h2 class="title" style="color: #e6005c;">I Love You Too! Forever ❤️</h2>
       <p style="font-size: 18px; color: #800020; font-weight: 600;">তোমার প্রতি ভালোবাসা অবিরাম থাকবে সারাজীবন!</p>
     </div>
 
+    <!-- Screen 5: No Response -->
     <div id="screen-5" class="screen glass-card">
       <div class="icon-big">🥺💔</div>
       <h2 class="title" style="color: #555;">তবুও তোমার মতামত দেওয়ার জন্য ধন্যবাদ! 🌸</h2>
@@ -387,7 +387,29 @@
       }, 200);
     }
 
+    // ওয়েব অডিও এপিআই দিয়ে নির্ভরযোগ্য টাইপিং শব্দ জেনারেটর
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playKeyClick() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.04);
+    }
+
     function openWelcome() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
       const audio = document.getElementById("bg-audio");
       if (audio.src) {
         audio.play().catch(() => {});
@@ -407,7 +429,7 @@
       document.getElementById("env-hint").style.display = "none";
       setTimeout(() => {
         startTypewriter();
-      }, 800);
+      }, 700);
     }
 
     function startTypewriter() {
@@ -415,15 +437,17 @@
       const el = document.getElementById("typewriter");
       let i = 0;
       el.innerHTML = "";
+      
       const interval = setInterval(() => {
         if (i < text.length) {
           el.innerHTML += text.charAt(i);
+          playKeyClick();
           i++;
         } else {
           clearInterval(interval);
           document.getElementById("btn-to-proposal").style.display = "inline-block";
         }
-      }, 65);
+      }, 70);
     }
 
     function goToProposal() {
@@ -446,4 +470,3 @@
   </script>
 </body>
 </html>
-    
