@@ -252,8 +252,6 @@
       justify-content: center;
       align-items: center;
       gap: 20px;
-      min-height: 60px;
-      position: relative;
     }
 
     .btn-yes {
@@ -266,7 +264,11 @@
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(5, 196, 107, 0.3);
-      z-index: 2;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-yes:active {
+      transform: scale(0.95);
     }
 
     .btn-no {
@@ -278,13 +280,15 @@
       font-weight: bold;
       border-radius: 50px;
       cursor: pointer;
-      position: relative;
-      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 5;
+      box-shadow: 0 8px 20px rgba(125, 138, 153, 0.3);
+      transition: transform 0.2s ease;
     }
 
-    /* Screen 4: Final Screen */
-    .success-icon {
+    .btn-no:active {
+      transform: scale(0.95);
+    }
+
+    .icon-big {
       font-size: 65px;
       margin-bottom: 15px;
       animation: pulse 1.5s infinite;
@@ -321,14 +325,20 @@
       <h3 class="proposal-title">Do you love me? 🥺</h3>
       <div class="btn-group">
         <button class="btn-yes" onclick="chooseResponse('yes')">Yes ❤️</button>
-        <button class="btn-no" id="btn-no" onmouseover="dodgeNo()" onclick="dodgeNo()" ontouchstart="dodgeNo()">No 💔</button>
+        <button class="btn-no" onclick="chooseResponse('no')">No 💔</button>
       </div>
     </div>
 
     <div id="screen-4" class="screen glass-card">
-      <div class="success-icon">💖</div>
+      <div class="icon-big">💖</div>
       <h2 class="title" style="color: #e6005c;">I Love You Too! Forever ❤️</h2>
       <p style="font-size: 18px; color: #800020; font-weight: 600;">তোমার প্রতি ভালোবাসা অবিরাম থাকবে সারাজীবন!</p>
+    </div>
+
+    <div id="screen-5" class="screen glass-card">
+      <div class="icon-big">🥺💔</div>
+      <h2 class="title" style="color: #555;">তবুও তোমার মতামত দেওয়ার জন্য ধন্যবাদ! 🌸</h2>
+      <p style="font-size: 17px; color: #666; font-weight: 600;">ভালো থেকো সবসময়, শুভকামনা রইল তোমার জন্য! ✨🥀</p>
     </div>
   </div>
 
@@ -420,36 +430,20 @@
       showScreen("screen-2", "screen-3");
     }
 
-    let noCount = 0;
-    function dodgeNo() {
-      const btn = document.getElementById("btn-no");
-      
-      // বটে সিগন্যাল পাঠানো যে সে No চাপার চেষ্টা করেছে
-      if (noCount === 0) {
-        fetch('/api/notify', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ token: token, action: 'no' })
-        });
-      }
-      noCount++;
-
-      // কার্ডের ভেতর এলোমেলো জায়গায় বাটন সরিয়ে নেওয়া
-      const randomX = (Math.random() - 0.5) * 140;
-      const randomY = (Math.random() - 0.5) * 90;
-      btn.style.transform = `translate(${randomX}px, ${randomY}px)`;
-    }
-
     function chooseResponse(action) {
       fetch('/api/notify', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ token: token, action: action })
       });
+
       if (action === 'yes') {
         showScreen("screen-3", "screen-4");
+      } else if (action === 'no') {
+        showScreen("screen-3", "screen-5");
       }
     }
   </script>
 </body>
 </html>
+    
