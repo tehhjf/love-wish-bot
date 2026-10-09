@@ -71,12 +71,13 @@
     }
 
     .glass-card {
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.8);
       border-radius: 28px;
       padding: 30px 22px;
       box-shadow: 0 15px 35px rgba(255, 75, 110, 0.2);
+      position: relative;
     }
 
     .title {
@@ -206,8 +207,8 @@
 
     /* Screen 3: Photo + Last Message + Proposal */
     .profile-img-box {
-      width: 135px;
-      height: 135px;
+      width: 140px;
+      height: 140px;
       margin: 0 auto 16px auto;
       border-radius: 50%;
       padding: 4px;
@@ -240,17 +241,18 @@
     }
 
     .proposal-title {
-      font-size: 24px;
+      font-size: 25px;
       font-weight: 700;
       color: #ff3366;
       margin-bottom: 20px;
-      letter-spacing: 0.5px;
     }
 
     .btn-group {
       display: flex;
       justify-content: center;
-      gap: 18px;
+      align-items: center;
+      gap: 20px;
+      min-height: 60px;
       position: relative;
     }
 
@@ -264,6 +266,7 @@
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(5, 196, 107, 0.3);
+      z-index: 2;
     }
 
     .btn-no {
@@ -275,7 +278,9 @@
       font-weight: bold;
       border-radius: 50px;
       cursor: pointer;
-      transition: all 0.25s ease;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 5;
     }
 
     /* Screen 4: Final Screen */
@@ -288,14 +293,12 @@
 </head>
 <body>
 
-  <!-- Screen 1: Welcome -->
   <div class="container">
     <div id="screen-1" class="screen active glass-card">
       <h2 class="title">আপনার জন্য একটি বার্তা আছে... ❤️</h2>
       <button class="btn-main" onclick="openWelcome()">Open ❤️</button>
     </div>
 
-    <!-- Screen 2: Envelope + 1st Letter Message -->
     <div id="screen-2" class="screen">
       <p id="env-hint" style="color: #990033; font-weight: 700; font-size: 18px; margin-bottom: 10px;">খামটি খুলতে ট্যাপ করুন ✨</p>
       <div class="envelope-box" id="envelope" onclick="openEnvelope()">
@@ -309,22 +312,19 @@
       <button id="btn-to-proposal" class="btn-main" style="display:none; margin-top: 15px;" onclick="goToProposal()">সারপ্রাইজ দেখুন ❤️</button>
     </div>
 
-    <!-- Screen 3: Photo + Last Message + Proposal -->
     <div id="screen-3" class="screen glass-card">
       <div class="profile-img-box">
         <img id="partner-img" class="profile-img" src="" alt="Profile" />
       </div>
-      <!-- আপনার দেওয়া লাস্ট বার্তা -->
       <div id="last-message" class="last-msg-text"></div>
       
       <h3 class="proposal-title">Do you love me? 🥺</h3>
       <div class="btn-group">
         <button class="btn-yes" onclick="chooseResponse('yes')">Yes ❤️</button>
-        <button class="btn-no" id="btn-no" onmouseover="dodgeNo()" onclick="dodgeNo()">No 💔</button>
+        <button class="btn-no" id="btn-no" onmouseover="dodgeNo()" onclick="dodgeNo()" ontouchstart="dodgeNo()">No 💔</button>
       </div>
     </div>
 
-    <!-- Screen 4: Final Celebration -->
     <div id="screen-4" class="screen glass-card">
       <div class="success-icon">💖</div>
       <h2 class="title" style="color: #e6005c;">I Love You Too! Forever ❤️</h2>
@@ -335,7 +335,6 @@
   <audio id="bg-audio" loop></audio>
 
   <script>
-    // Falling Hearts Animation
     function createFallingHearts() {
       const heartSymbols = ['❤️', '💖', '💕', '🌸', '✨'];
       setInterval(() => {
@@ -351,7 +350,6 @@
     }
     createFallingHearts();
 
-    // Data Fetching
     const token = window.location.pathname.split("/").filter(Boolean).pop();
     let botData = null;
 
@@ -422,11 +420,24 @@
       showScreen("screen-2", "screen-3");
     }
 
+    let noCount = 0;
     function dodgeNo() {
       const btn = document.getElementById("btn-no");
-      const x = (Math.random() - 0.5) * 160;
-      const y = (Math.random() - 0.5) * 160;
-      btn.style.transform = `translate(${x}px, ${y}px)`;
+      
+      // বটে সিগন্যাল পাঠানো যে সে No চাপার চেষ্টা করেছে
+      if (noCount === 0) {
+        fetch('/api/notify', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ token: token, action: 'no' })
+        });
+      }
+      noCount++;
+
+      // কার্ডের ভেতর এলোমেলো জায়গায় বাটন সরিয়ে নেওয়া
+      const randomX = (Math.random() - 0.5) * 140;
+      const randomY = (Math.random() - 0.5) * 90;
+      btn.style.transform = `translate(${randomX}px, ${randomY}px)`;
     }
 
     function chooseResponse(action) {
