@@ -95,12 +95,28 @@
       50% { transform: scale(1.05); box-shadow: 0 12px 30px rgba(255, 51, 102, 0.6); }
     }
 
-    /* রোমান্টিক থ্রিডি খামের সম্পূর্ণ নতুন লুক */
+    /* খামের ওপরের হেডলাইন */
+    .sender-header {
+      font-size: 20px;
+      font-weight: 700;
+      color: #b0003a;
+      margin-bottom: 6px;
+      text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+    }
+
+    .tap-hint {
+      color: #800f2f;
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    /* রোমান্টিক খাম */
     .envelope-wrapper {
       position: relative;
       width: 300px;
       height: 200px;
-      margin: 40px auto 20px auto;
+      margin: 10px auto 20px auto;
       background: #c9184a;
       border-radius: 12px;
       box-shadow: 0 20px 45px rgba(164, 19, 60, 0.35);
@@ -131,22 +147,30 @@
       z-index: 4;
     }
 
-    .seal-btn {
+    /* খামের মাঝের গোল ছবি সিল */
+    .seal-img-wrapper {
       position: absolute;
       top: 88px;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 48px;
-      height: 48px;
-      background: radial-gradient(circle, #ffe066, #b8860b);
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
+      border: 3px solid #ffd700;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+      z-index: 6;
+      background: #ffe3ea;
+      overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      z-index: 6;
-      font-size: 24px;
       transition: 0.4s ease;
+    }
+
+    .seal-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .envelope-wrapper.open .flap {
@@ -154,7 +178,7 @@
       z-index: 1;
     }
 
-    .envelope-wrapper.open .seal-btn {
+    .envelope-wrapper.open .seal-img-wrapper {
       opacity: 0;
       pointer-events: none;
     }
@@ -245,18 +269,22 @@
 <body>
 
   <div class="container">
-    <!-- Screen 1 -->
+    <!-- Screen 1: Welcome -->
     <div id="screen-1" class="screen active glass-card">
       <h2 class="title">আপনার জন্য একটি বিশেষ বার্তা আছে... ❤️</h2>
       <button class="btn-main" onclick="openWelcome()">Open ❤️</button>
     </div>
 
-    <!-- Screen 2 -->
+    <!-- Screen 2: Envelope + Photo Seal + Message -->
     <div id="screen-2" class="screen">
-      <p id="env-hint" style="color: #990033; font-weight: 700; font-size: 18px; margin-bottom: 8px;">খামটি খুলতে ট্যাপ করুন ✨</p>
+      <h3 id="sender-display" class="sender-header">✨ আপনার জন্য একটি বিশেষ বার্তা পাঠিয়েছে ❤️</h3>
+      <p class="tap-hint">খামটি খুলতে ট্যাপ করুন ✨</p>
+      
       <div class="envelope-wrapper" id="envelope" onclick="openEnvelope()">
         <div class="flap"></div>
-        <div class="seal-btn">💌</div>
+        <div class="seal-img-wrapper">
+          <img id="partner-seal-img" src="" alt="Seal Photo" />
+        </div>
         <div class="letter-paper">
           <div id="typewriter"></div>
         </div>
@@ -265,7 +293,7 @@
       <button id="btn-to-proposal" class="btn-main" style="display:none; margin-top: 15px;" onclick="goToProposal()">সারপ্রাইজ দেখুন ❤️</button>
     </div>
 
-    <!-- Screen 3 -->
+    <!-- Screen 3: Big Photo + Last Message + Proposal -->
     <div id="screen-3" class="screen glass-card">
       <div class="profile-img-box">
         <img id="partner-img" class="profile-img" src="" alt="Profile" />
@@ -279,14 +307,14 @@
       </div>
     </div>
 
-    <!-- Screen 4 -->
+    <!-- Screen 4: Yes Response -->
     <div id="screen-4" class="screen glass-card">
       <div style="font-size: 60px; margin-bottom: 15px;">💖</div>
       <h2 class="title" style="color: #e6005c;">I Love You Too! Forever ❤️</h2>
       <p style="font-size: 18px; color: #800020; font-weight: 600;">তোমার প্রতি ভালোবাসা অবিরাম থাকবে সারাজীবন!</p>
     </div>
 
-    <!-- Screen 5 -->
+    <!-- Screen 5: No Response -->
     <div id="screen-5" class="screen glass-card">
       <div style="font-size: 60px; margin-bottom: 15px;">🥺💔</div>
       <h2 class="title" style="color: #555;">তবুও তোমার মতামত দেওয়ার জন্য ধন্যবাদ! 🌸</h2>
@@ -320,34 +348,21 @@
       .then(data => {
         if (!data.error) {
           botData = data;
-          if (data.photo_url) document.getElementById("partner-img").src = data.photo_url;
-          if (data.audio_url) document.getElementById("bg-audio").src = data.audio_url;
-          if (data.msg2) document.getElementById("last-message").innerText = data.msg2;
+          if (data.sender_name) {
+            document.getElementById("sender-display").innerText = `✨ ${data.sender_name} আপনার জন্য একটি বিশেষ বার্তা পাঠিয়েছে ❤️`;
+          }
+          if (data.photo_url) {
+            document.getElementById("partner-seal-img").src = data.photo_url;
+            document.getElementById("partner-img").src = data.photo_url;
+          }
+          if (data.audio_url) {
+            document.getElementById("bg-audio").src = data.audio_url;
+          }
+          if (data.msg2) {
+            document.getElementById("last-message").innerText = data.msg2;
+          }
         }
       });
-
-    // স্পষ্ট ও রোমান্টিক কিবোর্ড টাইপ সাউন্ড
-    let audioCtx = null;
-    function playKeyClick() {
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.05);
-
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.05);
-      } catch (e) {}
-    }
 
     function showScreen(fromId, toId) {
       document.getElementById(fromId).classList.remove("active");
@@ -357,12 +372,6 @@
     }
 
     function openWelcome() {
-      // সাউন্ড ইঞ্জিন আনলক
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-      } catch(e) {}
-
       const audio = document.getElementById("bg-audio");
       if (audio.src) audio.play().catch(() => {});
 
@@ -378,13 +387,13 @@
       const env = document.getElementById("envelope");
       if (env.classList.contains("open")) return;
       env.classList.add("open");
-      document.getElementById("env-hint").style.display = "none";
+      document.querySelector(".tap-hint").style.display = "none";
       setTimeout(() => {
         startTypewriter();
       }, 850);
     }
 
-    // প্রতি অক্ষরের জন্য রিয়েলিস্টিক টাইপরাইটার অ্যানিমেশন
+    // শব্দহীন টাইপরাইটার অ্যানিমেশন
     function startTypewriter() {
       const text = botData && botData.msg1 ? botData.msg1 : "গুছিয়ে বলতে পারিনা কোন কিছু...! তবে যতটুকু পেরেছি মনের অন্তরাল থেকে লিখেছি...";
       const el = document.getElementById("typewriter");
@@ -394,13 +403,12 @@
       const interval = setInterval(() => {
         if (i < text.length) {
           el.innerHTML += text.charAt(i);
-          playKeyClick();
           i++;
         } else {
           clearInterval(interval);
           document.getElementById("btn-to-proposal").style.display = "inline-block";
         }
-      }, 120); // পারফেক্ট ও স্পষ্ট টাইপিং স্পিড
+      }, 85);
     }
 
     function goToProposal() {
@@ -422,4 +430,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
