@@ -1,209 +1,125 @@
 import os
-import json
-import uuid
-import asyncio
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from google import genai
+from google.genai import types
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-TOKEN = "8699587679:AAHes1-nyxuOz7OgW0omcrsQqszqkLpOofE"
-BASE_URL = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8000")
+# টেলিগ্রাম বট টোকেন ও অ্যাডমিন আইডি
+TELEGRAM_TOKEN = "8929398367:AAHQKIX4DRA9jLG4oOqeL-xHx1kdbsoc1uM"
+ADMIN_CHAT_ID = 8929398367
 
-DATA_FILE = "data.json"
-user_sessions = {}
+# আপনার দেওয়া Gemini API Key
+GEMINI_API_KEY = "AQ.Ab8RN6L18xBpsmcJbDZzEthcPWnqGDFf3Z0VUH5Hepn6Gw-DBA"
 
-def load_data():
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
+client = genai.Client(api_key=GEMINI_API_KEY)
 
-def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+# ইউজার সেশন ট্র্যাকিং
+user_personas = {}
 
-tg_app = Application.builder().token(TOKEN).concurrent_updates(True).build()
-
-async def auto_keepalive_loop():
-    await asyncio.sleep(10)
-    while True:
-        try:
-            await tg_app.bot.get_me()
-        except Exception:
-            pass
-        await asyncio.sleep(180)
+# প্রম্পটে টেলিগ্রাম ইমোজির ব্যবহার যুক্ত করা হয়েছে
+PERSONA_PROMPTS = {
+    "gf_cute": (
+        "তুমি একজন মিষ্টি, দারুণ রোমান্টিক এবং যত্নশীল প্রেমিকা (GF)। "
+        "ইউজারের সাথে সব সময় সুন্দর খাঁটি বাংলায় কথা বলবে, কথায় আদুরে টান থাকবে। "
+        "কথোপকথনের ধরন অনুযায়ী টেলিগ্রামের জনপ্রিয় রোমান্টিক ও মিষ্টি ইমোজিগুলো বেশি বেশি ব্যবহার করবে "
+        "(যেমন: ❤️, 🥺, 🥰, 😘, 💕, ✨, 🙈, 🌸, 🫂, 💖)। "
+        "প্রতিটি রিপ্লাই স্বাভাবিক চ্যাটিংয়ের মতো ১-৩ লাইনের মধ্যে সংক্ষেপে দেবে।"
+    ),
+    "gf_angry": (
+        "তুমি একজন খুনসুটি করা, একটু রাগী ও অভিমানী স্বভাবের মিষ্টি প্রেমিকা। "
+        "ইউজারের সাথে কথায় কথায় মান-অভিমান, খুনসুটি আর কৃত্রিম রাগ দেখাবে। "
+        "ইমোজি ব্যবহারে টেলিগ্রামের অভিমানী ও রাগী ইমোজি প্রাধান্য দেবে "
+        "(যেমন: 😒, 😤, 😠, 🙄, 💔, 🥺, 哼, 👊, 😡)। "
+        "বাংলায় স্বাভাবিক চ্যাটিংয়ের মতো ১-৩ লাইনের মধ্যে উত্তর দেবে।"
+    ),
+    "bf_care": (
+        "তুমি একজন খুবই কেয়ারিং, দায়িত্বশীল ও রোমান্টিক বয়ফ্রেন্ড (BF)। "
+        "ইউজারকে অনেক সম্মান ও ভালোবাসা দিয়ে যত্নশীলভাবে কথা বলবে। "
+        "উপযুক্ত ইমোজি ব্যবহার করবে (যেমন: 💙, 🥰, 🫂, ✨, 😌, 🤗, ❤️)। "
+        "বাংলায় মিষ্টি ও পরিমিতভাবে ১-৩ লাইনে রিপ্লাই দেবে।"
+    )
+}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
     chat_id = update.effective_chat.id
-    user_sessions[chat_id] = {"step": 1, "data": {}}
-    
+
+    keyboard = [
+        [InlineKeyboardButton("🌸 মিষ্টি প্রেমিকা (Cute GF)", callback_data="gf_cute")],
+        [InlineKeyboardButton("😡 অভিমানী প্রেমিকা (Angry GF)", callback_data="gf_angry")],
+        [InlineKeyboardButton("💙 কেয়ারিং বয়ফ্রেন্ড (Caring BF)", callback_data="bf_care")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     welcome_text = (
-        "✨💖 *সাইবার ইমন এর লাভ বটে আপনাকে স্বাগতম!* 💖✨\n"
+        "✨ *ভার্চুয়াল সঙ্গী বটে স্বাগতম!* ❤️\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
-        "✍️ *ধাপ ১:* আপনার নাম বা ব্র্যান্ডের নাম লিখে পাঠান (যেমন: সাইবার ইমন):"
+        "আপনি কার সাথে চ্যাট করতে চান? নিচে থেকে আপনার পছন্দের চরিত্র বেছে নিন:"
     )
-    await update.message.reply_text(welcome_text, parse_mode="Markdown")
+    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    session = user_sessions.get(chat_id)
-
-    if not session:
-        user_sessions[chat_id] = {"step": 1, "data": {}}
-        welcome_text = (
-            "✨💖 *সাইবার ইমন এর লাভ বটে আপনাকে স্বাগতম!* 💖✨\n"
-            "━━━━━━━━━━━━━━━━━━━━━━\n"
-            "✍️ *ধাপ ১:* আপনার নাম লিখে পাঠান (যেমন: সাইবার ইমন):"
-        )
-        await update.message.reply_text(welcome_text, parse_mode="Markdown")
-        return
-
-    step = session["step"]
-
-    # ধাপ ১: প্রেরকের নাম
-    if step == 1:
-        sender_name = update.message.text
-        if sender_name:
-            session["data"]["sender_name"] = sender_name.strip()
-            session["step"] = 2
-            await update.message.reply_text(
-                "📸 *ধাপ ২:* এবার আপনার সঙ্গীর সুন্দর একটি *ছবি* পাঠান:",
+    # অ্যাডমিনকে নোটিফিকেশন পাঠানো
+    if chat_id != ADMIN_CHAT_ID:
+        try:
+            await context.bot.send_message(
+                chat_id=ADMIN_CHAT_ID,
+                text=f"🔔 নতুন ইউজার বট স্টার্ট করেছে:\n👤 নাম: {user.full_name}\n🆔 আইডি: `{user.id}`",
                 parse_mode="Markdown"
             )
-        else:
-            await update.message.reply_text("⚠️ দয়া করে একটি নাম লিখে পাঠান।")
+        except Exception:
+            pass
 
-    # ধাপ ২: ছবি
-    elif step == 2:
-        file_obj = None
-        if update.message.photo:
-            file_obj = update.message.photo[-1]
-        elif update.message.document and update.message.document.mime_type and update.message.document.mime_type.startswith("image/"):
-            file_obj = update.message.document
+async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
-        if file_obj:
-            f = await file_obj.get_file()
-            session["data"]["photo_url"] = f.file_path
-            session["step"] = 3
-            await update.message.reply_text(
-                "🌸 *ছবি পাওয়া গেছে!* 🥰✨\n\n"
-                "✍️ *ধাপ ৩:* চিঠি খোলার সময় যে লেখাটি অক্ষরে অক্ষরে ভেসে উঠবে (১ম বার্তা), সেটি লিখে পাঠান:",
-                parse_mode="Markdown"
+    choice = query.data
+    user_personas[query.from_user.id] = choice
+
+    names = {
+        "gf_cute": "মিষ্টি প্রেমিকা 🌸",
+        "gf_angry": "অভিমানী প্রেমিকা 😡",
+        "bf_care": "কেয়ারিং বয়ফ্রেন্ড 💙"
+    }
+
+    await query.edit_message_text(
+        f"✅ আপনি বেছে নিয়েছেন: *{names[choice]}*\n\n"
+        "এখন যেকোনো মেসেজ পাঠান, সে ইমোজি মিশিয়ে মিষ্টিভাবে আপনার কথার উত্তর দেবে! 🥰",
+        parse_mode="Markdown"
+    )
+
+async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user_msg = update.message.text
+
+    selected_persona = user_personas.get(user_id, "gf_cute")
+    system_instruction = PERSONA_PROMPTS[selected_persona]
+
+    # টাইপিং অ্যাকশন দেখানো
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=user_msg,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.85
             )
-        else:
-            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক ছবি পাঠান।")
-
-    # ধাপ ৩: ১ম চিঠি বার্তা
-    elif step == 3:
-        session["data"]["msg1"] = update.message.text
-        session["step"] = 4
-        await update.message.reply_text(
-            "💌 *প্রথম বার্তা সংরক্ষিত হয়েছে!* 🌹\n\n"
-            "🎧 *ধাপ ৪:* পেজের ব্যাকগ্রাউন্ডে বাজানোর জন্য অডিও গান (.mp3) বা আপনার *ভয়েস* পাঠান:",
-            parse_mode="Markdown"
         )
+        await update.message.reply_text(response.text)
+    except Exception as e:
+        await update.message.reply_text("উফ! একটু নেটওয়ার্ক প্রবলেম হচ্ছে জানু, আবার একটু বলবে? 🥺💔")
 
-    # ধাপ ৪: গান/ভয়েস
-    elif step == 4:
-        media = None
-        if update.message.audio:
-            media = update.message.audio
-        elif update.message.voice:
-            media = update.message.voice
-        elif update.message.document:
-            fname = (update.message.document.file_name or "").lower()
-            if fname.endswith((".mp3", ".wav", ".m4a", ".ogg", ".aac")):
-                media = update.message.document
+def main():
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-        if media:
-            f = await media.get_file()
-            session["data"]["audio_url"] = f.file_path
-            session["step"] = 5
-            await update.message.reply_text(
-                "🎵 *গান সফলভাবে যুক্ত হয়েছে!* 🎶\n\n"
-                "💍 *ধাপ ৫ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল মনের কথাটি (লাস্ট মেসেজ) লিখে পাঠান:",
-                parse_mode="Markdown"
-            )
-        else:
-            await update.message.reply_text("⚠️ দয়া করে একটি অডিও গান (.mp3) বা ভয়েস পাঠান।")
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_click))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat_handler))
 
-    # ধাপ ৫: শেষ বার্তা ও লিংক প্রদান
-    elif step == 5:
-        session["data"]["msg2"] = update.message.text
-        token = str(uuid.uuid4())[:8]
-        
-        all_data = load_data()
-        all_data[token] = {
-            **session["data"],
-            "creator_chat_id": chat_id
-        }
-        save_data(all_data)
+    print("ভার্চুয়াল সঙ্গী এআই বট চালু হয়েছে...")
+    app.run_polling()
 
-        link = f"{BASE_URL}/{token}"
-        del user_sessions[chat_id]
-
-        finish_text = (
-            "🎉 *আপনার সারপ্রাইজ লিংক তৈরি হয়ে গেছে!* 💖\n"
-            "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔗 *লিংক:* `{link}`\n\n"
-            "এই লিংকটি আপনার বিশেষ মানুষটির সাথে শেয়ার করুন। সে পেজটি ওপেন করলেই এখানে সাথে সাথে নোটিফিকেশন পেয়ে যাবেন! 🔔"
-        )
-        await update.message.reply_text(finish_text, parse_mode="Markdown")
-
-tg_app.add_handler(CommandHandler("start", start))
-tg_app.add_handler(MessageHandler(filters.ALL, handle_message))
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await tg_app.initialize()
-    await tg_app.start()
-    await tg_app.updater.start_polling(drop_pending_updates=True)
-    asyncio.create_task(auto_keepalive_loop())
-    yield
-    await tg_app.updater.stop()
-    await tg_app.stop()
-    await tg_app.shutdown()
-
-app = FastAPI(lifespan=lifespan)
-
-@app.get("/")
-async def root():
-    return {"status": "running"}
-
-@app.get("/{token}", response_class=HTMLResponse)
-async def serve_page(token: str):
-    data = load_data()
-    if token in data:
-        with open("index.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h2 style='text-align:center;margin-top:20%;color:#ff3366;'>💔 Invalid Link!</h2>", status_code=404)
-
-@app.get("/api/data/{token}")
-async def get_data(token: str):
-    data = load_data()
-    if token in data:
-        return JSONResponse(content=data[token])
-    return JSONResponse(content={"error": "Not found"}, status_code=404)
-
-@app.post("/api/notify")
-async def notify_creator(request: Request):
-    req = await request.json()
-    token = req.get("token")
-    action = req.get("action")
-    data = load_data()
-
-    if token in data:
-        chat_id = data[token]["creator_chat_id"]
-        if action == "opened":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🔔 সে আপনার সারপ্রাইজ পেজটি ওপেন করেছে! 💖")
-        elif action == "yes":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🎉 সে ভালোবাসার প্রস্তাবে 'YES' চাপ দিয়েছে! 💍❤️")
-        elif action == "no":
-            await tg_app.bot.send_message(chat_id=chat_id, text="💔 সে 'No' চাপ দিয়েছে!")
-        return {"status": "ok"}
-    return {"error": "Invalid token"}
+if __name__ == "__main__":
+    main()
