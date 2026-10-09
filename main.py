@@ -1,6 +1,8 @@
 import os
 import json
 import uuid
+import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from telegram import Update
@@ -9,43 +11,46 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 TOKEN = "8699587679:AAHes1-nyxuOz7OgW0omcrsQqszqkLpOofE"
 BASE_URL = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8000")
 
-app = FastAPI()
 DATA_FILE = "data.json"
+user_sessions = {}
 
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
     return {}
 
 def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-user_sessions = {}
+tg_app = Application.builder().token(TOKEN).concurrent_updates(True).build()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_sessions[chat_id] = {"step": 1, "data": {}}
     
-    welcome_msg = (
-        "✨💖 *ভালোবাসার সারপ্রাইজ পেজ মেকার* 💖✨\n"
+    welcome_text = (
+        "✨💖 *সাইবার ইমন এর লাভ বটে আপনাকে স্বাগতম!* 💖✨\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
-        "📸 *ধাপ ১:* আপনার সঙ্গীর একটি সুন্দর *ছবি* পাঠান:"
+        "📸 *ধাপ ১:* আপনার সঙ্গীর সুন্দর একটি *ছবি* পাঠান:"
     )
-    await update.message.reply_text(welcome_msg, parse_mode="Markdown")
+    await update.message.reply_text(welcome_text, parse_mode="Markdown")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     session = user_sessions.get(chat_id)
 
     if not session:
-        await update.message.reply_text("✨ শুরু করতে /start লিখুন।")
+        await update.message.reply_text("✨ নতুন পেজ তৈরি করতে /start পাঠান।")
         return
 
     step = session["step"]
 
-    # ধাপ ১: ছবি পাওয়া মাত্র সেকেন্ডের মধ্যে রিপ্লাই
+    # ধাপ ১: ছবি গ্রহণ
     if step == 1:
         file_obj = None
         if update.message.photo:
@@ -58,26 +63,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             session["data"]["photo_url"] = f.file_path
             session["step"] = 2
             
-            msg = (
-                "🌸 *ছবি সংরক্ষিত হয়েছে!* 🥰✨\n\n"
-                "✍️ *ধাপ ২:* খামের ভেতর চিঠি খোলার সময় যে লেখাটি টাইপ হবে (১ম বার্তা), সেটি লিখে পাঠান:"
+            await update.message.reply_text(
+                "🌸 *ছবি সফলভাবে পাওয়া গেছে!* 🥰✨\n\n"
+                "✍️ *ধাপ ২:* চিঠি খোলার সময় যে রোমান্টিক লেখাটি টাইপ হবে (১ম বার্তা), সেটি লিখে পাঠান:",
+                parse_mode="Markdown"
             )
-            await update.message.reply_text(msg, parse_mode="Markdown")
         else:
-            await update.message.reply_text("⚠️ দয়া করে একটি ছবি পাঠান।")
+            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক ছবি পাঠান।")
 
-    # ধাপ ২: ১ম বার্তা
+    # ধাপ ২: ১ম বার্তা গ্রহণ
     elif step == 2:
         session["data"]["msg1"] = update.message.text
         session["step"] = 3
         
-        msg = (
+        await update.message.reply_text(
             "💌 *প্রথম বার্তা সংরক্ষিত হয়েছে!* 🌹\n\n"
-            "🎧 *ধাপ ৩:* এবার পেজের ব্যাকগ্রাউন্ড মিউজিকের জন্য গান (.mp3) বা ভয়েস পাঠান:"
+            "🎧 *ধাপ ৩:* পেজের ব্যাকগ্রাউন্ডে বাজানোর জন্য যেকোনো গান (.mp3) বা আপনার *ভয়েস* পাঠান:",
+            parse_mode="Markdown"
         )
-        await update.message.reply_text(msg, parse_mode="Markdown")
 
-    # ধাপ ৩: অডিও পাওয়া মাত্র রিপ্লাই
+    # ধাপ ৩: অডিও গ্রহণ
     elif step == 3:
         media = None
         if update.message.audio:
@@ -95,13 +100,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             session["data"]["audio_url"] = f.file_path
             session["step"] = 4
             
-            msg = (
-                "🎵 *অডিও গান যুক্ত হয়েছে!* 🎶\n\n"
-                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে মনের কথাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:"
+            await update.message.reply_text(
+                "🎵 *গান সফলভাবে যুক্ত হয়েছে!* 🎶\n\n"
+                "💍 *ধাপ ৪ (শেষ ধাপ):* এবার ৩য় স্ক্রিনে ছবির নিচে মূল যে মনের কথাটি থাকবে (লাস্ট মেসেজ), সেটি লিখে পাঠান:",
+                parse_mode="Markdown"
             )
-            await update.message.reply_text(msg, parse_mode="Markdown")
         else:
-            await update.message.reply_text("⚠️ দয়া করে একটি সঠিক গান (.mp3) বা ভয়েস দিন।")
+            await update.message.reply_text("⚠️ দয়া করে একটি অডিও গান (.mp3) বা ভয়েস পাঠান।")
 
     # ধাপ ৪: লিংক জেনারেট
     elif step == 4:
@@ -118,29 +123,28 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         link = f"{BASE_URL}/{token}"
         del user_sessions[chat_id]
 
-        finish_card = (
+        finish_text = (
             "🎉 *আপনার সারপ্রাইজ লিংক তৈরি হয়ে গেছে!* 💖\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             f"🔗 *লিংক:* `{link}`\n\n"
-            "লিংকটি আপনার সঙ্গীকে পাঠান। সে পেজ খুললেই সাথে সাথে নোটিফিকেশন পাবেন! 🔔"
+            "এই লিংকটি আপনার বিশেষ মানুষটির সাথে শেয়ার করুন। সে পেজটি ওপেন করলেই এখানে সাথে সাথে নোটিফিকেশন পাবেন! 🔔"
         )
-        await update.message.reply_text(finish_card, parse_mode="Markdown")
+        await update.message.reply_text(finish_text, parse_mode="Markdown")
 
-tg_app = Application.builder().token(TOKEN).concurrent_updates(True).build()
 tg_app.add_handler(CommandHandler("start", start))
 tg_app.add_handler(MessageHandler(filters.ALL, handle_message))
 
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await tg_app.initialize()
     await tg_app.start()
     await tg_app.updater.start_polling(drop_pending_updates=True)
-
-@app.on_event("shutdown")
-async def on_shutdown():
+    yield
     await tg_app.updater.stop()
     await tg_app.stop()
     await tg_app.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/{token}", response_class=HTMLResponse)
 async def serve_page(token: str):
@@ -167,10 +171,10 @@ async def notify_creator(request: Request):
     if token in data:
         chat_id = data[token]["creator_chat_id"]
         if action == "opened":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🔔 সারপ্রাইজ পেজটি এইমাত্র সে ওপেন করেছে! 💖")
+            await tg_app.bot.send_message(chat_id=chat_id, text="🔔 সে সারপ্রাইজ পেজটি ওপেন করেছে! 💖")
         elif action == "yes":
             await tg_app.bot.send_message(chat_id=chat_id, text="🎉 সে ভালোবাসার প্রস্তাবে 'YES' চাপ দিয়েছে! 💍❤️")
         elif action == "no":
-            await tg_app.bot.send_message(chat_id=chat_id, text="🥺 সে 'No' চাপার চেষ্টা করেছে, বাটন সরে গেছে!")
+            await tg_app.bot.send_message(chat_id=chat_id, text="🥺 সে 'No' চাপার চেষ্টা করেছে, কিন্তু বাটনটি সরে গেছে!")
         return {"status": "ok"}
     return {"error": "Invalid token"}
