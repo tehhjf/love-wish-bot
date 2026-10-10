@@ -5,12 +5,12 @@ from google import genai
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-# Render-এর জন্য ডামি ওয়েব সার্ভার (ডিপ্লয় টাইম-আউট রোধ করতে)
+# Render-এর জন্য ডামি ওয়েব সার্ভার (টাইম-আউট রোধ করতে)
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot is running successfully!")
+        self.wfile.write(b"Bot is live!")
 
 def run_web_server():
     port = int(os.environ.get("PORT", 8080))
@@ -20,9 +20,10 @@ def run_web_server():
 TELEGRAM_TOKEN = "8929398367:AAHQKIX4DRA9jLG4oOqeL-xHx1kdbsoc1uM"
 ADMIN_CHAT_ID = 8929398367
 
-# আপনার নতুন Gemini API Key
-GEMINI_API_KEY = "AQ.Ab8RN6LLhBsh7p70r5DbZMAqjYaYqg1FVfuHGsuqC3-oczu1mw"
+# আপনার দেওয়া কি
+GEMINI_API_KEY = "AQ.Ab8RN6KyUvAI1SjiWfy9Eg4yDGnqt7npz1E6JnNOK9zHimEQ4g"
 
+# ক্লায়েন্ট ইনিশিয়ালাইজেশন
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 user_personas = {}
@@ -92,20 +93,19 @@ async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
 
-    full_prompt = f"System Instruction: {prompt_instruction}\nUser: {user_msg}\nResponse:"
+    full_prompt = f"System Instruction: {prompt_instruction}\n\nUser Message: {user_msg}\nResponse:"
 
     try:
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=full_prompt
+            contents=full_prompt,
         )
         await update.message.reply_text(response.text)
     except Exception as e:
-        print(f"Gemini API Error: {e}")
+        print(f"Error: {e}")
         await update.message.reply_text(f"সমস্যা হচ্ছে: {e}")
 
 def main():
-    # ডামি ব্যাকগ্রাউন্ড সার্ভার চালু করা
     threading.Thread(target=run_web_server, daemon=True).start()
 
     app = Application.builder().token(TELEGRAM_TOKEN).build()
@@ -113,7 +113,7 @@ def main():
     app.add_handler(CallbackQueryHandler(button_click))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat_handler))
 
-    print("ভার্চুয়াল সঙ্গী এআই বট চালু হয়েছে...")
+    print("বট সফলভাবে চালু হয়েছে...")
     app.run_polling()
 
 if __name__ == "__main__":
