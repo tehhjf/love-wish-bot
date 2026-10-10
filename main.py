@@ -19,7 +19,9 @@ def run_web_server():
 
 TELEGRAM_TOKEN = "8929398367:AAHQKIX4DRA9jLG4oOqeL-xHx1kdbsoc1uM"
 ADMIN_CHAT_ID = 8929398367
-GEMINI_API_KEY = "AQ.Ab8RN6L18xBpsmcJbDZzEthcPWnqGDFf3Z0VUH5Hepn6Gw-DBA"
+
+# আপনার নতুন Gemini API Key
+GEMINI_API_KEY = "AQ.Ab8RN6LLhBsh7p70r5DbZMAqjYaYqg1FVfuHGsuqC3-oczu1mw"
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
