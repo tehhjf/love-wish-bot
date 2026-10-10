@@ -1,16 +1,16 @@
 import os
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import google.generativeai as genai
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+import yt_dlp
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# Render-এর জন্য ডামি সার্ভার
+# Render-এর জন্য ডামি ওয়েব সার্ভার
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot is alive!")
+        self.wfile.write(b"Video Downloader Bot is running!")
 
 def run_web_server():
     port = int(os.environ.get("PORT", 8080))
@@ -18,100 +18,62 @@ def run_web_server():
     server.serve_forever()
 
 TELEGRAM_TOKEN = "8929398367:AAHQKIX4DRA9jLG4oOqeL-xHx1kdbsoc1uM"
-ADMIN_CHAT_ID = 8929398367
-
-# আপনার দেওয়া নতুন কি
-GEMINI_API_KEY = "AQ.Ab8RN6JqMx8aG0UzV0O_q9yoOTNBVCCP8nu4FW4O7I2Uqf7XVQ"
-os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
-
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
-
-user_personas = {}
-
-PERSONA_PROMPTS = {
-    "gf_cute": (
-        "তুমি একজন মিষ্টি, রোমান্টিক এবং যত্নশীল প্রেমিকা (GF)। "
-        "ইউজারের সাথে সব সময় সুন্দর মিষ্টি বাংলায় কথা বলবে। "
-        "টেলিগ্রামের রোমান্টিক ইমোজি ব্যবহার করবে (❤️, 🥺, 🥰, 😘, 💕, ✨, 🙈)। "
-        "স্বাভাবিক চ্যাটিংয়ের মতো ১-৩ লাইনে উত্তর দেবে।"
-    ),
-    "gf_angry": (
-        "তুমি একজন অভিমানী ও খুনসুটি করা প্রেমিকা। "
-        "ইউজারের সাথে মান-অভিমান আর মিষ্টি রাগ দেখাবে। "
-        "টেলিগ্রামের অভিমানী ইমোজি ব্যবহার করবে (😒, 😤, 😠, 🙄, 💔, 🥺)। "
-        "বাংলায় ১-৩ লাইনে উত্তর দেবে।"
-    ),
-    "bf_care": (
-        "তুমি একজন কেয়ারিং ও রোমান্টিক বয়ফ্রেন্ড (BF)। "
-        "ইউজারকে সম্মান ও ভালোবাসা দিয়ে মিষ্টি বাংলায় কথা বলবে। "
-        "উপযুক্ত ইমোজি ব্যবহার করবে (💙, 🥰, 🫂, ✨, 😌)। "
-        "১-৩ লাইনে পরিমিত উত্তর দেবে।"
-    )
-}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("🌸 মিষ্টি প্রেমিকা (Cute GF)", callback_data="gf_cute")],
-        [InlineKeyboardButton("😡 অভিমানী প্রেমিকা (Angry GF)", callback_data="gf_angry")],
-        [InlineKeyboardButton("💙 কেয়ারিং বয়ফ্রেন্ড (Caring BF)", callback_data="bf_care")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await update.message.reply_text(
-        "✨ *ভার্চুয়াল সঙ্গী বটে স্বাগতম!* ❤️\n"
-        "━━━━━━━━━━━━━━━━━━━━━━\n"
-        "কার সাথে কথা বলতে চান? নিচে থেকে বেছে নিন:",
-        reply_markup=reply_markup,
-        parse_mode="Markdown"
+    welcome_text = (
+        "🎬 *ভিডিও ডাউনলোডার বটে স্বাগতম!*\n\n"
+        "যেকোনো ভিডিওর লিংক (Facebook, TikTok, Instagram, YouTube Shorts) "
+        "এখানে পাঠান, আমি সরাসরি ভিডিও পাঠিয়ে দেব।"
     )
+    await update.message.reply_text(welcome_text, parse_mode="Markdown")
 
-async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
+async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    url = update.message.text.strip()
+    
+    if not (url.startswith("http://") or url.startswith("https://")):
+        await update.message.reply_text("অনুগ্রহ করে একটি সঠিক ভিডিও লিংক পাঠান!")
+        return
 
-    choice = query.data
-    user_personas[query.from_user.id] = choice
+    status_msg = await update.message.reply_text("⏳ ভিডিও ডাউনলোড হচ্ছে, একটু অপেক্ষা করুন...")
+    
+    output_filename = f"video_{update.message.chat_id}.mp4"
 
-    names = {
-        "gf_cute": "মিষ্টি প্রেমিকা 🌸",
-        "gf_angry": "অভিমানী প্রেমিকা 😡",
-        "bf_care": "কেয়ারিং বয়ফ্রেন্ড 💙"
+    # yt-dlp কনফিগারেশন (টেলিগ্রামের ফ্রি ৫০ মেগাবাইট লিমিট বজায় রাখতে)
+    ydl_opts = {
+        'format': 'best[ext=mp4][filesize<48M]/best[ext=mp4]/best',
+        'outtmpl': output_filename,
+        'quiet': True,
+        'no_warnings': True
     }
 
-    await query.edit_message_text(
-        f"✅ আপনি বেছে নিয়েছেন: *{names[choice]}*\n\n"
-        "এখন যেকোনো মেসেজ পাঠান, সে মনের মতো করে উত্তর দেবে! 🥰",
-        parse_mode="Markdown"
-    )
-
-async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    user_msg = update.message.text
-
-    selected_persona = user_personas.get(user_id, "gf_cute")
-    prompt_instruction = PERSONA_PROMPTS[selected_persona]
-
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-
-    full_prompt = f"{prompt_instruction}\n\nইউজার বলেছে: {user_msg}\nতোমার উত্তর:"
-
     try:
-        response = model.generate_content(full_prompt)
-        await update.message.reply_text(response.text)
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+
+        if os.path.exists(output_filename):
+            await status_msg.edit_text("📤 টেলিগ্রামে ভিডিও আপলোড হচ্ছে...")
+            
+            with open(output_filename, 'rb') as video_file:
+                await update.message.reply_video(video=video_file, caption="✅ ডাউনলোড সম্পন্ন!")
+            
+            os.remove(output_filename)
+            await status_msg.delete()
+        else:
+            await status_msg.edit_text("ভিডিওটি ডাউনলোড করা সম্ভব হয়নি। লিংকটি আবার চেক করুন।")
+
     except Exception as e:
-        print(f"Error: {e}")
-        await update.message.reply_text(f"সমস্যা হচ্ছে: {e}")
+        if os.path.exists(output_filename):
+            os.remove(output_filename)
+        await status_msg.edit_text(f"একটি সমস্যা হয়েছে: {str(e)[:100]}")
 
 def main():
     threading.Thread(target=run_web_server, daemon=True).start()
 
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button_click))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat_handler))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_video))
 
-    print("বট সফলভাবে চালু হয়েছে...")
+    print("ভিডিও ডাউনলোডার বট চালু হয়েছে...")
     app.run_polling()
 
 if __name__ == "__main__":
