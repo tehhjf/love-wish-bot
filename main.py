@@ -1,16 +1,16 @@
 import os
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from google import genai
+import google.generativeai as genai
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-# Render-এর জন্য ডামি ওয়েব সার্ভার (টাইম-আউট রোধ করতে)
+# Render-এর জন্য ডামি সার্ভার
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot is live!")
+        self.wfile.write(b"Bot is alive!")
 
 def run_web_server():
     port = int(os.environ.get("PORT", 8080))
@@ -20,11 +20,12 @@ def run_web_server():
 TELEGRAM_TOKEN = "8929398367:AAHQKIX4DRA9jLG4oOqeL-xHx1kdbsoc1uM"
 ADMIN_CHAT_ID = 8929398367
 
-# আপনার দেওয়া কি
-GEMINI_API_KEY = "AQ.Ab8RN6KyUvAI1SjiWfy9Eg4yDGnqt7npz1E6JnNOK9zHimEQ4g"
+# আপনার দেওয়া নতুন কি
+GEMINI_API_KEY = "AQ.Ab8RN6JqMx8aG0UzV0O_q9yoOTNBVCCP8nu4FW4O7I2Uqf7XVQ"
+os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
 
-# ক্লায়েন্ট ইনিশিয়ালাইজেশন
-client = genai.Client(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 user_personas = {}
 
@@ -93,13 +94,10 @@ async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
 
-    full_prompt = f"System Instruction: {prompt_instruction}\n\nUser Message: {user_msg}\nResponse:"
+    full_prompt = f"{prompt_instruction}\n\nইউজার বলেছে: {user_msg}\nতোমার উত্তর:"
 
     try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=full_prompt,
-        )
+        response = model.generate_content(full_prompt)
         await update.message.reply_text(response.text)
     except Exception as e:
         print(f"Error: {e}")
