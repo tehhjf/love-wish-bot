@@ -1,12 +1,24 @@
 import os
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from google import genai
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
+# Render-এর জন্য ডামি ওয়েব সার্ভার (ডিপ্লয় টাইম-আউট রোধ করতে)
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running successfully!")
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
+    server.serve_forever()
+
 TELEGRAM_TOKEN = "8929398367:AAHQKIX4DRA9jLG4oOqeL-xHx1kdbsoc1uM"
 ADMIN_CHAT_ID = 8929398367
-
-# আপনার Gemini API Key
 GEMINI_API_KEY = "AQ.Ab8RN6L18xBpsmcJbDZzEthcPWnqGDFf3Z0VUH5Hepn6Gw-DBA"
 
 client = genai.Client(api_key=GEMINI_API_KEY)
@@ -35,7 +47,6 @@ PERSONA_PROMPTS = {
 }
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
     keyboard = [
         [InlineKeyboardButton("🌸 মিষ্টি প্রেমিকা (Cute GF)", callback_data="gf_cute")],
         [InlineKeyboardButton("😡 অভিমানী প্রেমিকা (Angry GF)", callback_data="gf_angry")],
@@ -92,6 +103,9 @@ async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"সমস্যা হচ্ছে: {e}")
 
 def main():
+    # ডামি ব্যাকগ্রাউন্ড সার্ভার চালু করা
+    threading.Thread(target=run_web_server, daemon=True).start()
+
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_click))
