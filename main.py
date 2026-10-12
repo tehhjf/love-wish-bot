@@ -222,7 +222,6 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-# --- KEEP ALIVE ---
 def keep_alive_loop():
     time.sleep(15)
     while True:
@@ -242,7 +241,7 @@ def send_msg(chat_id, text):
     except Exception:
         pass
 
-def process_file_and_respond(chat_id, file_id, state):
+def save_and_reply(chat_id, file_id, state):
     try:
         sender = state.get("sender", "EMON")
         receiver = state.get("receiver", "MIM")
@@ -252,19 +251,18 @@ def process_file_and_respond(chat_id, file_id, state):
         f_res = requests.get(f"{API_URL}/getFile", params={"file_id": file_id}, timeout=10).json()
         if f_res.get("ok"):
             file_path = f_res["result"]["file_path"]
-            img_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}"
-            img_data = requests.get(img_url, timeout=15).content
+            img_data = requests.get(f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}", timeout=15).content
             
             filename = f"bg_{chat_id}.jpg"
             with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
                 f.write(img_data)
             
             link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}&img={filename}"
-            send_msg(chat_id, f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}\n\n✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!")
+            send_msg(chat_id, f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}\n\n✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!")
         else:
-            send_msg(chat_id, "⚠️ ছবিটি সেভ করতে সমস্যা হয়েছে। দয়া করে আবার পাঠান।")
+            send_msg(chat_id, "⚠️ ছবিটি পাওয়া যায়নি। দয়া করে আবার পাঠান।")
     except Exception:
-        send_msg(chat_id, "⚠️ সমস্যা হয়েছে। দয়া করে আবার পাঠান।")
+        send_msg(chat_id, "⚠️ ছবি ডাউনলোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")
 
 def bot_loop():
     offset = 0
@@ -279,45 +277,54 @@ def bot_loop():
                 offset = item["update_id"] + 1
                 msg = item.get("message", {})
                 chat_id = msg.get("chat", {}).get("id")
-                text = msg.get("text", "")
                 
                 if not chat_id:
                     continue
-                    
-                state = user_states.get(chat_id, {})
-                step = state.get("step")
 
-                if text == "/start":
+                text = msg.get("text", "").strip()
+                caption = msg.get("caption", "").strip()
+                input_cmd = text if text else caption
+                
+                # যদি ইউজার যেকোনো সময় /start পাঠায়
+                if input_cmd == "/start":
                     user_states[chat_id] = {"step": "SENDER"}
                     send_msg(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\nপ্রথমে *আপনার নাম* লিখে পাঠান:")
                     continue
 
+                state = user_states.get(chat_id)
+                if not state:
+                    continue
+                
+                step = state.get("step")
+
+                # ধাপ ১: প্রেরকের নাম
                 if step == "SENDER" and text:
-                    user_states[chat_id]["sender"] = text.strip()
+                    user_states[chat_id]["sender"] = text
                     user_states[chat_id]["step"] = "RECEIVER"
                     send_msg(chat_id, "এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
                     continue
 
+                # ধাপ ২: প্রাপকের নাম
                 if step == "RECEIVER" and text:
-                    user_states[chat_id]["receiver"] = text.strip()
+                    user_states[chat_id]["receiver"] = text
                     user_states[chat_id]["step"] = "PHOTO"
                     send_msg(chat_id, "দারুণ! এবার ব্যাকগ্রাউন্ডে যে ছবিটি রাখতে চান, সেই *ছবিটি সরাসরি এই চ্যাটে পাঠান (Photo)*:\n\n(ছবি না দিতে চাইলে */skip* লিখে পাঠান)")
                     continue
 
+                # ধাপ ৩: ছবি আপলোড অথবা স্কিপ
                 if step == "PHOTO":
                     sender = state.get("sender", "EMON")
                     receiver = state.get("receiver", "MIM")
                     encoded_s = urllib.parse.quote(sender)
                     encoded_r = urllib.parse.quote(receiver)
 
-                    if text == "/skip":
+                    if input_cmd == "/skip":
                         link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}"
                         send_msg(chat_id, f"🎉 *উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}")
                         user_states.pop(chat_id, None)
                         continue
 
                     file_id = None
-                    # ফটো অথবা ডকুমেন্ট উভয় ফরম্যাটেই ডিটেক্ট করবে
                     if msg.get("photo"):
                         file_id = msg["photo"][-1]["file_id"]
                     elif msg.get("document"):
@@ -325,7 +332,7 @@ def bot_loop():
 
                     if file_id:
                         send_msg(chat_id, "⏳ ছবিটি সেভ হচ্ছে, ১ সেকেন্ড অপেক্ষা করুন...")
-                        threading.Thread(target=process_file_and_respond, args=(chat_id, file_id, state), daemon=True).start()
+                        threading.Thread(target=save_and_reply, args=(chat_id, file_id, state), daemon=True).start()
                         user_states.pop(chat_id, None)
                         continue
 
