@@ -25,14 +25,21 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
         if parsed.path.startswith("/uploads/"):
             return super().do_GET()
         
-        if parsed.path == "/wish" or parsed.path == "/" or parsed.path == "/healthz":
+        if parsed.path == "/ping" or parsed.path == "/healthz":
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"OK")
+            return
+
+        if parsed.path == "/wish" or parsed.path == "/":
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
             
             query = urllib.parse.parse_qs(parsed.query)
-            sender_name = query.get("from", ["ইমন"])[0]
-            receiver_name = query.get("to", ["প্রিয় মানুষ"])[0]
+            sender_name = query.get("from", ["EMON"])[0]
+            receiver_name = query.get("to", ["MIM"])[0]
             img_file = query.get("img", [""])[0]
 
             if img_file:
@@ -215,24 +222,60 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-# --- TELEGRAM BOT (DIRECT LONG-POLLING) ---
+# --- ২৪ ঘণ্টা অ্যাক্টিভ রাখার সেল্ফ-পিং লুপ ---
+def keep_alive_loop():
+    time.sleep(15)
+    while True:
+        try:
+            requests.get(f"{RENDER_EXTERNAL_URL}/ping", timeout=10)
+        except Exception:
+            pass
+        time.sleep(600)  # প্রতি ১০ মিনিটে সার্ভারকে পিং করে জাগিয়ে রাখবে
+
+# --- টেলিগ্রাম রিপ্লাই ফাংশন ---
 def send_msg(chat_id, text):
     try:
         requests.post(f"{API_URL}/sendMessage", json={
             "chat_id": chat_id,
             "text": text,
             "parse_mode": "Markdown"
-        }, timeout=10)
+        }, timeout=8)
     except Exception:
         pass
 
+# --- আলাদা থ্রেডে ছবি প্রসেসিং (যাতে বট আটকে না থাকে) ---
+def process_photo_thread(chat_id, file_id, state):
+    try:
+        sender = state.get("sender", "EMON")
+        receiver = state.get("receiver", "MIM")
+        encoded_s = urllib.parse.quote(sender)
+        encoded_r = urllib.parse.quote(receiver)
+
+        f_res = requests.get(f"{API_URL}/getFile", params={"file_id": file_id}, timeout=10).json()
+        if f_res.get("ok"):
+            file_path = f_res["result"]["file_path"]
+            img_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}"
+            img_data = requests.get(img_url, timeout=15).content
+            
+            filename = f"bg_{chat_id}.jpg"
+            with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
+                f.write(img_data)
+            
+            link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}&img={filename}"
+            send_msg(chat_id, f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}\n\n✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!")
+        else:
+            send_msg(chat_id, "⚠️ ছবিটি সেভ করতে সমস্যা হয়েছে। দয়া করে আবার পাঠান।")
+    except Exception as e:
+        send_msg(chat_id, "⚠️ ছবি ডাউনলোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")
+
+# --- বট মেইন লুপ (০ সেকেন্ড ডিলেতে কাজ করবে) ---
 def bot_loop():
     offset = 0
     while True:
         try:
             res = requests.get(f"{API_URL}/getUpdates", params={"offset": offset, "timeout": 20}, timeout=25).json()
             if not res.get("ok"):
-                time.sleep(2)
+                time.sleep(1)
                 continue
                 
             for item in res.get("result", []):
@@ -265,8 +308,8 @@ def bot_loop():
                     continue
 
                 if step == "PHOTO":
-                    sender = state.get("sender", "ইমন")
-                    receiver = state.get("receiver", "প্রিয় মানুষ")
+                    sender = state.get("sender", "EMON")
+                    receiver = state.get("receiver", "MIM")
                     encoded_s = urllib.parse.quote(sender)
                     encoded_r = urllib.parse.quote(receiver)
 
@@ -278,25 +321,18 @@ def bot_loop():
 
                     photo = msg.get("photo")
                     if photo:
+                        send_msg(chat_id, "⏳ ছবি প্রসেসিং হচ্ছে, অনুগ্রহ করে একটু অপেক্ষা করুন...")
                         file_id = photo[-1]["file_id"]
-                        f_res = requests.get(f"{API_URL}/getFile", params={"file_id": file_id}).json()
-                        if f_res.get("ok"):
-                            file_path = f_res["result"]["file_path"]
-                            img_data = requests.get(f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}").content
-                            
-                            filename = f"bg_{chat_id}.jpg"
-                            with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
-                                f.write(img_data)
-                            
-                            link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}&img={filename}"
-                            send_msg(chat_id, f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}\n\n✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!")
-                            user_states.pop(chat_id, None)
-                            continue
+                        threading.Thread(target=process_photo_thread, args=(chat_id, file_id, state), daemon=True).start()
+                        user_states.pop(chat_id, None)
+                        continue
+
         except Exception:
-            time.sleep(2)
+            time.sleep(1)
 
 def main():
     threading.Thread(target=start_server, daemon=True).start()
+    threading.Thread(target=keep_alive_loop, daemon=True).start()
     bot_loop()
 
 if __name__ == "__main__":
