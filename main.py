@@ -6,19 +6,32 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import requests
 
 PORT = int(os.environ.get("PORT", 10000))
-RENDER_EXTERNAL_URL = os.environ.get("RENDER_EXTERNAL_URL", "https://love-wish-bot.onrender.com")
+# রেন্ডারের এনভায়রনমেন্ট থেকে অটো রিয়েল ইউআরএল নেবে
+RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+if not RENDER_URL:
+    RENDER_URL = "https://love-wish-bot.onrender.com"
 
 TELEGRAM_TOKEN = "8699587679:AAHes1-nyxuOz7OgW0omcrsQqszqkLpOofE"
 ADMIN_CHAT_ID = "8699587679"
 API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
-UPLOAD_DIR = "uploads"
+# ডিরেক্টরি
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 user_states = {}
 
 # --- WEB SERVER ---
 class CustomHTTPHandler(SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        # uploads ফোল্ডার থেকে ফাইল পাওয়ার সঠিক পাথ
+        parsed = urllib.parse.urlparse(path)
+        if parsed.path.startswith("/uploads/"):
+            filename = parsed.path.replace("/uploads/", "")
+            return os.path.join(UPLOAD_DIR, filename)
+        return super().translate_path(path)
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         
@@ -38,8 +51,8 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             
             query = urllib.parse.parse_qs(parsed.query)
-            sender_name = query.get("from", ["EMON"])[0]
-            receiver_name = query.get("to", ["MIM"])[0]
+            sender_name = query.get("from", ["emon"])[0]
+            receiver_name = query.get("to", ["Tamanna"])[0]
             img_file = query.get("img", [""])[0]
 
             if img_file:
@@ -222,47 +235,46 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-def keep_alive_loop():
-    time.sleep(15)
-    while True:
-        try:
-            requests.get(f"{RENDER_EXTERNAL_URL}/ping", timeout=10)
-        except Exception:
-            pass
-        time.sleep(600)
-
 def send_msg(chat_id, text):
     try:
         requests.post(f"{API_URL}/sendMessage", json={
             "chat_id": chat_id,
             "text": text,
             "parse_mode": "Markdown"
-        }, timeout=8)
+        }, timeout=10)
     except Exception:
         pass
 
 def save_and_reply(chat_id, file_id, state):
-    try:
-        sender = state.get("sender", "EMON")
-        receiver = state.get("receiver", "MIM")
-        encoded_s = urllib.parse.quote(sender)
-        encoded_r = urllib.parse.quote(receiver)
+    sender = state.get("sender", "emon")
+    receiver = state.get("receiver", "Tamanna")
+    encoded_s = urllib.parse.quote(sender)
+    encoded_r = urllib.parse.quote(receiver)
 
-        f_res = requests.get(f"{API_URL}/getFile", params={"file_id": file_id}, timeout=10).json()
+    try:
+        # ফাইল ইনফো নেওয়া
+        f_res = requests.get(f"{API_URL}/getFile", params={"file_id": file_id}, timeout=15).json()
         if f_res.get("ok"):
             file_path = f_res["result"]["file_path"]
-            img_data = requests.get(f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}", timeout=15).content
+            download_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}"
             
+            # ইমেজ ডাউনলোড
+            img_data = requests.get(download_url, timeout=20).content
             filename = f"bg_{chat_id}.jpg"
-            with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
+            full_path = os.path.join(UPLOAD_DIR, filename)
+            
+            with open(full_path, "wb") as f:
                 f.write(img_data)
             
-            link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}&img={filename}"
+            link = f"{RENDER_URL}/wish?from={encoded_s}&to={encoded_r}&img={filename}"
             send_msg(chat_id, f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}\n\n✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!")
         else:
-            send_msg(chat_id, "⚠️ ছবিটি পাওয়া যায়নি। দয়া করে আবার পাঠান।")
-    except Exception:
-        send_msg(chat_id, "⚠️ ছবি ডাউনলোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")
+            # কোনো কারণে টেলিগ্রাম ফাইল না দিলে ডিফল্ট দিয়ে বানিয়ে দেওয়া
+            link = f"{RENDER_URL}/wish?from={encoded_s}&to={encoded_r}"
+            send_msg(chat_id, f"🎉 *উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}")
+    except Exception as err:
+        link = f"{RENDER_URL}/wish?from={encoded_s}&to={encoded_r}"
+        send_msg(chat_id, f"🎉 *উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}")
 
 def bot_loop():
     offset = 0
@@ -285,7 +297,6 @@ def bot_loop():
                 caption = msg.get("caption", "").strip()
                 input_cmd = text if text else caption
                 
-                # যদি ইউজার যেকোনো সময় /start পাঠায়
                 if input_cmd == "/start":
                     user_states[chat_id] = {"step": "SENDER"}
                     send_msg(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\nপ্রথমে *আপনার নাম* লিখে পাঠান:")
@@ -297,29 +308,26 @@ def bot_loop():
                 
                 step = state.get("step")
 
-                # ধাপ ১: প্রেরকের নাম
                 if step == "SENDER" and text:
                     user_states[chat_id]["sender"] = text
                     user_states[chat_id]["step"] = "RECEIVER"
                     send_msg(chat_id, "এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
                     continue
 
-                # ধাপ ২: প্রাপকের নাম
                 if step == "RECEIVER" and text:
                     user_states[chat_id]["receiver"] = text
                     user_states[chat_id]["step"] = "PHOTO"
                     send_msg(chat_id, "দারুণ! এবার ব্যাকগ্রাউন্ডে যে ছবিটি রাখতে চান, সেই *ছবিটি সরাসরি এই চ্যাটে পাঠান (Photo)*:\n\n(ছবি না দিতে চাইলে */skip* লিখে পাঠান)")
                     continue
 
-                # ধাপ ৩: ছবি আপলোড অথবা স্কিপ
                 if step == "PHOTO":
-                    sender = state.get("sender", "EMON")
-                    receiver = state.get("receiver", "MIM")
+                    sender = state.get("sender", "emon")
+                    receiver = state.get("receiver", "Tamanna")
                     encoded_s = urllib.parse.quote(sender)
                     encoded_r = urllib.parse.quote(receiver)
 
                     if input_cmd == "/skip":
-                        link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}"
+                        link = f"{RENDER_URL}/wish?from={encoded_s}&to={encoded_r}"
                         send_msg(chat_id, f"🎉 *উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}")
                         user_states.pop(chat_id, None)
                         continue
@@ -332,7 +340,10 @@ def bot_loop():
 
                     if file_id:
                         send_msg(chat_id, "⏳ ছবিটি সেভ হচ্ছে, ১ সেকেন্ড অপেক্ষা করুন...")
-                        threading.Thread(target=save_and_reply, args=(chat_id, file_id, state), daemon=True).start()
+                        # ব্যাকগ্রাউন্ড থ্রেড কল
+                        t = threading.Thread(target=save_and_reply, args=(chat_id, file_id, state))
+                        t.daemon = True
+                        t.start()
                         user_states.pop(chat_id, None)
                         continue
 
@@ -341,7 +352,6 @@ def bot_loop():
 
 def main():
     threading.Thread(target=start_server, daemon=True).start()
-    threading.Thread(target=keep_alive_loop, daemon=True).start()
     bot_loop()
 
 if __name__ == "__main__":
