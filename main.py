@@ -9,7 +9,8 @@ RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
 if not RENDER_URL:
     RENDER_URL = "https://love-wish-bot.onrender.com"
 
-TELEGRAM_TOKEN = "8699587679:AAHes1-nyxuOz7OgW0omcrsQqszqkLpOofE"
+# আপনার দেওয়া নতুন ফ্রেশ টোকেন
+TELEGRAM_TOKEN = "8699587679:AAFVFVjQrP-21R_CxMWS1cxqeQzaBCDjpyc"
 ADMIN_CHAT_ID = "8699587679"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown", threaded=True)
@@ -379,7 +380,7 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-# --- ইনস্ট্যান্ট টেলিগ্রাম বট হ্যান্ডলার (সরাসরি ১ সেকেন্ডে রিপ্লাই) ---
+# --- সরাসরি ইনস্ট্যান্ট রিপ্লাই হ্যান্ডলার ---
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     chat_id = message.chat.id
