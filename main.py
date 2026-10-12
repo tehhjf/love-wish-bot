@@ -9,15 +9,25 @@ RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
 if not RENDER_URL:
     RENDER_URL = "https://love-wish-bot.onrender.com"
 
-# আপনার দেওয়া নতুন ফ্রেশ টোকেন
 TELEGRAM_TOKEN = "8699587679:AAFVFVjQrP-21R_CxMWS1cxqeQzaBCDjpyc"
 ADMIN_CHAT_ID = "8699587679"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown", threaded=True)
 user_data = {}
 
-# --- এইচটিটিপি সার্ভার ও অ্যানিমেটেড পেজ ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# --- HTTP SERVER & ANIMATED PAGE ---
 class CustomHTTPHandler(SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        parsed = urllib.parse.urlparse(path)
+        if parsed.path.startswith("/uploads/"):
+            filename = parsed.path.replace("/uploads/", "")
+            return os.path.join(UPLOAD_DIR, filename)
+        return super().translate_path(path)
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         
@@ -28,6 +38,9 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
             self.wfile.write(b"OK")
             return
 
+        if parsed.path.startswith("/uploads/"):
+            return super().do_GET()
+
         if parsed.path in ["/wish", "/"]:
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
@@ -36,6 +49,15 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
             query = urllib.parse.parse_qs(parsed.query)
             sender_name = query.get("from", ["EMON"])[0]
             receiver_name = query.get("to", ["MIM"])[0]
+            custom_msg = query.get("msg", ["Prithibir shob shukh jeno tomar paye thake. Shobshomoy pashe thakte chai... 💖✨"])[0]
+            avatar_file = query.get("avatar", [""])[0]
+            proposal_note = query.get("pnote", ["Moner gopon kothati aj shotti kore bole dao... 🙈"])[0]
+            wa_num = query.get("wa", [""])[0]
+            tg_user = query.get("tg", [""])[0]
+            audio_file = query.get("audio", [""])[0]
+
+            avatar_src = f"/uploads/{avatar_file}" if avatar_file else "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop"
+            music_src = f"/uploads/{audio_file}" if audio_file else "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-love-story-112197.mp3"
 
             html = f"""<!DOCTYPE html>
 <html lang="bn">
@@ -69,7 +91,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 
 #heartsCanvas{{position:fixed;inset:0;z-index:2;pointer-events:none;}}
 
-/* ধাপ ১: গিফট স্ক্রিন */
+/* Step 1: Gift Screen */
 #giftScreen{{
   position:fixed;inset:0;z-index:10;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -133,7 +155,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 20px #ff3d7f;}}
 }}
 
-/* ধাপ ২: চিঠি স্ক্রিন */
+/* Step 2: Wish Letter Screen */
 #wishScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:20px;text-align:center;
@@ -165,7 +187,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   animation:pulseGlow 1.8s infinite;font-family:'Hind Siliguri',sans-serif;
 }}
 
-/* ধাপ ৩: ডু ইউ লাভ মি + গোল ফ্রেম */
+/* Step 3: Do you love me + Profile Frame + Note */
 #proposalScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:20px;text-align:center;
@@ -180,7 +202,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 }}
 
 .profile-avatar-wrap{{
-  width:125px;height:125px;margin:0 auto 16px auto;
+  width:130px;height:130px;margin:0 auto 16px auto;
   border-radius:50%;padding:4px;
   background:linear-gradient(135deg,#ff2d75,#ffe082,#ff6b9d);
   box-shadow:0 0 25px rgba(255,45,117,0.8);
@@ -196,6 +218,11 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   background:#1e002e;display:block;
 }}
 
+/* Custom note above or under question */
+.proposal-top-text{{
+  font-size:1.05rem;color:#ffe082;margin-bottom:8px;font-weight:600;
+  text-shadow:0 0 10px rgba(255,224,130,0.5);
+}}
 .question-title{{font-size:1.65rem;font-weight:700;color:#ffb3d1;margin-bottom:8px;}}
 .question-sub{{font-size:0.95rem;color:#f0f0f0;margin-bottom:24px;}}
 .yn-btn-group{{display:flex;justify-content:center;gap:15px;}}
@@ -222,21 +249,25 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 </head>
 <body>
 
+<audio id="bgMusic" src="{music_src}" preload="auto" loop></audio>
+
 <div id="customBg"></div>
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
+<!-- Step 1 -->
 <div id="giftScreen">
   <div class="gift-title">
-    💌 তোমাকে চমকে দিতে <b>{sender_name}</b> একটি স্পেশাল চিঠি পাঠিয়েছে...<br><br>খুলতে গিফট বক্সে চাপ দাও 🎁
+    💌 Tomake chomke dite <b>{sender_name}</b> ekti special chithi pathiyeche...<br><br>Khulte gift box-e chap dao 🎁
   </div>
   <div class="gift-box" id="giftBox">
     <div class="gift-lid"></div>
     <div class="gift-body"></div>
   </div>
-  <div class="tap-hint">👆 গিফট বক্সে ট্যাপ করুন</div>
+  <div class="tap-hint">👆 Gift box-e tap korun</div>
 </div>
 
+<!-- Step 2 -->
 <div id="wishScreen">
   <div class="names-container">
     <div class="from-to">From</div>
@@ -248,31 +279,36 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   <div class="message-box">
     <div class="typed-text" id="typedText"></div>
   </div>
-  <button class="next-step-btn" id="nextStepBtn">পরের ধাপ দেখুন 👉</button>
+  <button class="next-step-btn" id="nextStepBtn">Porér dhap dekhun 👉</button>
 </div>
 
+<!-- Step 3 -->
 <div id="proposalScreen">
   <div class="question-box">
     <div class="profile-avatar-wrap">
-      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop" alt="Profile" class="profile-avatar">
+      <img src="{avatar_src}" alt="Profile" class="profile-avatar">
     </div>
+    
+    <!-- Custom text above question -->
+    <div class="proposal-top-text">{proposal_note}</div>
+
     <div class="question-title">💖 Do you love me? 💖</div>
-    <div class="question-sub">মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈</div>
+    <div class="question-sub">Moner shob kotha khule bolo... 🙈</div>
     <div class="yn-btn-group" id="btnGroup">
       <button class="yn-btn btn-yes" id="btnYes">YES 🥰</button>
       <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
     </div>
     <div id="yesResult">
-      <h3 style="color:#ffb3d1;margin-bottom:8px;">Yay! আই লাভ ইউ সো মাচ! ❤️🥰</h3>
-      <p style="font-size:0.92rem;color:#fff;margin-bottom:12px;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
+      <h3 style="color:#ffb3d1;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
+      <p style="font-size:0.92rem;color:#fff;margin-bottom:12px;">Tomar ha bola-tai amar shobcheye boro pawa! Sharajibon pashe theko. 🌸✨</p>
       <div class="share-btn-wrap">
-        <button class="share-btn wa-btn" id="waShare">💬 WhatsApp-এ বলো</button>
-        <button class="share-btn tg-btn" id="tgShare">✈️ Telegram-এ বলো</button>
+        <a class="share-btn wa-btn" id="waShare" href="#" target="_blank">💬 WhatsApp-e bolo</a>
+        <a class="share-btn tg-btn" id="tgShare" href="#" target="_blank">✈️ Telegram-e bolo</a>
       </div>
     </div>
     <div id="noResult">
-      <h3 style="color:#ff8585;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
-      <p style="font-size:0.92rem;color:#ddd;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
+      <h3 style="color:#ff8585;margin-bottom:8px;">Monta venge gelo... 🥺💔😭</h3>
+      <p style="font-size:0.92rem;color:#ddd;">"Jake apon bhebechilam se-i na bole dilo... Ja-i hok, bhalo theko." 🥀🌧️</p>
     </div>
   </div>
 </div>
@@ -283,10 +319,12 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 
 var TG_BOT_TOKEN = "{TELEGRAM_TOKEN}";
 var TG_CHAT_ID   = "{ADMIN_CHAT_ID}";
+var waNumber     = "{wa_num}".replace(/[^0-9]/g, '');
+var tgUsername   = "{tg_user}".replace('@', '').trim();
 
 function sendToTelegramBot(choice) {{
-  var emoji = choice === "YES" ? "💖 [YES চাপ দিয়েছে!]" : "💔 [NO চাপ দিয়েছে...]";
-  var text = "🔔 *উইশ পেজ রেসপন্স!*\\n\\n👤 প্রেরক: {sender_name}\\n🎯 প্রাপক: {receiver_name}\\n👉 উত্তর: *" + choice + "* " + emoji;
+  var emoji = choice === "YES" ? "💖 [YES chap diyeche!]" : "💔 [NO chap diyeche...]";
+  var text = "🔔 *Wish Page Response!*\\n\\n👤 Sender: {sender_name}\\n🎯 Receiver: {receiver_name}\\n👉 Answer: *" + choice + "* " + emoji;
   fetch("https://api.telegram.org/bot" + TG_BOT_TOKEN + "/sendMessage?chat_id=" + TG_CHAT_ID + "&text=" + encodeURIComponent(text) + "&parse_mode=Markdown").catch(function(){{}});
 }}
 
@@ -318,7 +356,7 @@ function loop() {{
   requestAnimationFrame(loop);
 }}
 
-var wishMsg = "প্রিয় {receiver_name},\\n\\nপৃথিবীর সমস্ত সুখ যেন তোমার পদচুম্বন করে। তোমার হাসিটাই আমার সবচেয়ে প্রিয় দৃশ্য। তোমার সাথে প্রতিটি মুহূর্ত যেন স্বপ্নের মতো। সবসময় তোমার পাশে থাকতে চাই... 💖✨";
+var wishMsg = "{custom_msg}";
 
 function typeMsg(text, callback) {{
   var container = document.getElementById("typedText");
@@ -331,6 +369,8 @@ function typeMsg(text, callback) {{
 }}
 
 document.getElementById("giftBox").addEventListener("click", function(){{
+  var audio = document.getElementById("bgMusic");
+  if(audio) {{ audio.play().catch(function(){{}}); }}
   this.classList.add("open");
   for(var i=0; i<25; i++) hearts.push(new Heart());
   loop();
@@ -352,20 +392,25 @@ document.getElementById("btnYes").addEventListener("click", function(){{
   document.getElementById("btnGroup").style.display = "none";
   document.getElementById("yesResult").style.display = "block";
   sendToTelegramBot("YES");
+
+  var replyTxt = encodeURIComponent("Ha {sender_name}! Ami-o tomake bhalobashi! ❤️🥰");
+  if (waNumber) {{
+    document.getElementById("waShare").href = "https://wa.me/" + waNumber + "?text=" + replyTxt;
+  }} else {{
+    document.getElementById("waShare").href = "https://api.whatsapp.com/send?text=" + replyTxt;
+  }}
+
+  if (tgUsername) {{
+    document.getElementById("tgShare").href = "https://t.me/" + tgUsername;
+  }} else {{
+    document.getElementById("tgShare").href = "https://t.me/share/url?url=" + encodeURIComponent(window.location.href) + "&text=" + replyTxt;
+  }}
 }});
 
 document.getElementById("btnNo").addEventListener("click", function(){{
   document.getElementById("btnGroup").style.display = "none";
   document.getElementById("noResult").style.display = "block";
   sendToTelegramBot("NO");
-}});
-
-document.getElementById("waShare").addEventListener("click", function(){{
-  window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("হ্যাঁ {sender_name}! আমিও তোমাকে ভালোবাসি! ❤️🥰"), "_blank");
-}});
-
-document.getElementById("tgShare").addEventListener("click", function(){{
-  window.open("https://t.me/share/url?url=" + encodeURIComponent(window.location.href) + "&text=" + encodeURIComponent("হ্যাঁ {sender_name}! আমিও তোমাকে ভালোবাসি! ❤️🥰"), "_blank");
 }});
 
 }})();
@@ -380,35 +425,125 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-# --- সরাসরি ইনস্ট্যান্ট রিপ্লাই হ্যান্ডলার ---
+# --- BOT MESSAGE FLOW ---
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     chat_id = message.chat.id
     user_data[chat_id] = {'step': 'SENDER'}
-    bot.send_message(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\nপ্রথমে *আপনার নাম* লিখে পাঠান:")
+    bot.send_message(chat_id, "✨ *Wish Page Creator-e shagotom!* ❤️\n\n১️⃣ Prothome *apnar name* likhe pathan:")
 
-@bot.message_handler(func=lambda msg: True)
-def handle_text(message):
+@bot.message_handler(content_types=['text', 'photo', 'audio', 'document'])
+def handle_all(message):
     chat_id = message.chat.id
-    text = message.text.strip()
     state = user_data.get(chat_id, {})
     step = state.get('step')
+    text = message.text.strip() if message.text else ""
 
-    if step == 'SENDER':
-        user_data[chat_id]['sender'] = text
-        user_data[chat_id]['step'] = 'RECEIVER'
-        bot.send_message(chat_id, "এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
+    if text == "/start":
+        user_data[chat_id] = {'step': 'SENDER'}
+        bot.send_message(chat_id, "✨ *Wish Page Creator-e shagotom!* ❤️\n\n১️⃣ Prothome *apnar name* likhe pathan:")
         return
 
-    if step == 'RECEIVER':
-        sender = state.get('sender', 'EMON')
-        receiver = text
-        
-        encoded_s = urllib.parse.quote(sender)
-        encoded_r = urllib.parse.quote(receiver)
-        wish_link = f"{RENDER_URL}/wish?from={encoded_s}&to={encoded_r}"
+    # 1. Sender name
+    if step == 'SENDER' and text:
+        user_data[chat_id]['sender'] = text
+        user_data[chat_id]['step'] = 'RECEIVER'
+        bot.send_message(chat_id, "২️⃣ Ebar apnar *GF er name* likhe pathan:")
+        return
 
-        bot.send_message(chat_id, f"🎉 *আপনার উইশ পেজ সাথে সাথে তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {wish_link}\n\n💖 লিংকে ঢুকলে চমৎকার ব্যাকগ্রাউন্ড হার্ট অ্যানিমেশন ও ডু ইউ লাভ মি পেজ দেখতে পাবেন!")
+    # 2. Receiver name
+    if step == 'RECEIVER' and text:
+        user_data[chat_id]['receiver'] = text
+        user_data[chat_id]['step'] = 'CUSTOM_MSG'
+        bot.send_message(chat_id, "৩️⃣ Wish page-e chithir vetor *ki likhte chan (Message)* likhe pathan:\n\n_(Default romantic text rakhte chaile /skip likhun)_")
+        return
+
+    # 3. Custom Wish Letter
+    if step == 'CUSTOM_MSG' and text:
+        if text != "/skip":
+            user_data[chat_id]['msg'] = text
+        user_data[chat_id]['step'] = 'PROFILE_PIC'
+        bot.send_message(chat_id, "৪️⃣ Ebar 'Do you love me?' screen er gol framer jonno tar *Profile Pic pathan (Photo)*:\n\n_(Chobi na dite chaile /skip likhun)_")
+        return
+
+    # 4. Profile Photo
+    if step == 'PROFILE_PIC':
+        if text == "/skip":
+            user_data[chat_id]['avatar'] = ""
+            user_data[chat_id]['step'] = 'PROPOSAL_NOTE'
+            bot.send_message(chat_id, "৫️⃣ Ebar 'Do you love me?' er opore *ki likhte chan* (Jemon kono special kotha) likhe pathan:\n\n_(Default text rakhte chaile /skip likhun)_")
+            return
+        elif message.photo:
+            file_id = message.photo[-1].file_id
+            f_info = bot.get_file(file_id)
+            img_bytes = bot.download_file(f_info.file_path)
+            avatar_name = f"avatar_{chat_id}.jpg"
+            with open(os.path.join(UPLOAD_DIR, avatar_name), "wb") as f:
+                f.write(img_bytes)
+            user_data[chat_id]['avatar'] = avatar_name
+            user_data[chat_id]['step'] = 'PROPOSAL_NOTE'
+            bot.send_message(chat_id, "৫️⃣ Ebar 'Do you love me?' er opore *ki likhte chan* (Jemon kono special kotha) likhe pathan:\n\n_(Default text rakhte chaile /skip likhun)_")
+            return
+
+    # 5. Note Above "Do you love me?"
+    if step == 'PROPOSAL_NOTE' and text:
+        if text != "/skip":
+            user_data[chat_id]['pnote'] = text
+        user_data[chat_id]['step'] = 'WHATSAPP'
+        bot.send_message(chat_id, "৬️⃣ Ebar apnar *WhatsApp number* din (Jemon: 017xxxxxxxx):\n\n_(Na dite chaile /skip likhun)_")
+        return
+
+    # 6. WhatsApp Number
+    if step == 'WHATSAPP' and text:
+        if text != "/skip":
+            user_data[chat_id]['wa'] = text
+        user_data[chat_id]['step'] = 'TELEGRAM'
+        bot.send_message(chat_id, "৭️⃣ Ebar apnar *Telegram username* pathan (Jemon: @yourusername):\n\n_(Na dite chaile /skip likhun)_")
+        return
+
+    # 7. Telegram Username
+    if step == 'TELEGRAM' and text:
+        if text != "/skip":
+            user_data[chat_id]['tg'] = text
+        user_data[chat_id]['step'] = 'BG_MUSIC'
+        bot.send_message(chat_id, "৮️⃣ Ebar page er background music er jonno ekti *Audio ba MP3 file* pathan:\n\n_(Default romantic tune rakhte chaile /skip likhun)_")
+        return
+
+    # 8. Background Music & Build Link
+    if step == 'BG_MUSIC':
+        audio_name = ""
+        if text != "/skip":
+            audio_obj = message.audio or message.voice or message.document
+            if audio_obj:
+                f_info = bot.get_file(audio_obj.file_id)
+                audio_bytes = bot.download_file(f_info.file_path)
+                audio_name = f"audio_{chat_id}.mp3"
+                with open(os.path.join(UPLOAD_DIR, audio_name), "wb") as f:
+                    f.write(audio_bytes)
+
+        s = user_data[chat_id].get('sender', 'EMON')
+        r = user_data[chat_id].get('receiver', 'MIM')
+        m = user_data[chat_id].get('msg', 'Prithibir shob shukh jeno tomar paye thake. Shobshomoy pashe thakte chai... 💖✨')
+        av = user_data[chat_id].get('avatar', '')
+        pn = user_data[chat_id].get('pnote', 'Moner gopon kothati aj shotti kore bole dao... 🙈')
+        wa = user_data[chat_id].get('wa', '')
+        tg = user_data[chat_id].get('tg', '')
+
+        params = {
+            "from": s,
+            "to": r,
+            "msg": m,
+            "pnote": pn
+        }
+        if av: params["avatar"] = av
+        if wa: params["wa"] = wa
+        if tg: params["tg"] = tg
+        if audio_name: params["audio"] = audio_name
+
+        query_str = urllib.parse.urlencode(params)
+        wish_link = f"{RENDER_URL}/wish?{query_str}"
+
+        bot.send_message(chat_id, f"🎉 *Apnar special wish page toiri hoye geche!*\n\n🔗 *Link:* {wish_link}\n\n💖 'Do you love me?' er thik opore apnar dewa custom text, gol frame-e profile pic ebong WhatsApp/Telegram button shundor bhabe set hoye geche!")
         user_data.pop(chat_id, None)
         return
 
