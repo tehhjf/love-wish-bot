@@ -222,7 +222,7 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-# --- ২৪ ঘণ্টা অ্যাক্টিভ রাখার সেল্ফ-পিং লুপ ---
+# --- KEEP ALIVE ---
 def keep_alive_loop():
     time.sleep(15)
     while True:
@@ -230,9 +230,8 @@ def keep_alive_loop():
             requests.get(f"{RENDER_EXTERNAL_URL}/ping", timeout=10)
         except Exception:
             pass
-        time.sleep(600)  # প্রতি ১০ মিনিটে সার্ভারকে পিং করে জাগিয়ে রাখবে
+        time.sleep(600)
 
-# --- টেলিগ্রাম রিপ্লাই ফাংশন ---
 def send_msg(chat_id, text):
     try:
         requests.post(f"{API_URL}/sendMessage", json={
@@ -243,8 +242,7 @@ def send_msg(chat_id, text):
     except Exception:
         pass
 
-# --- আলাদা থ্রেডে ছবি প্রসেসিং (যাতে বট আটকে না থাকে) ---
-def process_photo_thread(chat_id, file_id, state):
+def process_file_and_respond(chat_id, file_id, state):
     try:
         sender = state.get("sender", "EMON")
         receiver = state.get("receiver", "MIM")
@@ -265,10 +263,9 @@ def process_photo_thread(chat_id, file_id, state):
             send_msg(chat_id, f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}\n\n✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!")
         else:
             send_msg(chat_id, "⚠️ ছবিটি সেভ করতে সমস্যা হয়েছে। দয়া করে আবার পাঠান।")
-    except Exception as e:
-        send_msg(chat_id, "⚠️ ছবি ডাউনলোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")
+    except Exception:
+        send_msg(chat_id, "⚠️ সমস্যা হয়েছে। দয়া করে আবার পাঠান।")
 
-# --- বট মেইন লুপ (০ সেকেন্ড ডিলেতে কাজ করবে) ---
 def bot_loop():
     offset = 0
     while True:
@@ -295,13 +292,13 @@ def bot_loop():
                     send_msg(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\nপ্রথমে *আপনার নাম* লিখে পাঠান:")
                     continue
 
-                if step == "SENDER":
+                if step == "SENDER" and text:
                     user_states[chat_id]["sender"] = text.strip()
                     user_states[chat_id]["step"] = "RECEIVER"
                     send_msg(chat_id, "এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
                     continue
 
-                if step == "RECEIVER":
+                if step == "RECEIVER" and text:
                     user_states[chat_id]["receiver"] = text.strip()
                     user_states[chat_id]["step"] = "PHOTO"
                     send_msg(chat_id, "দারুণ! এবার ব্যাকগ্রাউন্ডে যে ছবিটি রাখতে চান, সেই *ছবিটি সরাসরি এই চ্যাটে পাঠান (Photo)*:\n\n(ছবি না দিতে চাইলে */skip* লিখে পাঠান)")
@@ -319,11 +316,16 @@ def bot_loop():
                         user_states.pop(chat_id, None)
                         continue
 
-                    photo = msg.get("photo")
-                    if photo:
-                        send_msg(chat_id, "⏳ ছবি প্রসেসিং হচ্ছে, অনুগ্রহ করে একটু অপেক্ষা করুন...")
-                        file_id = photo[-1]["file_id"]
-                        threading.Thread(target=process_photo_thread, args=(chat_id, file_id, state), daemon=True).start()
+                    file_id = None
+                    # ফটো অথবা ডকুমেন্ট উভয় ফরম্যাটেই ডিটেক্ট করবে
+                    if msg.get("photo"):
+                        file_id = msg["photo"][-1]["file_id"]
+                    elif msg.get("document"):
+                        file_id = msg["document"]["file_id"]
+
+                    if file_id:
+                        send_msg(chat_id, "⏳ ছবিটি সেভ হচ্ছে, ১ সেকেন্ড অপেক্ষা করুন...")
+                        threading.Thread(target=process_file_and_respond, args=(chat_id, file_id, state), daemon=True).start()
                         user_states.pop(chat_id, None)
                         continue
 
