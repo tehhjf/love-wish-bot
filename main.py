@@ -1,28 +1,23 @@
 import os
+import time
 import threading
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    ConversationHandler,
-    filters,
-    ContextTypes,
-)
+import requests
 
 PORT = int(os.environ.get("PORT", 10000))
 RENDER_EXTERNAL_URL = os.environ.get("RENDER_EXTERNAL_URL", "https://love-wish-bot.onrender.com")
 
 TELEGRAM_TOKEN = "8699587679:AAHes1-nyxuOz7OgW0omcrsQqszqkLpOofE"
 ADMIN_CHAT_ID = "8699587679"
+API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-SENDER, RECEIVER, PHOTO = range(3)
+user_states = {}
 
+# --- WEB SERVER ---
 class CustomHTTPHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -220,86 +215,89 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\n"
-        "প্রথমে *আপনার নাম* লিখে পাঠান:",
-        parse_mode="Markdown"
-    )
-    return SENDER
+# --- TELEGRAM BOT (DIRECT LONG-POLLING) ---
+def send_msg(chat_id, text):
+    try:
+        requests.post(f"{API_URL}/sendMessage", json={
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "Markdown"
+        }, timeout=10)
+    except Exception:
+        pass
 
-async def get_sender(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["sender"] = update.message.text.strip()
-    await update.message.reply_text("এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
-    return RECEIVER
+def bot_loop():
+    offset = 0
+    while True:
+        try:
+            res = requests.get(f"{API_URL}/getUpdates", params={"offset": offset, "timeout": 20}, timeout=25).json()
+            if not res.get("ok"):
+                time.sleep(2)
+                continue
+                
+            for item in res.get("result", []):
+                offset = item["update_id"] + 1
+                msg = item.get("message", {})
+                chat_id = msg.get("chat", {}).get("id")
+                text = msg.get("text", "")
+                
+                if not chat_id:
+                    continue
+                    
+                state = user_states.get(chat_id, {})
+                step = state.get("step")
 
-async def get_receiver(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["receiver"] = update.message.text.strip()
-    await update.message.reply_text(
-        "দারুণ! এবার ব্যাকগ্রাউন্ডে যে ছবিটি রাখতে চান, সেই *ছবিটি সরাসরি পাঠান (Photo)*:\n\n"
-        "*(ছবি না দিতে চাইলে /skip লিখে পাঠান)*"
-    )
-    return PHOTO
+                if text == "/start":
+                    user_states[chat_id] = {"step": "SENDER"}
+                    send_msg(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\nপ্রথমে *আপনার নাম* লিখে পাঠান:")
+                    continue
 
-async def get_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    photo_file = await update.message.photo[-1].get_file()
-    user_id = update.effective_user.id
-    filename = f"bg_{user_id}.jpg"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-    await photo_file.download_to_drive(filepath)
+                if step == "SENDER":
+                    user_states[chat_id]["sender"] = text.strip()
+                    user_states[chat_id]["step"] = "RECEIVER"
+                    send_msg(chat_id, "এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
+                    continue
 
-    sender = context.user_data.get("sender", "ইমন")
-    receiver = context.user_data.get("receiver", "প্রিয় মানুষ")
-    
-    encoded_s = urllib.parse.quote(sender)
-    encoded_r = urllib.parse.quote(receiver)
+                if step == "RECEIVER":
+                    user_states[chat_id]["receiver"] = text.strip()
+                    user_states[chat_id]["step"] = "PHOTO"
+                    send_msg(chat_id, "দারুণ! এবার ব্যাকগ্রাউন্ডে যে ছবিটি রাখতে চান, সেই *ছবিটি সরাসরি এই চ্যাটে পাঠান (Photo)*:\n\n(ছবি না দিতে চাইলে */skip* লিখে পাঠান)")
+                    continue
 
-    wish_link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}&img={filename}"
+                if step == "PHOTO":
+                    sender = state.get("sender", "ইমন")
+                    receiver = state.get("receiver", "প্রিয় মানুষ")
+                    encoded_s = urllib.parse.quote(sender)
+                    encoded_r = urllib.parse.quote(receiver)
 
-    await update.message.reply_text(
-        f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n"
-        f"🔗 *লিংক:* {wish_link}\n\n"
-        f"✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!",
-        parse_mode="Markdown"
-    )
-    return ConversationHandler.END
+                    if text == "/skip":
+                        link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}"
+                        send_msg(chat_id, f"🎉 *উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}")
+                        user_states.pop(chat_id, None)
+                        continue
 
-async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sender = context.user_data.get("sender", "ইমন")
-    receiver = context.user_data.get("receiver", "প্রিয় মানুষ")
-
-    encoded_s = urllib.parse.quote(sender)
-    encoded_r = urllib.parse.quote(receiver)
-    wish_link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}"
-
-    await update.message.reply_text(
-        f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n"
-        f"🔗 *লিংক:* {wish_link}",
-        parse_mode="Markdown"
-    )
-    return ConversationHandler.END
+                    photo = msg.get("photo")
+                    if photo:
+                        file_id = photo[-1]["file_id"]
+                        f_res = requests.get(f"{API_URL}/getFile", params={"file_id": file_id}).json()
+                        if f_res.get("ok"):
+                            file_path = f_res["result"]["file_path"]
+                            img_data = requests.get(f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}").content
+                            
+                            filename = f"bg_{chat_id}.jpg"
+                            with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
+                                f.write(img_data)
+                            
+                            link = f"{RENDER_EXTERNAL_URL}/wish?from={encoded_s}&to={encoded_r}&img={filename}"
+                            send_msg(chat_id, f"🎉 *আপনার উইশ পেজ তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {link}\n\n✅ আপনার পাঠানো ছবিটি ব্যাকগ্রাউন্ডে ফুলস্ক্রিন যুক্ত হয়েছে!")
+                            user_states.pop(chat_id, None)
+                            continue
+        except Exception:
+            time.sleep(2)
 
 def main():
     threading.Thread(target=start_server, daemon=True).start()
-
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
-
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start_cmd)],
-        states={
-            SENDER: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_sender)],
-            RECEIVER: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_receiver)],
-            PHOTO: [
-                MessageHandler(filters.PHOTO, get_photo),
-                CommandHandler("skip", skip_photo)
-            ],
-        },
-        fallbacks=[CommandHandler("start", start_cmd)],
-    )
-
-    app.add_handler(conv_handler)
-    print("Bot is running...")
-    app.run_polling()
+    bot_loop()
 
 if __name__ == "__main__":
     main()
