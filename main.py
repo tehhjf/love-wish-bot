@@ -138,8 +138,8 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 #giftScreen.hide{{opacity:0;pointer-events:none;}}
 
 .gift-title{{
-  font-size:1.15rem;line-height:1.7;color:#fff;
-  max-width:340px;margin-bottom:35px;font-weight:400;
+  font-size:1.18rem;line-height:1.75;color:#fff;
+  max-width:350px;margin-bottom:30px;font-weight:500;
   text-shadow:0 0 15px rgba(255,45,117,0.9);
 }}
 .gift-title b{{color:#ffb3d1;font-weight:700;}}
@@ -187,7 +187,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   width:100%;height:20px;background:linear-gradient(90deg,#ffe082,#ffb3d1);
 }}
 
-.tap-hint{{margin-top:35px;font-size:0.95rem;color:#ffb3d1;animation:pulseGlow 2s ease-in-out infinite;}}
+.tap-hint{{margin-top:30px;font-size:0.95rem;color:#ffb3d1;animation:pulseGlow 2s ease-in-out infinite;}}
 @keyframes pulseGlow{{
   0%,100%{{opacity:0.6;transform:scale(1);}}
   50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 20px #ff3d7f;}}
@@ -214,12 +214,12 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 .heart-divider{{font-size:1.6rem;margin:3px 0;animation:pulseGlow 1.5s infinite;}}
 
 .message-box{{
-  max-width:480px;width:100%;min-height:130px;
+  max-width:480px;width:100%;min-height:140px;
   background:rgba(255,255,255,0.08);border:1px solid rgba(255,179,209,0.3);
   backdrop-filter:blur(15px);border-radius:20px;padding:22px;margin-bottom:20px;
   box-shadow:0 15px 45px rgba(0,0,0,0.6);
 }}
-.typed-text{{font-size:1.05rem;line-height:1.8;color:#fff;text-align:left;word-wrap:break-word;white-space:pre-wrap;}}
+.typed-text{{font-size:1.05rem;line-height:1.9;color:#fff;text-align:left;word-wrap:break-word;white-space:pre-wrap;}}
 
 .next-step-btn{{
   display:none;padding:12px 35px;background:linear-gradient(135deg,#ff2d75,#ff6b9d);
@@ -298,16 +298,16 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
-<!-- Step 1 -->
+<!-- Step 1: শুরুর পরিবর্তিত স্ক্রিন -->
 <div id="giftScreen">
   <div class="gift-title">
-    💌 তোমাকে চমকে দিতে <b>{sender_name}</b> একটি স্পেশাল চিঠি পাঠিয়েছে...<br><br>খুলতে গিফট বক্সে চাপ দাও 🎁
+    💌 আপনাকে কেউ একটি স্পেশাল চিঠি পাঠিয়েছে,<br>তা দেখতে লাভের ওপর ট্যাপ করুন...<br>আশা করি আপনার ভালো লাগবে! 💖✨
   </div>
   <div class="gift-box" id="giftBox">
     <div class="gift-lid"></div>
     <div class="gift-body"></div>
   </div>
-  <div class="tap-hint">👆 গিফট বক্সে ট্যাপ করুন</div>
+  <div class="tap-hint">👆 গিফট বক্সে ট্যাপ করুন 🎁</div>
 </div>
 
 <!-- Step 2 -->
@@ -399,12 +399,18 @@ function loop() {{
 
 var wishMsg = "{custom_msg}";
 
+// স্পিড কমিয়ে শান্তভাবে টাইপ করানোর ফাংশন (৭০ms ডিলে)
 function typeMsg(text, callback) {{
   var container = document.getElementById("typedText");
   var i = 0;
   function step() {{
-    if(i < text.length) {{ container.textContent += text.charAt(i); i++; setTimeout(step, 40); }}
-    else if(callback) callback();
+    if(i < text.length) {{ 
+      container.textContent += text.charAt(i); 
+      i++; 
+      setTimeout(step, 75); 
+    }} else if(callback) {{
+      callback();
+    }}
   }}
   step();
 }}
@@ -598,7 +604,8 @@ def handle_all(message):
             chat_id, 
             f"🎉 *আপনার স্পেশাল উইশ পেজ সফলভাবে তৈরি হয়েছে!*\n\n"
             f"🔗 *লিংক:* {short_link}\n\n"
-            f"✅ সব মূল বাটন ও হেডলাইন ইংরেজিতে এবং বর্ণনামূলক লেখা বাংলায় সাজানো হয়েছে।"
+            f"✅ শুরুর টেক্সট বাংলায় সাজানো হয়েছে।\n"
+            f"✅ চিঠির টাইপিং স্পিড ধীরে ও শান্ত করা হয়েছে।"
         )
         user_data.pop(chat_id, None)
         return
