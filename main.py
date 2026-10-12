@@ -1,9 +1,8 @@
 import os
-import time
 import threading
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-import requests
+import telebot
 
 PORT = int(os.environ.get("PORT", 10000))
 RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
@@ -12,23 +11,23 @@ if not RENDER_URL:
 
 TELEGRAM_TOKEN = "8699587679:AAHes1-nyxuOz7OgW0omcrsQqszqkLpOofE"
 ADMIN_CHAT_ID = "8699587679"
-API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
-user_states = {}
+bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown", threaded=True)
+user_data = {}
 
-# --- WEB SERVER ---
+# --- এইচটিটিপি সার্ভার ও অ্যানিমেটেড পেজ ---
 class CustomHTTPHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         
-        if parsed.path == "/ping" or parsed.path == "/healthz":
+        if parsed.path in ["/ping", "/healthz"]:
             self.send_response(200)
             self.send_header("Content-type", "text/plain")
             self.end_headers()
             self.wfile.write(b"OK")
             return
 
-        if parsed.path == "/wish" or parsed.path == "/":
+        if parsed.path in ["/wish", "/"]:
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
@@ -48,32 +47,28 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
 *{{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}}
 html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sans-serif;background:#0d0015;color:#fff;}}
 
-/* রোমান্টিক ডার্ক গ্রেডিয়েন্ট ব্যাকগ্রাউন্ড */
 #customBg{{
   position:fixed;inset:0;z-index:0;
   background: radial-gradient(circle at 50% 30%, #4a0033 0%, #150024 60%, #080010 100%);
 }}
 
-/* ব্যাকগ্রাউন্ডে বড় উজ্জ্বল স্পন্দিত হার্ট */
 .giant-heart-bg{{
   position:fixed;top:50%;left:50%;
   transform:translate(-50%,-50%);
-  z-index:1;
-  font-size:380px;
+  z-index:1;font-size:360px;
   color:rgba(255,45,117,0.18);
-  filter:drop-shadow(0 0 80px rgba(255,45,117,0.45));
-  animation:heartPulse 2.2s ease-in-out infinite;
-  pointer-events:none;
-  user-select:none;
+  filter:drop-shadow(0 0 80px rgba(255,45,117,0.5));
+  animation:heartPulse 2s ease-in-out infinite;
+  pointer-events:none;user-select:none;
 }}
 @keyframes heartPulse{{
   0%,100%{{transform:translate(-50%,-50%) scale(1);}}
-  50%{{transform:translate(-50%,-50%) scale(1.18);}}
+  50%{{transform:translate(-50%,-50%) scale(1.15);}}
 }}
 
 #heartsCanvas{{position:fixed;inset:0;z-index:2;pointer-events:none;}}
 
-/* ধাপ ১: গিফট বক্স স্ক্রিন */
+/* ধাপ ১: গিফট স্ক্রিন */
 #giftScreen{{
   position:fixed;inset:0;z-index:10;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -137,7 +132,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 20px #ff3d7f;}}
 }}
 
-/* ধাপ ২: উইশ লেটার স্ক্রিন */
+/* ধাপ ২: চিঠি স্ক্রিন */
 #wishScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:20px;text-align:center;
@@ -157,8 +152,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 .message-box{{
   max-width:480px;width:100%;min-height:130px;
   background:rgba(255,255,255,0.08);border:1px solid rgba(255,179,209,0.3);
-  backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);
-  border-radius:20px;padding:22px;margin-bottom:20px;
+  backdrop-filter:blur(15px);border-radius:20px;padding:22px;margin-bottom:20px;
   box-shadow:0 15px 45px rgba(0,0,0,0.6);
 }}
 .typed-text{{font-size:1.05rem;line-height:1.8;color:#fff;text-align:left;word-wrap:break-word;white-space:pre-wrap;}}
@@ -170,7 +164,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   animation:pulseGlow 1.8s infinite;font-family:'Hind Siliguri',sans-serif;
 }}
 
-/* ধাপ ৩: ডু ইউ লাভ মি + গোল প্রোফাইল ফ্রেম */
+/* ধাপ ৩: ডু ইউ লাভ মি + গোল ফ্রেম */
 #proposalScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:20px;text-align:center;
@@ -181,11 +175,9 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 .question-box{{
   max-width:400px;width:100%;background:rgba(255,255,255,0.08);
   border-radius:24px;padding:30px 20px;border:1px solid rgba(255,179,209,0.35);
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  box-shadow:0 20px 50px rgba(0,0,0,0.65);
+  backdrop-filter:blur(18px);box-shadow:0 20px 50px rgba(0,0,0,0.65);
 }}
 
-/* গোল প্রোফাইল ছবি ফ্রেম */
 .profile-avatar-wrap{{
   width:125px;height:125px;margin:0 auto 16px auto;
   border-radius:50%;padding:4px;
@@ -233,7 +225,6 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
-<!-- ধাপ ১: গিফট স্ক্রিন -->
 <div id="giftScreen">
   <div class="gift-title">
     💌 তোমাকে চমকে দিতে <b>{sender_name}</b> একটি স্পেশাল চিঠি পাঠিয়েছে...<br><br>খুলতে গিফট বক্সে চাপ দাও 🎁
@@ -245,7 +236,6 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   <div class="tap-hint">👆 গিফট বক্সে ট্যাপ করুন</div>
 </div>
 
-<!-- ধাপ ২: উইশ লেটার -->
 <div id="wishScreen">
   <div class="names-container">
     <div class="from-to">From</div>
@@ -260,23 +250,17 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   <button class="next-step-btn" id="nextStepBtn">পরের ধাপ দেখুন 👉</button>
 </div>
 
-<!-- ধাপ ৩: ডু ইউ লাভ মি + গোল ফ্রেম -->
 <div id="proposalScreen">
   <div class="question-box">
-    
-    <!-- গোল ফটো ফ্রেম (প্রয়োজনে যে কেউ নিজের পিক বসাতে পারবে) -->
     <div class="profile-avatar-wrap">
-      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop" alt="Profile" class="profile-avatar" id="partnerAvatar">
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop" alt="Profile" class="profile-avatar">
     </div>
-
     <div class="question-title">💖 Do you love me? 💖</div>
     <div class="question-sub">মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈</div>
-    
     <div class="yn-btn-group" id="btnGroup">
       <button class="yn-btn btn-yes" id="btnYes">YES 🥰</button>
       <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
     </div>
-
     <div id="yesResult">
       <h3 style="color:#ffb3d1;margin-bottom:8px;">Yay! আই লাভ ইউ সো মাচ! ❤️🥰</h3>
       <p style="font-size:0.92rem;color:#fff;margin-bottom:12px;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
@@ -285,7 +269,6 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
         <button class="share-btn tg-btn" id="tgShare">✈️ Telegram-এ বলো</button>
       </div>
     </div>
-
     <div id="noResult">
       <h3 style="color:#ff8585;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
       <p style="font-size:0.92rem;color:#ddd;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
@@ -396,72 +379,41 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-def send_msg(chat_id, text):
-    try:
-        requests.post(f"{API_URL}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "Markdown"
-        }, timeout=8)
-    except Exception:
-        pass
+# --- ইনস্ট্যান্ট টেলিগ্রাম বট হ্যান্ডলার (সরাসরি ১ সেকেন্ডে রিপ্লাই) ---
+@bot.message_handler(commands=['start'])
+def handle_start(message):
+    chat_id = message.chat.id
+    user_data[chat_id] = {'step': 'SENDER'}
+    bot.send_message(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\nপ্রথমে *আপনার নাম* লিখে পাঠান:")
 
-# --- বট হ্যান্ডলিং (ছবি ছাড়া মাত্র ২ স্টেপে সরাসরি লিংক দেবে) ---
-def bot_loop():
-    offset = 0
-    while True:
-        try:
-            res = requests.get(f"{API_URL}/getUpdates", params={"offset": offset, "timeout": 20}, timeout=25).json()
-            if not res.get("ok"):
-                time.sleep(1)
-                continue
-                
-            for item in res.get("result", []):
-                offset = item["update_id"] + 1
-                msg = item.get("message", {})
-                chat_id = msg.get("chat", {}).get("id")
-                text = msg.get("text", "").strip()
-                
-                if not chat_id:
-                    continue
+@bot.message_handler(func=lambda msg: True)
+def handle_text(message):
+    chat_id = message.chat.id
+    text = message.text.strip()
+    state = user_data.get(chat_id, {})
+    step = state.get('step')
 
-                if text == "/start":
-                    user_states[chat_id] = {"step": "SENDER"}
-                    send_msg(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\nপ্রথমে *আপনার নাম* লিখে পাঠান:")
-                    continue
+    if step == 'SENDER':
+        user_data[chat_id]['sender'] = text
+        user_data[chat_id]['step'] = 'RECEIVER'
+        bot.send_message(chat_id, "এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
+        return
 
-                state = user_states.get(chat_id)
-                if not state:
-                    continue
-                
-                step = state.get("step")
+    if step == 'RECEIVER':
+        sender = state.get('sender', 'EMON')
+        receiver = text
+        
+        encoded_s = urllib.parse.quote(sender)
+        encoded_r = urllib.parse.quote(receiver)
+        wish_link = f"{RENDER_URL}/wish?from={encoded_s}&to={encoded_r}"
 
-                # ধাপ ১: আপনার নাম
-                if step == "SENDER" and text:
-                    user_states[chat_id]["sender"] = text
-                    user_states[chat_id]["step"] = "RECEIVER"
-                    send_msg(chat_id, "এবার *যার জন্য উইশ তৈরি করছেন তার নাম* লিখে পাঠান:")
-                    continue
-
-                # ধাপ ২: প্রাপকের নাম (নাম লেখা মাত্রই ১ সেকেন্ডে লিংক তৈরি)
-                if step == "RECEIVER" and text:
-                    sender = state.get("sender", "EMON")
-                    receiver = text
-                    
-                    encoded_s = urllib.parse.quote(sender)
-                    encoded_r = urllib.parse.quote(receiver)
-                    wish_link = f"{RENDER_URL}/wish?from={encoded_s}&to={encoded_r}"
-
-                    send_msg(chat_id, f"🎉 *আপনার উইশ পেজ সফলভাবে তৈরি হয়েছে!*\n\n🔗 *লিংক:* {wish_link}\n\n💖 লিংকে ঢুকলে চমৎকার হার্ট অ্যানিমেশন এবং প্রপোজাল পেজ দেখতে পাবেন!")
-                    user_states.pop(chat_id, None)
-                    continue
-
-        except Exception:
-            time.sleep(1)
+        bot.send_message(chat_id, f"🎉 *আপনার উইশ পেজ সাথে সাথে তৈরি হয়ে গেছে!*\n\n🔗 *লিংক:* {wish_link}\n\n💖 লিংকে ঢুকলে চমৎকার ব্যাকগ্রাউন্ড হার্ট অ্যানিমেশন ও ডু ইউ লাভ মি পেজ দেখতে পাবেন!")
+        user_data.pop(chat_id, None)
+        return
 
 def main():
     threading.Thread(target=start_server, daemon=True).start()
-    bot_loop()
+    bot.infinity_polling(timeout=10, long_polling_timeout=5)
 
 if __name__ == "__main__":
     main()
