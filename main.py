@@ -103,10 +103,11 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>💖 Special Surprise For You</title>
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Dancing+Script:wght@700&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+<!-- প্রিমিয়াম স্টাইলিশ বাংলা ও হ্যান্ডরাইটিং ফন্ট -->
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Galada&family=Dancing+Script:wght@700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}}
-html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sans-serif;background:#0d0015;color:#fff;}}
+html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-serif;background:#0d0015;color:#fff;}}
 
 #customBg{{
   position:fixed;inset:0;z-index:0;
@@ -137,12 +138,26 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 }}
 #giftScreen.hide{{opacity:0;pointer-events:none;}}
 
+/* প্রিমিয়াম স্টাইলিশ ফন্ট ও সফট গ্লো */
 .gift-title{{
-  font-size:1.18rem;line-height:1.75;color:#fff;
-  max-width:350px;margin-bottom:30px;font-weight:500;
-  text-shadow:0 0 15px rgba(255,45,117,0.9);
+  font-family: 'Anek Bangla', sans-serif;
+  font-size:1.25rem;
+  line-height:1.8;
+  color:#fff;
+  max-width:360px;
+  margin-bottom:30px;
+  font-weight:600;
+  text-shadow:0 2px 15px rgba(255,45,117,0.95), 0 0 30px rgba(255,107,157,0.5);
+  letter-spacing: 0.3px;
 }}
-.gift-title b{{color:#ffb3d1;font-weight:700;}}
+.gift-title .first-line {{
+  font-family: 'Galada', cursive;
+  font-size: 1.45rem;
+  color: #ffe082;
+  display: block;
+  margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(255, 224, 130, 0.7);
+}}
 
 .gift-box{{
   position:relative;width:150px;height:150px;cursor:pointer;
@@ -187,7 +202,12 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   width:100%;height:20px;background:linear-gradient(90deg,#ffe082,#ffb3d1);
 }}
 
-.tap-hint{{margin-top:30px;font-size:0.95rem;color:#ffb3d1;animation:pulseGlow 2s ease-in-out infinite;}}
+.tap-hint{{
+  margin-top:30px;font-size:1.05rem;color:#ffb3d1;
+  font-family: 'Anek Bangla', sans-serif;
+  font-weight: 600;
+  animation:pulseGlow 2s ease-in-out infinite;
+}}
 @keyframes pulseGlow{{
   0%,100%{{opacity:0.6;transform:scale(1);}}
   50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 20px #ff3d7f;}}
@@ -207,19 +227,48 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
   font-size:0.85rem;color:#ffb3d1;letter-spacing:3px;text-transform:uppercase;font-weight:600;
 }}
 .sender-name, .receiver-name{{
-  font-family:'Dancing Script',cursive;font-size:2.6rem;
+  font-family:'Dancing Script',cursive;font-size:2.8rem;
   background:linear-gradient(135deg,#fff,#ffb3d1,#ff2d75);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }}
 .heart-divider{{font-size:1.6rem;margin:3px 0;animation:pulseGlow 1.5s infinite;}}
 
+/* মাঝের নির্বাচিত ফ্রস্টেড গ্লাস বক্স */
 .message-box{{
   max-width:480px;width:100%;min-height:140px;
-  background:rgba(255,255,255,0.08);border:1px solid rgba(255,179,209,0.3);
-  backdrop-filter:blur(15px);border-radius:20px;padding:22px;margin-bottom:20px;
-  box-shadow:0 15px 45px rgba(0,0,0,0.6);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 45, 117, 0.25) 0%, rgba(20, 0, 30, 0.75) 85%);
+  border: 1.5px solid rgba(255, 45, 117, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius:24px;padding:24px;margin-bottom:20px;
+  box-shadow: 0 0 30px rgba(255, 45, 117, 0.35), inset 0 0 15px rgba(255, 45, 117, 0.15);
+  position: relative;
+  overflow: hidden;
 }}
-.typed-text{{font-size:1.05rem;line-height:1.9;color:#fff;text-align:left;word-wrap:break-word;white-space:pre-wrap;}}
+
+.message-box::before {{
+  content: "❤️";
+  position: absolute;
+  font-size: 140px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.11;
+  pointer-events: none;
+  filter: blur(2px);
+}}
+
+.typed-text{{
+  font-family: 'Anek Bangla', sans-serif;
+  font-size:1.1rem;
+  line-height:2;
+  color:#fff;
+  text-align:left;
+  word-wrap:break-word;
+  white-space:pre-wrap;
+  z-index: 2;
+  position: relative;
+  letter-spacing: 0.2px;
+}}
 
 .next-step-btn{{
   display:none;padding:12px 35px;background:linear-gradient(135deg,#ff2d75,#ff6b9d);
@@ -237,9 +286,13 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 #proposalScreen.show{{display:flex;opacity:1;}}
 
 .question-box{{
-  max-width:400px;width:100%;background:rgba(255,255,255,0.08);
-  border-radius:24px;padding:30px 20px;border:1px solid rgba(255,179,209,0.35);
-  backdrop-filter:blur(18px);box-shadow:0 20px 50px rgba(0,0,0,0.65);
+  max-width:400px;width:100%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 45, 117, 0.22) 0%, rgba(20, 0, 30, 0.75) 85%);
+  border: 1.5px solid rgba(255, 45, 117, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius:24px;padding:30px 20px;
+  box-shadow: 0 0 30px rgba(255, 45, 117, 0.35);
 }}
 
 .profile-avatar-wrap{{
@@ -260,14 +313,18 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 }}
 
 .proposal-top-text{{
-  font-size:1.05rem;color:#ffe082;margin-bottom:8px;font-weight:600;
+  font-family: 'Anek Bangla', sans-serif;
+  font-size:1.1rem;color:#ffe082;margin-bottom:8px;font-weight:600;
   text-shadow:0 0 10px rgba(255,224,130,0.5);
 }}
 .question-title{{
   font-family:'Poppins',sans-serif;
   font-size:1.65rem;font-weight:700;color:#ffb3d1;margin-bottom:8px;
 }}
-.question-sub{{font-size:0.95rem;color:#f0f0f0;margin-bottom:24px;}}
+.question-sub{{
+  font-family: 'Anek Bangla', sans-serif;
+  font-size:1rem;color:#f0f0f0;margin-bottom:24px;
+}}
 .yn-btn-group{{display:flex;justify-content:center;gap:15px;}}
 .yn-btn{{
   flex:1;padding:14px;border:none;border-radius:50px;font-size:1.15rem;
@@ -298,10 +355,11 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
-<!-- Step 1: শুরুর পরিবর্তিত স্ক্রিন -->
+<!-- Step 1: স্টাইলিশ ফন্টে শুরুর স্ক্রিন -->
 <div id="giftScreen">
   <div class="gift-title">
-    💌 আপনাকে কেউ একটি স্পেশাল চিঠি পাঠিয়েছে,<br>তা দেখতে লাভের ওপর ট্যাপ করুন...<br>আশা করি আপনার ভালো লাগবে! 💖✨
+    <span class="first-line">💌 আপনাকে কেউ একটি স্পেশাল চিঠি পাঠিয়েছে</span>
+    তা দেখতে লাভের ওপর ট্যাপ করুন...<br>আশা করি আপনার ভালো লাগবে! 💖✨
   </div>
   <div class="gift-box" id="giftBox">
     <div class="gift-lid"></div>
@@ -340,16 +398,16 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sa
       <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
     </div>
     <div id="yesResult">
-      <h3 style="color:#ffb3d1;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
-      <p style="font-size:0.92rem;color:#fff;margin-bottom:12px;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
+      <h3 style="color:#ffb3d1;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
+      <p style="font-size:0.95rem;color:#fff;margin-bottom:12px;font-family:'Anek Bangla',sans-serif;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
       <div class="share-btn-wrap">
         <a class="share-btn wa-btn" id="waShare" href="#" target="_blank">💬 WhatsApp</a>
         <a class="share-btn tg-btn" id="tgShare" href="#" target="_blank">✈️ Telegram</a>
       </div>
     </div>
     <div id="noResult">
-      <h3 style="color:#ff8585;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
-      <p style="font-size:0.92rem;color:#ddd;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
+      <h3 style="color:#ff8585;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
+      <p style="font-size:0.95rem;color:#ddd;font-family:'Anek Bangla',sans-serif;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
     </div>
   </div>
 </div>
@@ -399,7 +457,6 @@ function loop() {{
 
 var wishMsg = "{custom_msg}";
 
-// স্পিড কমিয়ে শান্তভাবে টাইপ করানোর ফাংশন (৭০ms ডিলে)
 function typeMsg(text, callback) {{
   var container = document.getElementById("typedText");
   var i = 0;
@@ -604,8 +661,7 @@ def handle_all(message):
             chat_id, 
             f"🎉 *আপনার স্পেশাল উইশ পেজ সফলভাবে তৈরি হয়েছে!*\n\n"
             f"🔗 *লিংক:* {short_link}\n\n"
-            f"✅ শুরুর টেক্সট বাংলায় সাজানো হয়েছে।\n"
-            f"✅ চিঠির টাইপিং স্পিড ধীরে ও শান্ত করা হয়েছে।"
+            f"✅ চমৎকার স্টাইলিশ বাংলা ফন্ট সেট করা হয়েছে।"
         )
         user_data.pop(chat_id, None)
         return
