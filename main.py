@@ -11,7 +11,7 @@ RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
 if not RENDER_URL:
     RENDER_URL = "https://love-wish-bot.onrender.com"
 
-# আপনার নতুন টেলিগ্রাম বট টোকেন
+# আপনার টেলিগ্রাম বট টোকেন
 TELEGRAM_TOKEN = "8699587679:AAGvW12Wg-nsvolT9O4VSFQyVPoOI_BxFoU"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown", threaded=True)
@@ -161,7 +161,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
             tg_user = data.get("tg", "")
             audio_file = data.get("audio", "")
 
-            # মেসেজের লাইনগুলোকে JSON অ্যারে আকারে পাঠানো
+            # প্রতিটি লাইন পৃথক অ্যারে আকারে পাঠানো
             lines_list = [line.strip() for line in raw_msg.replace("\r\n", "\n").split("\n") if line.strip()]
             lines_json = json.dumps(lines_list, ensure_ascii=False)
 
@@ -188,11 +188,11 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   background: radial-gradient(circle at 50% 30%, #46002c 0%, #170024 60%, #07000e 100%);
 }}
 
-/* ব্যাকগ্রাউন্ডে বড় স্পন্দিত লাল লাভ */
+/* ব্যাকগ্রাউন্ডের স্পন্দিত বড় লাল লাভ */
 .giant-heart-bg{{
-  position:fixed;top:50%;left:50%;
+  position:fixed;top:54%;left:50%;
   transform:translate(-50%,-50%);
-  z-index:1;font-size:360px;
+  z-index:1;font-size:350px;
   color:rgba(255,45,117,0.22);
   filter:drop-shadow(0 0 80px rgba(255,45,117,0.55));
   animation:heartPulse 2.2s ease-in-out infinite;
@@ -205,13 +205,27 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 
 #heartsCanvas{{position:fixed;inset:0;z-index:2;pointer-events:none;}}
 
-/* Step 1: ক্লিন গিফট স্ক্রিন (অপ্রয়োজনীয় লেখা ছাড়া) */
+/* Step 1: ক্লিন গিফট স্ক্রিন */
 #giftScreen{{
   position:fixed;inset:0;z-index:10;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:25px;text-align:center;transition:opacity 0.8s ease;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  padding:50px 20px 70px 20px;text-align:center;transition:opacity 0.8s ease;cursor:pointer;
 }}
 #giftScreen.hide{{opacity:0;pointer-events:none;}}
+
+/* লেখাটি সবার ওপরে থাকবে যেন লাভ বা বক্সকে স্পর্শ না করে */
+.top-tap-hint{{
+  font-size:1.25rem;color:#ffe082;
+  font-family: 'Anek Bangla', sans-serif;font-weight: 700;
+  animation:pulseGlow 2s ease-in-out infinite;
+  text-shadow: 0 0 15px rgba(255, 224, 130, 0.7);
+  letter-spacing: 0.5px;
+}}
+
+.gift-box-wrapper{{
+  display:flex;align-items:center;justify-content:center;
+  margin-top:auto;margin-bottom:auto;
+}}
 
 .gift-box{{
   position:relative;width:155px;height:155px;cursor:pointer;
@@ -256,29 +270,22 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   width:100%;height:22px;background:linear-gradient(90deg,#ffe082,#ffb3d1);
 }}
 
-/* শুধু এই লেখাটি থাকবে */
-.tap-hint{{
-  margin-top:40px;font-size:1.15rem;color:#ffe082;
-  font-family: 'Anek Bangla', sans-serif;font-weight: 700;
-  animation:pulseGlow 2s ease-in-out infinite;
-  text-shadow: 0 0 15px rgba(255, 224, 130, 0.7);
-}}
 @keyframes pulseGlow{{
-  0%,100%{{opacity:0.8;transform:scale(1);}}
+  0%,100%{{opacity:0.85;transform:scale(1);}}
   50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 25px #ff3d7f;}}
 }}
 
 /* Step 2: চিঠি স্ক্রিন */
 #wishScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
-  align-items:center;justify-content:center;padding:16px;text-align:center;
-  opacity:0;transition:opacity 0.8s ease;overflow-y:auto;
+  align-items:center;justify-content:center;padding:12px 16px;text-align:center;
+  opacity:0;transition:opacity 0.8s ease;overflow:hidden;
 }}
 #wishScreen.show{{display:flex;opacity:1;}}
 
 .names-container{{
   display:flex;align-items:center;justify-content:center;gap:16px;
-  margin-bottom:14px;width:100%;max-width:380px;
+  margin-bottom:12px;width:100%;max-width:380px;flex-shrink:0;
 }}
 .name-item{{display:flex;flex-direction:column;align-items:center;}}
 .from-to{{
@@ -286,7 +293,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   font-size:0.8rem;color:#ffb3d1;letter-spacing:3px;font-weight:700;margin-bottom:2px;
 }}
 .sender-name, .receiver-name{{
-  font-family:'Dancing Script',cursive;font-size:2.5rem;line-height:1.1;
+  font-family:'Dancing Script',cursive;font-size:2.4rem;line-height:1.1;
   background:linear-gradient(135deg,#ffffff,#ffb3d1,#ff548e);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 0 10px rgba(255,45,117,0.4));
@@ -297,16 +304,16 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   animation:pulseGlow 1.6s infinite;
 }}
 
-/* স্ক্রিনের মাঝে একদম স্থির ফ্রস্টেড গ্লাস বক্স */
+/* স্ক্রিনের মাঝে স্থির পারফেক্ট সাইজ গ্লাস বক্স */
 .message-box{{
   position:relative;
   max-width:360px;width:92%;
-  height: 380px; /* স্থায়ী ফিক্সড উচ্চতা */
+  height: 405px; /* চিঠি সম্পূর্ণ ফিট হওয়ার পারফেক্ট সাইজ */
   background: rgba(22, 0, 32, 0.45);
   border: 1.8px solid rgba(255, 65, 130, 0.65);
   border-radius: 28px;
-  padding: 24px 20px;
-  margin-bottom: 18px;
+  padding: 16px 14px;
+  margin-bottom: 16px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 0 35px rgba(255, 45, 117, 0.45), inset 0 0 20px rgba(255, 45, 117, 0.2);
@@ -327,37 +334,37 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   animation: heartPulse 2.4s ease-in-out infinite;
 }}
 
-/* কালার কম্বিনেশনসহ লাইনের কন্টেইনার */
+/* সব টেক্সট একসাথে ফিট হওয়ার জন্য অপ্টিমাইজড টেক্সট কনটেইনার */
 .typed-text{{
   position: relative;
   z-index: 2;
   font-family: 'Anek Bangla', sans-serif;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 600;
-  line-height: 1.95;
+  line-height: 1.55;
   text-align: center;
   width: 100%;
-  max-height: 100%;
-  overflow-y: auto;
-  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }}
-.typed-text::-webkit-scrollbar{{display:none;}}
 
 .line-gold {{
   color: #ffe082;
   text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 12px rgba(255, 224, 130, 0.6);
   display: block;
-  margin-bottom: 2px;
+  margin: 1px 0;
 }}
 .line-pink {{
   color: #ffffff;
   text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 10px rgba(255, 107, 157, 0.7);
   display: block;
-  margin-bottom: 2px;
+  margin: 1px 0;
 }}
 
 .next-step-btn{{
-  display:none;padding:13px 40px;
+  display:none;padding:12px 38px;
   background: linear-gradient(135deg, #ff4081, #ff2d75);
   color: #fff;border: none;border-radius: 50px;
   font-size: 1.05rem;font-weight: 800;
@@ -365,7 +372,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   box-shadow: 0 8px 30px rgba(255, 45, 117, 0.7);
   animation: pulseGlow 1.8s infinite;
   font-family: 'Poppins', sans-serif;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.2px;flex-shrink:0;
 }}
 
 /* Step 3: Proposal Screen */
@@ -519,11 +526,14 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 
 <!-- Step 1: ক্লিন গিফট স্ক্রিন -->
 <div id="giftScreen">
-  <div class="gift-box" id="giftBox">
-    <div class="gift-lid"></div>
-    <div class="gift-body"></div>
+  <div class="top-tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
+  <div class="gift-box-wrapper">
+    <div class="gift-box" id="giftBox">
+      <div class="gift-lid"></div>
+      <div class="gift-body"></div>
+    </div>
   </div>
-  <div class="tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
+  <div style="height: 20px;"></div>
 </div>
 
 <!-- Step 2: চিঠি স্ক্রিন -->
@@ -561,12 +571,10 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 <!-- Step 3: Proposal Screen -->
 <div id="proposalScreen">
   <div class="question-box">
-    <!-- শুধুমাত্র প্রোফাইল ছবি থাকবে -->
     <div class="profile-avatar-wrap">
       <img src="{avatar_src}" alt="Profile" class="profile-avatar">
     </div>
     
-    <!-- YES / NO চাপার পর এগুলো গায়েব হয়ে যাবে -->
     <div id="topTextsWrap">
       <div class="proposal-top-text">{proposal_note}</div>
       <div class="question-title">💖 Do you love me? 💖</div>
@@ -588,17 +596,17 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
       <button class="open-reply-btn" onclick="openNewPage('YES')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
 
-    <!-- NO রেসপন্স কার্ড (কোনো গোলাপের ইমোজি ছাড়া) -->
+    <!-- NO রেসপন্স কার্ড (শুদ্ধ বানান ও কোনো গোলাপ ছাড়া) -->
     <div id="noResult">
       <p style="font-size:1.05rem;line-height:1.8;color:#ffb3d1;font-family:'Anek Bangla',sans-serif;font-weight:600;margin-bottom:12px;">
-        তোমার মূল্যবান সময় দিয়ে পড়ার জন্য ধন্যবাদ  যাক ব্যাপার না তুমি হয়তো আমার ভাগ্যে ছিল না🥺
+        তোমার মূল্যবান সময় দিয়ে পড়ার জন্য ধন্যবাদ! যাক ব্যাপার না, তুমি হয়তো আমার ভাগ্যে ছিলে না... 🥺
       </p>
       <button class="open-reply-btn" onclick="openNewPage('NO')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
   </div>
 </div>
 
-<!-- Step 4: মেসেজ লেখার পেজ -->
+<!-- Step 4: নতুন পেজ - মেসেজ লেখার পেজ -->
 <div id="feedbackPage">
   <div class="feedback-card">
     <div style="font-size:45px;margin-bottom:10px;">✍️💌</div>
@@ -693,7 +701,7 @@ function loop() {{
   requestAnimationFrame(loop);
 }}
 
-// লাইন বাই লাইন আলাদা কালারে টাইপিং
+// প্রতিটি লাইন টাইপিং লজিক
 var linesData = {lines_json};
 
 function typeLines(lines, callback) {{
@@ -707,7 +715,7 @@ function typeLines(lines, callback) {{
     }}
 
     var lineSpan = document.createElement("span");
-    // অল্টারনেট কালার (এক লাইন গোল্ডেন, পরের লাইন পিংকিশ-হোয়াইট)
+    // এক লাইন গোল্ডেন, পরের লাইন পিংকিশ-হোয়াইট
     lineSpan.className = (lineIdx % 2 === 0) ? "line-gold" : "line-pink";
     container.appendChild(lineSpan);
 
@@ -718,10 +726,10 @@ function typeLines(lines, callback) {{
       if(charIdx < text.length) {{
         lineSpan.textContent += text.charAt(charIdx);
         charIdx++;
-        setTimeout(stepChar, 65);
+        setTimeout(stepChar, 50);
       }} else {{
         lineIdx++;
-        setTimeout(processNextLine, 250);
+        setTimeout(processNextLine, 180);
       }}
     }}
     stepChar();
@@ -922,7 +930,7 @@ def handle_all(message):
             chat_id, 
             f"🎉 *আপনার স্পেশাল উইশ পেজ সফলভাবে তৈরি হয়েছে!*\n\n"
             f"🔗 *লিংক:* {short_link}\n\n"
-            f"✅ সব নতুন ডিজাইন ও কাস্টমাইজেশন কার্যকর করা হয়েছে।"
+            f"✅ সব কাস্টমাইজেশন শতভাগ সফলভাবে সেট করা হয়েছে।"
         )
         user_data.pop(chat_id, None)
         return
