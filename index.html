@@ -1,341 +1,253 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>💖 Special Surprise For You</title>
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Wish Master Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;width:100%;overflow:hidden;font-family:'Hind Siliguri',sans-serif;background:#000;color:#fff;}
-
-/* ফুলস্ক্রিন ব্যাকগ্রাউন্ড */
-#customBg{
-  position:fixed;inset:0;z-index:0;
-  background-position:center center;
-  background-size:cover;
-  background-repeat:no-repeat;
-  transition:background 0.5s ease;
-}
-
-/* লেখার স্পষ্টতা বাড়ানোর জন্য ওভারলে */
-#bgOverlay{
-  position:fixed;inset:0;z-index:1;
-  background:rgba(0,0,0,0.5);
-  backdrop-filter:blur(3px);
-  -webkit-backdrop-filter:blur(3px);
-}
-
-#heartsCanvas{position:fixed;inset:0;z-index:2;pointer-events:none;}
-
-/* ===== ধাপ ১: গিফট স্ক্রিন ===== */
-#giftScreen{
-  position:fixed;inset:0;z-index:10;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px;text-align:center;transition:opacity 0.8s ease;
-}
-#giftScreen.hide{opacity:0;pointer-events:none;}
-
-.gift-title{
-  font-size:1.1rem;line-height:1.7;color:#fff;
-  max-width:340px;margin-bottom:35px;font-weight:400;
-  text-shadow:0 0 15px rgba(255,45,117,0.9);
-}
-.gift-title b{color:#ffb3d1;font-weight:600;}
-
-.gift-box{
-  position:relative;width:150px;height:150px;cursor:pointer;
-  animation:boxShake 1.4s ease-in-out infinite;
-  filter:drop-shadow(0 20px 40px rgba(255,45,117,0.7));
-  transition:transform 0.3s ease;
-}
-.gift-box:hover{transform:scale(1.08);}
-@keyframes boxShake{
-  0%,100%{transform:rotate(0) scale(1);}
-  15%{transform:rotate(-6deg) scale(1.02);}
-  30%{transform:rotate(6deg) scale(1.04);}
-  45%{transform:rotate(-4deg) scale(1.02);}
-  60%{transform:rotate(4deg) scale(1.04);}
-  75%{transform:rotate(0) scale(1);}
-}
-
-.gift-lid{
-  position:absolute;top:-12px;left:-10px;width:170px;height:40px;
-  background:linear-gradient(135deg,#ff3d7f,#ff6b9d);
-  border-radius:8px;box-shadow:0 4px 20px rgba(255,45,117,0.6);
-  transition:all 0.9s ease;
-}
-.gift-lid::before{
-  content:"";position:absolute;top:-22px;left:50%;transform:translateX(-50%);
-  width:50px;height:45px;background:linear-gradient(135deg,#ffb3d1,#ff3d7f);
-  clip-path:polygon(50% 0%, 0% 100%, 50% 75%, 100% 100%);
-  border-radius:0 0 20px 20px;
-}
-.gift-box.open .gift-lid{transform:translateY(-180px) rotate(-45deg);opacity:0;}
-
-.gift-body{
-  position:absolute;top:28px;left:5px;
-  width:140px;height:120px;
-  background:linear-gradient(135deg,#e91e63,#ff4081);
-  border-radius:10px;
-  box-shadow:inset 0 0 30px rgba(0,0,0,0.3),0 10px 30px rgba(255,45,117,0.5);
-  overflow:hidden;
-}
-.gift-body::before{
-  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:20px;height:100%;background:linear-gradient(180deg,#ffd966,#ffb3d1);
-}
-.gift-body::after{
-  content:"";position:absolute;top:50%;left:0;transform:translateY(-50%);
-  width:100%;height:20px;background:linear-gradient(90deg,#ffd966,#ffb3d1);
-}
-
-.tap-hint{margin-top:35px;font-size:0.95rem;color:#ffb3d1;animation:pulseGlow 2s ease-in-out infinite;}
-@keyframes pulseGlow{
-  0%,100%{opacity:0.6;transform:scale(1);}
-  50%{opacity:1;transform:scale(1.05);text-shadow:0 0 20px #ff3d7f;}
-}
-
-/* ===== ধাপ ২: উইশ মেসেজ স্ক্রিন ===== */
-#wishScreen{
-  position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
-  align-items:center;justify-content:center;padding:20px;text-align:center;
-  opacity:0;transition:opacity 0.8s ease;overflow-y:auto;
-}
-#wishScreen.show{display:flex;opacity:1;}
-
-.names-container{margin-bottom:12px;}
-.from-to{font-size:0.8rem;color:#ffb3d1;letter-spacing:2px;text-transform:uppercase;}
-.sender-name, .receiver-name{
-  font-family:'Dancing Script',cursive;font-size:2.4rem;
-  background:linear-gradient(135deg,#fff,#ffb3d1,#ff3d7f);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-}
-.heart-divider{font-size:1.5rem;margin:4px 0;}
-
-.message-box{
-  max-width:480px;width:100%;min-height:130px;
-  background:rgba(255,255,255,0.08);border:1px solid rgba(255,179,209,0.3);
-  backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);
-  border-radius:18px;padding:20px;margin-bottom:18px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.5);
-}
-.typed-text{font-size:1rem;line-height:1.8;color:#fff;text-align:left;word-wrap:break-word;white-space:pre-wrap;}
-
-.next-step-btn{
-  display:none;padding:12px 30px;background:linear-gradient(135deg,#ff2d75,#ff6b9d);
-  color:#fff;border:none;border-radius:50px;font-size:1.05rem;font-weight:600;
-  cursor:pointer;box-shadow:0 8px 25px rgba(255,45,117,0.5);
-  animation:pulseGlow 1.8s infinite;font-family:'Hind Siliguri',sans-serif;
-}
-
-/* ===== ধাপ ৩: ডু ইউ লাভ মি স্ক্রিন ===== */
-#proposalScreen{
-  position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
-  align-items:center;justify-content:center;padding:20px;text-align:center;
-  opacity:0;transition:opacity 0.8s ease;
-}
-#proposalScreen.show{display:flex;opacity:1;}
-
-.question-box{
-  max-width:400px;width:100%;background:rgba(255,255,255,0.1);
-  border-radius:20px;padding:25px 20px;border:1px solid rgba(255,179,209,0.3);
-  backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);
-  box-shadow:0 15px 40px rgba(0,0,0,0.5);
-}
-.question-title{font-size:1.6rem;font-weight:700;color:#ffb3d1;margin-bottom:10px;}
-.question-sub{font-size:0.95rem;color:#eee;margin-bottom:22px;}
-.yn-btn-group{display:flex;justify-content:center;gap:15px;}
-.yn-btn{
-  flex:1;padding:14px;border:none;border-radius:50px;font-size:1.1rem;
-  font-weight:bold;cursor:pointer;transition:transform 0.2s;font-family:'Hind Siliguri',sans-serif;
-}
-.btn-yes{background:linear-gradient(135deg,#ff2d75,#ff6b9d);color:#fff;box-shadow:0 8px 25px rgba(255,45,117,0.5);}
-.btn-yes:hover{transform:scale(1.05);}
-.btn-no{background:rgba(255,255,255,0.18);color:#eee;border:1px solid rgba(255,255,255,0.3);}
-
-#yesResult{display:none;margin-top:15px;padding:15px;background:rgba(255,45,117,0.2);border-radius:14px;border:1px solid rgba(255,45,117,0.5);}
-#noResult{display:none;margin-top:15px;padding:15px;background:rgba(0,0,0,0.4);border-radius:14px;border:1px solid rgba(255,255,255,0.2);}
-
-.share-btn-wrap{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
-.share-btn{
-  padding:12px;border-radius:50px;border:none;color:#fff;font-size:0.95rem;
-  font-weight:600;cursor:pointer;display:inline-flex;align-items:center;
-  justify-content:center;gap:8px;text-decoration:none;
-}
-.wa-btn{background:#25D366;box-shadow:0 5px 15px rgba(37,211,102,0.4);}
-.tg-btn{background:#0088cc;box-shadow:0 5px 15px rgba(0,136,204,0.4);}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Anek Bangla',sans-serif; }
+body { background:radial-gradient(circle at 50% 20%, #3d0026 0%, #150022 60%, #07000e 100%); color:#fff; min-height:100vh; padding:18px 14px; display:flex; justify-content:center; }
+.app-frame { width:100%; max-width:430px; background:rgba(26,0,38,0.65); border:1.8px solid rgba(255,65,130,0.5); border-radius:32px; padding:22px 18px; backdrop-filter:blur(25px); box-shadow:0 10px 40px rgba(0,0,0,0.7); display:flex; flex-direction:column; }
+.app-title { font-family:'Poppins',sans-serif; font-size:1.4rem; font-weight:800; text-align:center; background:linear-gradient(135deg, #fff, #ffb3d1, #ff2d75); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.progress-bar { width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin:14px 0 20px; overflow:hidden; }
+.progress-fill { height:100%; width:25%; background:linear-gradient(90deg, #ffe082, #ff2d75); transition:width 0.4s ease; }
+.step-pane { display:none; }
+.step-pane.active { display:block; animation:slideUp 0.35s ease; }
+label { display:block; font-size:0.95rem; font-weight:700; color:#ffb3d1; margin:12px 0 6px; }
+input[type="text"], textarea { width:100%; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,0.07); border:1.2px solid rgba(255,179,209,0.3); color:#fff; font-size:0.98rem; outline:none; }
+input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 14px rgba(255,45,117,0.45); }
+.upload-card { border:2px dashed rgba(255,65,130,0.5); border-radius:20px; padding:16px; text-align:center; background:rgba(255,45,117,0.05); margin-top:8px; cursor:pointer; }
+.file-input { display:none; }
+.preview-wrap { width:90px; height:90px; border-radius:50%; margin:12px auto 0; border:2.5px solid #ffe082; overflow:hidden; display:none; }
+.preview-img { width:100%; height:100%; object-fit:cover; }
+.audio-info { margin-top:8px; font-size:0.85rem; color:#85ffb9; font-weight:600; display:none; }
+.btn-row { display:flex; gap:12px; margin-top:22px; }
+.app-btn { flex:1; padding:13px; border-radius:50px; border:none; font-weight:700; font-size:0.98rem; cursor:pointer; }
+.btn-primary { background:linear-gradient(135deg,#ff2d75,#ff6b9d); color:#fff; box-shadow:0 6px 20px rgba(255,45,117,0.45); }
+.btn-back { background:rgba(255,255,255,0.12); color:#ddd; }
+.result-box { display:none; margin-top:18px; padding:15px; background:rgba(133,255,185,0.1); border:1.2px solid #85ffb9; border-radius:20px; text-align:center; }
+.result-url { font-family:'Poppins',sans-serif; font-size:0.88rem; color:#85ffb9; word-break:break-all; margin:8px 0; font-weight:600; }
+.copy-btn { width:100%; padding:10px; border-radius:50px; background:#85ffb9; color:#07000e; border:none; font-weight:800; cursor:pointer; }
+.response-board { margin-top:22px; padding:15px; border-radius:20px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,65,130,0.3); }
+.board-header { font-size:0.95rem; color:#ffe082; font-weight:700; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+.log-item { padding:12px 14px; border-radius:14px; font-size:0.92rem; background:rgba(255,255,255,0.08); margin-bottom:10px; border-left:4px solid #ff2d75; animation:slideUp 0.3s ease; }
+.app-footer { margin-top:20px; padding-top:14px; border-top:1px dashed rgba(255,179,209,0.2); text-align:center; }
+@keyframes slideUp { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);} }
 </style>
 </head>
 <body>
 
-<div id="customBg"></div>
-<div id="bgOverlay"></div>
-<canvas id="heartsCanvas"></canvas>
+<div class="app-frame">
+  <div class="app-title">✨ WISH MASTER STUDIO ✨</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-<!-- ধাপ ১ -->
-<div id="giftScreen">
-  <div class="gift-title">
-    💌 তোমাকে চমকে দিতে <b id="giftSenderName">কেউ</b> একটি স্পেশাল চিঠি পাঠিয়েছে...<br><br>খুলতে গিফট বক্সে চাপ দাও 🎁
+  <!-- Step 1 -->
+  <div class="step-pane active" id="step1">
+    <label>১️⃣ আপনার নাম (Sender):</label>
+    <input type="text" id="sName" value="Emon">
+    <label>২️⃣ তার নাম (Receiver):</label>
+    <input type="text" id="rName" value="Tamanna">
+    <div class="btn-row">
+      <button class="app-btn btn-primary" onclick="setStep(2)">পরবর্তী ধাপ 👉</button>
+    </div>
   </div>
-  <div class="gift-box" id="giftBox">
-    <div class="gift-lid"></div>
-    <div class="gift-body"></div>
-  </div>
-  <div class="tap-hint">👆 গিফট বক্সে ট্যাপ করুন</div>
-</div>
 
-<!-- ধাপ ২ -->
-<div id="wishScreen">
-  <div class="names-container">
-    <div class="from-to">From</div>
-    <div class="sender-name" id="senderName">—</div>
-    <div class="heart-divider">❤️</div>
-    <div class="from-to">To</div>
-    <div class="receiver-name" id="receiverName">—</div>
+  <!-- Step 2 -->
+  <div class="step-pane" id="step2">
+    <label>৩️⃣ চিঠির বার্তা (প্রতি লাইন আলাদা রাখুন):</label>
+    <textarea id="letterText" rows="6">গুছিয়ে বলতে পারিনা কোন কিছু..!😅
+তবে যতোটুকু পেরেছি
+মনের অন্তরাল থেকে লিখেছি..🤕
+তুমি আমার মস্তিষ্কে থাকা..!
+এক নীরব অনুভূতি,🙂
+ভালো লাগা নাকি ভালোবাসা
+তা আমি বলতে পারবো না..!
+তবে এটুকু বলতে পারি
+আমাকে ভালোবেসে
+তুমি কখনো ঠকবে না..!💖</textarea>
+    <div class="btn-row">
+      <button class="app-btn btn-back" onclick="setStep(1)">👈 পেছনে</button>
+      <button class="app-btn btn-primary" onclick="setStep(3)">পরবর্তী ধাপ 👉</button>
+    </div>
   </div>
-  <div class="message-box">
-    <div class="typed-text" id="typedText"></div>
-  </div>
-  <button class="next-step-btn" id="nextStepBtn">পরের ধাপ দেখুন 👉</button>
-</div>
 
-<!-- ধাপ ৩ -->
-<div id="proposalScreen">
-  <div class="question-box">
-    <div class="question-title">💖 Do you love me? 💖</div>
-    <div class="question-sub">মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈</div>
-    <div class="yn-btn-group" id="btnGroup">
-      <button class="yn-btn btn-yes" id="btnYes">YES 🥰</button>
-      <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
+  <!-- Step 3 -->
+  <div class="step-pane" id="step3">
+    <label>৪️⃣ প্রপোজাল নোট:</label>
+    <input type="text" id="pNote" value="মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈">
+    <label>৫️⃣ WhatsApp নাম্বার (যেমন: 017xxxxxxxx):</label>
+    <input type="text" id="waNum" placeholder="না দিতে চাইলে খালি রাখুন">
+    <div class="btn-row">
+      <button class="app-btn btn-back" onclick="setStep(2)">👈 পেছনে</button>
+      <button class="app-btn btn-primary" onclick="setStep(4)">পরবর্তী ধাপ 👉</button>
     </div>
-    <div id="yesResult">
-      <h3 style="color:#ffb3d1;margin-bottom:8px;">Yay! আই লাভ ইউ সো মাচ! ❤️🥰</h3>
-      <p style="font-size:0.9rem;color:#fff;margin-bottom:12px;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
-      <div class="share-btn-wrap">
-        <button class="share-btn wa-btn" id="waShare">💬 WhatsApp-এ বলো</button>
-        <button class="share-btn tg-btn" id="tgShare">✈️ Telegram-এ বলো</button>
-      </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-pane" id="step4">
+    <label>৬️⃣ প্রোফাইল ফটো (প্রপোজাল পেজের গোল ফ্রেমের জন্য):</label>
+    <div class="upload-card" onclick="document.getElementById('photoInput').click()">
+      <span style="font-size:30px;display:block;">🖼️</span>
+      <span style="font-size:0.85rem;color:#ffe082;">ট্যাপ করে ছবি নির্বাচন করুন</span>
+      <input type="file" id="photoInput" class="file-input" accept="image/*" onchange="previewImage(this)">
     </div>
-    <div id="noResult">
-      <h3 style="color:#ff8585;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
-      <p style="font-size:0.9rem;color:#ddd;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
+    <div class="preview-wrap" id="previewWrap"><img src="" id="avatarPreview" class="preview-img"></div>
+
+    <label>৭️⃣ ব্যাকগ্রাউন্ড মিউজিক (MP3 গান):</label>
+    <div class="upload-card" onclick="document.getElementById('audioInput').click()">
+      <span style="font-size:30px;display:block;">🎵</span>
+      <span style="font-size:0.85rem;color:#ffe082;">ট্যাপ করে গান নির্বাচন করুন</span>
+      <input type="file" id="audioInput" class="file-input" accept="audio/*" onchange="previewAudio(this)">
     </div>
+    <div class="audio-info" id="audioInfo"></div>
+
+    <div class="btn-row">
+      <button class="app-btn btn-back" onclick="setStep(3)">👈 পেছনে</button>
+      <button class="app-btn btn-primary" id="publishBtn" onclick="createWishLink()">উইশ লিংক বানান 🚀</button>
+    </div>
+  </div>
+
+  <!-- Result Box -->
+  <div class="result-box" id="resultCard">
+    <div style="font-size:0.95rem;color:#fff;font-weight:700;">🎉 আপনার উইশ লিংক রেডি!</div>
+    <div class="result-url" id="linkText"></div>
+    <button class="copy-btn" onclick="copyFinalLink()">কপি করুন 📋</button>
+  </div>
+
+  <!-- Live Response Box -->
+  <div class="response-board">
+    <div class="board-header">
+      <span>🔔 লাইভ রেসপন্স ফিড:</span>
+      <span id="liveStatus" style="font-size:0.75rem;color:#85ffb9;">🟢 Active</span>
+    </div>
+    <div id="liveLogs"><div style="color:#aaa;font-size:0.85rem;">এখনো কোনো রেসপন্স আসেনি...</div></div>
+  </div>
+
+  <div class="app-footer">
+    <div style="font-size:0.8rem;color:#ffe082;font-weight:600;">Created by <span style="color:#ff6b9d;">CYBER 67 EMON</span></div>
   </div>
 </div>
 
 <script>
-(function(){
-"use strict";
+const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
+let encodedPhoto = "";
+let encodedAudio = "";
+let notifiedChoice = null;
+let notifiedMessage = null;
 
-var params = new URLSearchParams(window.location.search);
-var senderName   = params.get("from") || "ইমন";
-var receiverName = params.get("to")   || "প্রিয় মানুষ";
-var bgUrl        = params.get("bg");
-
-var bgElement = document.getElementById("customBg");
-if (bgUrl) {
-  bgElement.style.backgroundImage = "url('" + decodeURIComponent(bgUrl) + "')";
-} else {
-  bgElement.style.background = "radial-gradient(circle at 20% 30%, #ff2d75 0%, transparent 45%), radial-gradient(circle at 80% 70%, #7b2ff7 0%, transparent 45%), linear-gradient(135deg,#1a001a 0%,#0a0015 100%)";
+function setStep(num) {
+  document.querySelectorAll('.step-pane').forEach(el => el.classList.remove('active'));
+  document.getElementById('step' + num).classList.add('active');
+  document.getElementById('progressFill').style.width = (num * 25) + "%";
 }
 
-document.getElementById("giftSenderName").textContent = senderName;
-document.getElementById("senderName").textContent     = senderName;
-document.getElementById("receiverName").textContent   = receiverName;
-
-/* আপডেটেড Bot Token এবং Chat ID */
-var TG_BOT_TOKEN = "8699587679:AAHes1-nyxuOz7OgW0omcrsQqszqkLpOofE";
-var TG_CHAT_ID   = "8699587679";
-
-function sendToTelegramBot(choice) {
-  var emoji = choice === "YES" ? "💖 [YES চাপ দিয়েছে! সে ভালোবাসে!]" : "💔 [NO চাপ দিয়েছে! মন ভেঙে গেল...]";
-  var text = "🔔 *উইশ পেজ রেসপন্স!*\n\n" +
-             "👤 প্রেরক: " + senderName + "\n" +
-             "🎯 প্রাপক: " + receiverName + "\n" +
-             "👉 উত্তর: *" + choice + "* " + emoji;
-  fetch("https://api.telegram.org/bot" + TG_BOT_TOKEN + "/sendMessage?chat_id=" + TG_CHAT_ID + "&text=" + encodeURIComponent(text) + "&parse_mode=Markdown").catch(function(){});
-}
-
-var canvas = document.getElementById("heartsCanvas");
-var ctx = canvas.getContext("2d");
-var W = canvas.width = window.innerWidth;
-var H = canvas.height = window.innerHeight;
-var hearts = [];
-var heartEmojis = ["❤️","💖","💕","🌸","✨"];
-
-function Heart() {
-  this.x = Math.random() * W;
-  this.y = H + 20;
-  this.size = 14 + Math.random() * 24;
-  this.speedY = 1 + Math.random() * 2;
-  this.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
-}
-Heart.prototype.update = function() {
-  this.y -= this.speedY;
-  if(this.y < -30) { this.y = H + 20; this.x = Math.random() * W; }
-};
-Heart.prototype.draw = function() {
-  ctx.font = this.size + "px serif";
-  ctx.fillText(this.emoji, this.x, this.y);
-};
-function loop() {
-  ctx.clearRect(0,0,W,H);
-  for(var i=0; i<hearts.length; i++){ hearts[i].update(); hearts[i].draw(); }
-  requestAnimationFrame(loop);
-}
-
-var wishMsg = "প্রিয় " + receiverName + ",\n\nপৃথিবীর সমস্ত সুখ যেন তোমার পদচুম্বন করে। তোমার হাসিটাই আমার সবচেয়ে প্রিয় দৃশ্য। তোমার সাথে প্রতিটি মুহূর্ত যেন স্বপ্নের মতো। সবসময় তোমার পাশে থাকতে চাই... 💖✨";
-
-function typeMsg(text, callback) {
-  var container = document.getElementById("typedText");
-  var i = 0;
-  function step() {
-    if(i < text.length) { container.textContent += text.charAt(i); i++; setTimeout(step, 40); }
-    else if(callback) callback();
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      encodedPhoto = e.target.result;
+      document.getElementById('avatarPreview').src = encodedPhoto;
+      document.getElementById('previewWrap').style.display = "block";
+    };
+    reader.readAsDataURL(input.files[0]);
   }
-  step();
 }
 
-document.getElementById("giftBox").addEventListener("click", function(){
-  this.classList.add("open");
-  for(var i=0; i<25; i++) hearts.push(new Heart());
-  loop();
-  setTimeout(function(){
-    document.getElementById("giftScreen").classList.add("hide");
-    document.getElementById("wishScreen").classList.add("show");
-    typeMsg(wishMsg, function(){
-      document.getElementById("nextStepBtn").style.display = "inline-block";
-    });
-  }, 700);
-});
+function previewAudio(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('audioInfo').innerText = "✅ গান লোড হয়েছে: " + input.files[0].name;
+    document.getElementById('audioInfo').style.display = "block";
+    const reader = new FileReader();
+    reader.onload = e => { encodedAudio = e.target.result; };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
 
-document.getElementById("nextStepBtn").addEventListener("click", function(){
-  document.getElementById("wishScreen").classList.remove("show");
-  document.getElementById("proposalScreen").classList.add("show");
-});
+function createWishLink() {
+  const btn = document.getElementById('publishBtn');
+  btn.disabled = true;
+  btn.innerText = "লিংক তৈরি হচ্ছে...";
+  const wishId = "wish_" + Math.random().toString(36).substring(2, 9);
+  
+  const payload = {
+    sender: document.getElementById('sName').value.trim(),
+    receiver: document.getElementById('rName').value.trim(),
+    message: document.getElementById('letterText').value.trim(),
+    proposalNote: document.getElementById('pNote').value.trim(),
+    wa: document.getElementById('waNum').value.trim(),
+    avatar: encodedPhoto || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300",
+    audio: encodedAudio || "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-love-story-112197.mp3",
+    response: null,
+    customFeedback: null
+  };
 
-document.getElementById("btnYes").addEventListener("click", function(){
-  document.getElementById("btnGroup").style.display = "none";
-  document.getElementById("yesResult").style.display = "block";
-  sendToTelegramBot("YES");
-});
+  fetch(`${DB_URL}/wishes/${wishId}.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    btn.disabled = false;
+    btn.innerText = "উইশ লিংক বানান 🚀";
+    
+    const basePath = window.location.href.split('?')[0].replace('index.html', '').replace(/\/$/, '');
+    const finalUrl = `${basePath}/wish.html?id=${wishId}`;
+    
+    document.getElementById('linkText').innerText = finalUrl;
+    document.getElementById('resultCard').style.display = "block";
+    startLiveTracking(wishId);
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.innerText = "উইশ লিংক বানান 🚀";
+    alert("ডাটাবেজ কানেক্ট করা সম্ভব হয়নি।");
+  });
+}
 
-document.getElementById("btnNo").addEventListener("click", function(){
-  document.getElementById("btnGroup").style.display = "none";
-  document.getElementById("noResult").style.display = "block";
-  sendToTelegramBot("NO");
-});
+function copyFinalLink() {
+  navigator.clipboard.writeText(document.getElementById('linkText').innerText);
+  alert("লিংক কপি হয়েছে! 💖");
+}
 
-document.getElementById("waShare").addEventListener("click", function(){
-  window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("হ্যাঁ " + senderName + "! আমিও তোমাকে ভালোবাসি! ❤️🥰"), "_blank");
-});
+function startLiveTracking(id) {
+  const eventSource = new EventSource(`${DB_URL}/wishes/${id}.json`);
+  eventSource.onmessage = e => {
+    const data = JSON.parse(e.data);
+    if (!data) return;
+    const logBox = document.getElementById('liveLogs');
+    let logsHtml = "";
 
-document.getElementById("tgShare").addEventListener("click", function(){
-  window.open("https://t.me/share/url?url=" + encodeURIComponent(window.location.href) + "&text=" + encodeURIComponent("হ্যাঁ " + senderName + "! আমিও তোমাকে ভালোবাসি! ❤️🥰"), "_blank");
-});
+    if (data.response) {
+      const isYes = data.response === "YES";
+      logsHtml += `<div class="log-item" style="border-left-color:${isYes ? '#85ffb9' : '#ff4d4d'};">
+        💌 <strong>${data.receiver}</strong> উত্তর দিয়েছে: 
+        <span style="color:${isYes ? '#85ffb9' : '#ff4d4d'};font-weight:700;">${data.response} ${isYes ? '🥰' : '🥺'}</span>
+      </div>`;
 
-})();
+      if (notifiedChoice !== data.response) {
+        notifiedChoice = data.response;
+        alert(`🔔 রেসপন্স নোটিফিকেশন:\n${data.receiver} উত্তর দিয়েছেন: ${data.response}!`);
+      }
+    }
+
+    if (data.customFeedback) {
+      logsHtml += `<div class="log-item" style="border-left-color:#ffe082;">
+        📝 <strong>${data.receiver}-এর স্পেশাল মেসেজ:</strong><br>
+        <span style="color:#ffe082;font-style:italic;">"${data.customFeedback}"</span>
+      </div>`;
+
+      if (notifiedMessage !== data.customFeedback) {
+        notifiedMessage = data.customFeedback;
+        alert(`💌 নতুন মেসেজ নোটিফিকেশন:\n${data.receiver} লিখেছেন: "${data.customFeedback}"`);
+      }
+    }
+
+    if (logsHtml) {
+      logBox.innerHTML = logsHtml;
+    }
+  };
+}
 </script>
 </body>
 </html>
