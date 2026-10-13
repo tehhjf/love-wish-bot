@@ -11,7 +11,7 @@ RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
 if not RENDER_URL:
     RENDER_URL = "https://love-wish-bot.onrender.com"
 
-# Nuevo token configurado
+# আপনার নতুন টেলিগ্রাম বট টোকেন
 TELEGRAM_TOKEN = "8699587679:AAGvW12Wg-nsvolT9O4VSFQyVPoOI_BxFoU"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown", threaded=True)
@@ -22,7 +22,7 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 DATA_FILE = os.path.join(BASE_DIR, "wishes.json")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Manejo de almacenamiento
+# ডাটাবেজ হ্যান্ডলিং
 def load_wishes():
     if os.path.exists(DATA_FILE):
         try:
@@ -42,7 +42,7 @@ def get_wish_entry(wish_id):
     wishes = load_wishes()
     return wishes.get(wish_id)
 
-# --- Servidor HTTP y Frontend ---
+# --- এইচটিটিপি সার্ভার ও ফ্রন্টএন্ড ---
 class CustomHTTPHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
@@ -54,7 +54,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         
-        # Manejador de respuesta YES / NO
+        # YES / NO রেসপন্স
         if parsed.path == "/api/response":
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length).decode('utf-8')
@@ -88,7 +88,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 return
 
-        # Envío de mensaje personalizado desde la página
+        # ইউজার থেকে কাস্টম মেসেজ পাঠানো
         if parsed.path == "/api/custom_message":
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length).decode('utf-8')
@@ -106,7 +106,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
                     alert_text = (
                         f"💌 *উইশ পেজ থেকে {r_name} আপনাকে মেসেজ পাঠিয়েছে!*\n\n"
                         f"📝 *মেসেজ:* \"{user_msg}\"\n\n"
-                        f"👉 *আগের পছন্দ ছিল:* {choice}"
+                        f"👉 *পছন্দ ছিল:* {choice}"
                     )
                     bot.send_message(target_chat_id, alert_text)
                 
@@ -143,7 +143,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
             if not data:
                 data = {
                     "from": query.get("from", ["Emon"])[0],
-                    "to": query.get("to", ["Kolbalis"])[0],
+                    "to": query.get("to", ["Tamanna"])[0],
                     "msg": query.get("msg", ["গুছিয়ে বলতে পারিনা কোন কিছু..!😅\nতবে যতোটুকু পেরেছি\nমনের অন্তরাল থেকে লিখেছি..🤕\nতুমি আমার মস্তিষ্কে থাকা..!\nএক নীরব অনুভূতি,🙂\nভালো লাগা নাকি ভালোবাসা\nতা আমি বলতে পারবো না..!\nতবে এটুকু বলতে পারি\nআমাকে ভালোবেসে\nতুমি কখনো ঠকবে না..!💖"])[0],
                     "pnote": query.get("pnote", ["মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈"])[0],
                     "avatar": "",
@@ -153,13 +153,17 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
                 }
 
             sender_name = data.get("from", "Emon")
-            receiver_name = data.get("to", "Kolbalis")
-            custom_msg = data.get("msg", "").replace("\r\n", "\n").replace("\n", "\\n")
+            receiver_name = data.get("to", "Tamanna")
+            raw_msg = data.get("msg", "")
             proposal_note = data.get("pnote", "মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈")
             avatar_file = data.get("avatar", "")
             wa_num = data.get("wa", "")
             tg_user = data.get("tg", "")
             audio_file = data.get("audio", "")
+
+            # মেসেজের লাইনগুলোকে JSON অ্যারে আকারে পাঠানো
+            lines_list = [line.strip() for line in raw_msg.replace("\r\n", "\n").split("\n") if line.strip()]
+            lines_json = json.dumps(lines_list, ensure_ascii=False)
 
             avatar_src = f"/uploads/{avatar_file}" if avatar_file else "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop"
             music_src = f"/uploads/{audio_file}" if audio_file else "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-love-story-112197.mp3"
@@ -174,7 +178,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>💖 Special Surprise For You</title>
-<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Galada&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}}
 html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-serif;background:#0d0015;color:#fff;}}
@@ -184,17 +188,16 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   background: radial-gradient(circle at 50% 30%, #46002c 0%, #170024 60%, #07000e 100%);
 }}
 
+/* ব্যাকগ্রাউন্ডে বড় স্পন্দিত লাল লাভ */
 .giant-heart-bg{{
   position:fixed;top:50%;left:50%;
   transform:translate(-50%,-50%);
   z-index:1;font-size:360px;
-  color:rgba(255,45,117,0.18);
-  filter:drop-shadow(0 0 80px rgba(255,45,117,0.5));
+  color:rgba(255,45,117,0.22);
+  filter:drop-shadow(0 0 80px rgba(255,45,117,0.55));
   animation:heartPulse 2.2s ease-in-out infinite;
   pointer-events:none;user-select:none;
-  opacity:0;transition:opacity 1s ease;
 }}
-.giant-heart-bg.show{{opacity:1;}}
 @keyframes heartPulse{{
   0%,100%{{transform:translate(-50%,-50%) scale(1);}}
   50%{{transform:translate(-50%,-50%) scale(1.15);}}
@@ -202,7 +205,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 
 #heartsCanvas{{position:fixed;inset:0;z-index:2;pointer-events:none;}}
 
-/* Step 1: Clean Gift Screen */
+/* Step 1: ক্লিন গিফট স্ক্রিন (অপ্রয়োজনীয় লেখা ছাড়া) */
 #giftScreen{{
   position:fixed;inset:0;z-index:10;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -210,23 +213,10 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 }}
 #giftScreen.hide{{opacity:0;pointer-events:none;}}
 
-.gift-title{{
-  font-family: 'Anek Bangla', sans-serif;
-  font-size:1.22rem;line-height:1.75;color:#fff;
-  max-width:360px;margin-bottom:40px;font-weight:600;
-  text-shadow:0 2px 15px rgba(255,45,117,0.95);
-}}
-.gift-title .first-line {{
-  font-family: 'Galada', cursive;
-  font-size: 1.45rem;color: #ffe082;
-  display: block;margin-bottom: 8px;
-  text-shadow: 0 0 12px rgba(255, 224, 130, 0.7);
-}}
-
 .gift-box{{
-  position:relative;width:150px;height:150px;cursor:pointer;
+  position:relative;width:155px;height:155px;cursor:pointer;
   animation:boxShake 1.4s ease-in-out infinite;
-  filter:drop-shadow(0 20px 40px rgba(255,45,117,0.8));
+  filter:drop-shadow(0 20px 40px rgba(255,45,117,0.85));
   transition:transform 0.3s ease;
 }}
 .gift-box:hover{{transform:scale(1.08);}}
@@ -240,7 +230,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 }}
 
 .gift-lid{{
-  position:absolute;top:-12px;left:-10px;width:170px;height:40px;
+  position:absolute;top:-12px;left:-10px;width:175px;height:42px;
   background:linear-gradient(135deg,#ff2d75,#ff6b9d);
   border-radius:8px;box-shadow:0 4px 20px rgba(255,45,117,0.7);
   transition:all 0.9s ease;
@@ -253,40 +243,42 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 .gift-box.open .gift-lid{{transform:translateY(-180px) rotate(-45deg);opacity:0;}}
 
 .gift-body{{
-  position:absolute;top:28px;left:5px;width:140px;height:120px;
+  position:absolute;top:30px;left:5px;width:145px;height:125px;
   background:linear-gradient(135deg,#d81b60,#ff4081);border-radius:10px;
   box-shadow:inset 0 0 30px rgba(0,0,0,0.35),0 10px 30px rgba(255,45,117,0.5);overflow:hidden;
 }}
 .gift-body::before{{
   content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:20px;height:100%;background:linear-gradient(180deg,#ffe082,#ffb3d1);
+  width:22px;height:100%;background:linear-gradient(180deg,#ffe082,#ffb3d1);
 }}
 .gift-body::after{{
   content:"";position:absolute;top:50%;left:0;transform:translateY(-50%);
-  width:100%;height:20px;background:linear-gradient(90deg,#ffe082,#ffb3d1);
+  width:100%;height:22px;background:linear-gradient(90deg,#ffe082,#ffb3d1);
 }}
 
+/* শুধু এই লেখাটি থাকবে */
 .tap-hint{{
-  margin-top:35px;font-size:1.05rem;color:#ffb3d1;
-  font-family: 'Anek Bangla', sans-serif;font-weight: 600;
+  margin-top:40px;font-size:1.15rem;color:#ffe082;
+  font-family: 'Anek Bangla', sans-serif;font-weight: 700;
   animation:pulseGlow 2s ease-in-out infinite;
+  text-shadow: 0 0 15px rgba(255, 224, 130, 0.7);
 }}
 @keyframes pulseGlow{{
-  0%,100%{{opacity:0.6;transform:scale(1);}}
-  50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 20px #ff3d7f;}}
+  0%,100%{{opacity:0.8;transform:scale(1);}}
+  50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 25px #ff3d7f;}}
 }}
 
-/* Step 2: Letter Screen */
+/* Step 2: চিঠি স্ক্রিন */
 #wishScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
-  align-items:center;justify-content:center;padding:18px;text-align:center;
+  align-items:center;justify-content:center;padding:16px;text-align:center;
   opacity:0;transition:opacity 0.8s ease;overflow-y:auto;
 }}
 #wishScreen.show{{display:flex;opacity:1;}}
 
 .names-container{{
   display:flex;align-items:center;justify-content:center;gap:16px;
-  margin-bottom:18px;width:100%;max-width:380px;
+  margin-bottom:14px;width:100%;max-width:380px;
 }}
 .name-item{{display:flex;flex-direction:column;align-items:center;}}
 .from-to{{
@@ -305,19 +297,22 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   animation:pulseGlow 1.6s infinite;
 }}
 
+/* স্ক্রিনের মাঝে একদম স্থির ফ্রস্টেড গ্লাস বক্স */
 .message-box{{
   position:relative;
-  max-width:380px;width:100%;min-height:330px;
+  max-width:360px;width:92%;
+  height: 380px; /* স্থায়ী ফিক্সড উচ্চতা */
   background: rgba(22, 0, 32, 0.45);
   border: 1.8px solid rgba(255, 65, 130, 0.65);
   border-radius: 28px;
   padding: 24px 20px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 0 35px rgba(255, 45, 117, 0.45), inset 0 0 20px rgba(255, 45, 117, 0.2);
   display: flex;align-items: center;justify-content: center;
   overflow: hidden;
+  flex-shrink: 0;
 }}
 
 .box-heart-bg {{
@@ -332,6 +327,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   animation: heartPulse 2.4s ease-in-out infinite;
 }}
 
+/* কালার কম্বিনেশনসহ লাইনের কন্টেইনার */
 .typed-text{{
   position: relative;
   z-index: 2;
@@ -339,11 +335,25 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.95;
-  color: #ffffff;
   text-align: center;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 10px rgba(255,45,117,0.5);
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+}}
+.typed-text::-webkit-scrollbar{{display:none;}}
+
+.line-gold {{
+  color: #ffe082;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 12px rgba(255, 224, 130, 0.6);
+  display: block;
+  margin-bottom: 2px;
+}}
+.line-pink {{
+  color: #ffffff;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 10px rgba(255, 107, 157, 0.7);
+  display: block;
+  margin-bottom: 2px;
 }}
 
 .next-step-btn{{
@@ -437,15 +447,16 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 .wa-btn{{background:#25D366;box-shadow:0 5px 15px rgba(37,211,102,0.4);}}
 .tg-btn{{background:#0088cc;box-shadow:0 5px 15px rgba(0,136,204,0.4);}}
 
+/* কিছু বলতে চাইলে বাটন */
 .open-reply-btn{{
-  margin-top:14px;width:100%;padding:13px;
+  margin-top:15px;width:100%;padding:13px;
   background: linear-gradient(135deg, #ffe082, #ffb3d1);
   color:#150024;border:none;border-radius:50px;font-size:0.98rem;font-weight:700;
   cursor:pointer;font-family:'Anek Bangla',sans-serif;box-shadow:0 4px 20px rgba(255,224,130,0.5);
   animation:pulseGlow 2s infinite;display:flex;align-items:center;justify-content:center;gap:6px;
 }}
 
-/* Step 4: Nueva página para escribir mensaje */
+/* Step 4: নতুন পেজ - মেসেজ লেখার পেজ */
 #feedbackPage{{
   position:fixed;inset:0;z-index:20;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:22px;text-align:center;
@@ -506,20 +517,16 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 <div class="giant-heart-bg" id="giantHeart">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
-<!-- Step 1 -->
+<!-- Step 1: ক্লিন গিফট স্ক্রিন -->
 <div id="giftScreen">
-  <div class="gift-title">
-    <span class="first-line">💌 আপনাকে কেউ একটি স্পেশাল চিঠি পাঠিয়েছে</span>
-    তা দেখতে নিচের গিফট বক্সে ট্যাপ করুন...<br>আশা করি আপনার ভালো লাগবে! 💖✨
-  </div>
   <div class="gift-box" id="giftBox">
     <div class="gift-lid"></div>
     <div class="gift-body"></div>
   </div>
-  <div class="tap-hint">👆 গিফট বক্সে ট্যাপ করুন 🎁</div>
+  <div class="tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
 </div>
 
-<!-- Step 2 -->
+<!-- Step 2: চিঠি স্ক্রিন -->
 <div id="wishScreen">
   <div class="names-container">
     <div class="name-item">
@@ -554,10 +561,12 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 <!-- Step 3: Proposal Screen -->
 <div id="proposalScreen">
   <div class="question-box">
+    <!-- শুধুমাত্র প্রোফাইল ছবি থাকবে -->
     <div class="profile-avatar-wrap">
       <img src="{avatar_src}" alt="Profile" class="profile-avatar">
     </div>
     
+    <!-- YES / NO চাপার পর এগুলো গায়েব হয়ে যাবে -->
     <div id="topTextsWrap">
       <div class="proposal-top-text">{proposal_note}</div>
       <div class="question-title">💖 Do you love me? 💖</div>
@@ -568,6 +577,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
       </div>
     </div>
 
+    <!-- YES রেসপন্স কার্ড -->
     <div id="yesResult">
       <h3 style="color:#ffb3d1;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
       <p style="font-size:0.95rem;color:#fff;margin-bottom:12px;font-family:'Anek Bangla',sans-serif;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
@@ -578,15 +588,17 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
       <button class="open-reply-btn" onclick="openNewPage('YES')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
 
+    <!-- NO রেসপন্স কার্ড (কোনো গোলাপের ইমোজি ছাড়া) -->
     <div id="noResult">
-      <h3 style="color:#ff8585;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
-      <p style="font-size:0.95rem;color:#ddd;font-family:'Anek Bangla',sans-serif;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
+      <p style="font-size:1.05rem;line-height:1.8;color:#ffb3d1;font-family:'Anek Bangla',sans-serif;font-weight:600;margin-bottom:12px;">
+        তোমার মূল্যবান সময় দিয়ে পড়ার জন্য ধন্যবাদ  যাক ব্যাপার না তুমি হয়তো আমার ভাগ্যে ছিল না🥺
+      </p>
       <button class="open-reply-btn" onclick="openNewPage('NO')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
   </div>
 </div>
 
-<!-- Step 4: Feedback Page -->
+<!-- Step 4: মেসেজ লেখার পেজ -->
 <div id="feedbackPage">
   <div class="feedback-card">
     <div style="font-size:45px;margin-bottom:10px;">✍️💌</div>
@@ -681,21 +693,41 @@ function loop() {{
   requestAnimationFrame(loop);
 }}
 
-var wishMsg = "{custom_msg}";
+// লাইন বাই লাইন আলাদা কালারে টাইপিং
+var linesData = {lines_json};
 
-function typeMsg(text, callback) {{
+function typeLines(lines, callback) {{
   var container = document.getElementById("typedText");
-  var i = 0;
-  function step() {{
-    if(i < text.length) {{ 
-      container.textContent += text.charAt(i); 
-      i++; 
-      setTimeout(step, 65); 
-    }} else if(callback) {{
-      callback();
+  var lineIdx = 0;
+
+  function processNextLine() {{
+    if(lineIdx >= lines.length) {{
+      if(callback) callback();
+      return;
     }}
+
+    var lineSpan = document.createElement("span");
+    // অল্টারনেট কালার (এক লাইন গোল্ডেন, পরের লাইন পিংকিশ-হোয়াইট)
+    lineSpan.className = (lineIdx % 2 === 0) ? "line-gold" : "line-pink";
+    container.appendChild(lineSpan);
+
+    var text = lines[lineIdx];
+    var charIdx = 0;
+
+    function stepChar() {{
+      if(charIdx < text.length) {{
+        lineSpan.textContent += text.charAt(charIdx);
+        charIdx++;
+        setTimeout(stepChar, 65);
+      }} else {{
+        lineIdx++;
+        setTimeout(processNextLine, 250);
+      }}
+    }}
+    stepChar();
   }}
-  step();
+
+  processNextLine();
 }}
 
 function openGift() {{
@@ -708,15 +740,13 @@ function openGift() {{
     if(audio) {{ audio.play().catch(function(){{}}); }}
   }} catch(e) {{}}
 
-  document.getElementById("giantHeart").classList.add("show");
-
   for(var i=0; i<25; i++) hearts.push(new Heart());
   loop();
 
   setTimeout(function(){{
     document.getElementById("giftScreen").classList.add("hide");
     document.getElementById("wishScreen").classList.add("show");
-    typeMsg(wishMsg, function(){{
+    typeLines(linesData, function(){{
       document.getElementById("nextStepBtn").style.display = "inline-block";
     }});
   }}, 650);
@@ -733,6 +763,7 @@ document.getElementById("nextStepBtn").addEventListener("click", function(){{
   document.getElementById("proposalScreen").classList.add("show");
 }});
 
+// YES ক্লিক ইভেন্ট
 document.getElementById("btnYes").addEventListener("click", function(){{
   document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("yesResult").style.display = "block";
@@ -752,6 +783,7 @@ document.getElementById("btnYes").addEventListener("click", function(){{
   }}
 }});
 
+// NO ক্লিক ইভেন্ট
 document.getElementById("btnNo").addEventListener("click", function(){{
   document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("noResult").style.display = "block";
@@ -770,7 +802,7 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-# --- Manejadores del Bot ---
+# --- বট হ্যান্ডলার ---
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     chat_id = message.chat.id
@@ -789,21 +821,21 @@ def handle_all(message):
         bot.send_message(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\n১️⃣ প্রথমে *আপনার নাম* লিখে পাঠান:")
         return
 
-    # 1. Nombre del remitente
+    # ১. আপনার নাম
     if step == 'SENDER' and text:
         user_data[chat_id]['sender'] = text
         user_data[chat_id]['step'] = 'RECEIVER'
         bot.send_message(chat_id, "২️⃣ এবার আপনার *GF এর নাম* লিখে পাঠান:")
         return
 
-    # 2. Nombre del destinatario
+    # ২. GF এর নাম
     if step == 'RECEIVER' and text:
         user_data[chat_id]['receiver'] = text
         user_data[chat_id]['step'] = 'CUSTOM_MSG'
         bot.send_message(chat_id, "৩️⃣ উইশ পেজের চিঠির ভেতর *কী লিখতে চান (মেসেজ)* লিখে পাঠান:\n\n_(ডিফল্ট রোমান্টিক টেক্সট রাখতে চাইলে /skip লিখুন)_")
         return
 
-    # 3. Mensaje
+    # ৩. মেসেজ
     if step == 'CUSTOM_MSG' and text:
         if text != "/skip":
             user_data[chat_id]['msg'] = text
@@ -811,7 +843,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৪️⃣ এবার 'Do you love me?' পেজের গোল ফ্রেমের জন্য তার *প্রোফাইল পিক পাঠান (Photo)*:\n\n_(ছবি না দিতে চাইলে /skip লিখুন)_")
         return
 
-    # 4. Foto de perfil
+    # ৪. প্রোফাইল ফটো
     if step == 'PROFILE_PIC':
         if text == "/skip":
             user_data[chat_id]['avatar'] = ""
@@ -830,7 +862,7 @@ def handle_all(message):
             bot.send_message(chat_id, "৫️⃣ এবার 'Do you love me?' এর ওপরে *কী লিখতে চান* (যেমন কোনো রোমান্টিক কথা) লিখে পাঠান:\n\n_(ডিফল্ট টেক্সট রাখতে চাইলে /skip লিখুন)_")
             return
 
-    # 5. Nota sobre 'Do you love me'
+    # ৫. 'Do you love me' এর ওপরের লেখা
     if step == 'PROPOSAL_NOTE' and text:
         if text != "/skip":
             user_data[chat_id]['pnote'] = text
@@ -838,7 +870,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৬️⃣ এবার আপনার *WhatsApp নাম্বার* দিন (যেমন: 017xxxxxxxx):\n\n_(না দিতে চাইলে /skip লিখুন)_")
         return
 
-    # 6. Número de WhatsApp
+    # ৬. WhatsApp নাম্বার
     if step == 'WHATSAPP' and text:
         if text != "/skip":
             user_data[chat_id]['wa'] = text
@@ -846,7 +878,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৭️⃣ এবার আপনার *Telegram ইউজারনেম* পাঠান (যেমন: @yourusername):\n\n_(না দিতে চাইলে /skip লিখুন)_")
         return
 
-    # 7. Usuario de Telegram
+    # ৭. Telegram ইউজারনেম
     if step == 'TELEGRAM' and text:
         if text != "/skip":
             user_data[chat_id]['tg'] = text
@@ -854,7 +886,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৮️⃣ এবার ব্যাকগ্রাউন্ড মিউজিকের জন্য একটি *অডিও বা MP3 ফাইল পাঠান*:\n\n_(ডিফল্ট রোমান্টিক টিউন রাখতে চাইলে /skip লিখুন)_")
         return
 
-    # 8. Música de fondo y creación del enlace
+    # ৮. ব্যাকগ্রাউন্ড মিউজিক এবং লিংক তৈরি
     if step == 'BG_MUSIC':
         audio_name = ""
         audio_obj = message.audio or message.voice or (message.document if message.document and "audio" in (message.document.mime_type or "") else None)
@@ -874,7 +906,7 @@ def handle_all(message):
         wish_entry = {
             "creator_chat_id": chat_id,
             "from": user_data[chat_id].get('sender', 'Emon'),
-            "to": user_data[chat_id].get('receiver', 'Kolbalis'),
+            "to": user_data[chat_id].get('receiver', 'Tamanna'),
             "msg": user_data[chat_id].get('msg', 'সবসময় তোমার পাশে থাকতে চাই... 💖✨'),
             "avatar": user_data[chat_id].get('avatar', ''),
             "pnote": user_data[chat_id].get('pnote', 'মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈'),
@@ -890,8 +922,7 @@ def handle_all(message):
             chat_id, 
             f"🎉 *আপনার স্পেশাল উইশ পেজ সফলভাবে তৈরি হয়েছে!*\n\n"
             f"🔗 *লিংক:* {short_link}\n\n"
-            f"✅ YES/NO চাপলে ওপরের টেক্সট সরে শুধু প্রোফাইল পিক ও রেসপন্স শো করবে।\n"
-            f"✅ 'কিছু বলতে চাইলে' বাটনে চাপলে নতুন মেসেজ পেজ খুলবে এবং পাঠানো মেসেজ সরাসরি আপনার এই বটের ইনবক্সে আসবে।"
+            f"✅ সব নতুন ডিজাইন ও কাস্টমাইজেশন কার্যকর করা হয়েছে।"
         )
         user_data.pop(chat_id, None)
         return
