@@ -11,6 +11,7 @@ RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
 if not RENDER_URL:
     RENDER_URL = "https://love-wish-bot.onrender.com"
 
+# আপনার টেলিগ্রাম বট টোকেন
 TELEGRAM_TOKEN = "8699587679:AAGvW12Wg-nsvolT9O4VSFQyVPoOI_BxFoU"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown", threaded=True)
@@ -21,6 +22,7 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 DATA_FILE = os.path.join(BASE_DIR, "wishes.json")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+# ডাটাবেজ হ্যান্ডলিং
 def load_wishes():
     if os.path.exists(DATA_FILE):
         try:
@@ -40,6 +42,7 @@ def get_wish_entry(wish_id):
     wishes = load_wishes()
     return wishes.get(wish_id)
 
+# --- এইচটিটিপি সার্ভার ও ফ্রন্টএন্ড ---
 class CustomHTTPHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
@@ -158,6 +161,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
             tg_user = data.get("tg", "")
             audio_file = data.get("audio", "")
 
+            # প্রতিটি লাইন পৃথক অ্যারে আকারে পাঠানো
             lines_list = [line.strip() for line in raw_msg.replace("\r\n", "\n").split("\n") if line.strip()]
             lines_json = json.dumps(lines_list, ensure_ascii=False)
 
@@ -184,95 +188,91 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   background: radial-gradient(circle at 50% 30%, #46002c 0%, #170024 60%, #07000e 100%);
 }}
 
+/* ব্যাকগ্রাউন্ডের স্পন্দিত বড় লাল লাভ */
+.giant-heart-bg{{
+  position:fixed;top:54%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:1;font-size:350px;
+  color:rgba(255,45,117,0.22);
+  filter:drop-shadow(0 0 80px rgba(255,45,117,0.55));
+  animation:heartPulse 2.2s ease-in-out infinite;
+  pointer-events:none;user-select:none;
+}}
+@keyframes heartPulse{{
+  0%,100%{{transform:translate(-50%,-50%) scale(1);}}
+  50%{{transform:translate(-50%,-50%) scale(1.15);}}
+}}
+
 #heartsCanvas{{position:fixed;inset:0;z-index:2;pointer-events:none;}}
 
-/* Step 1: প্রিমিয়াম থ্রিডি ক্রিস্টাল গিফট স্ক্রিন */
+/* Step 1: ক্লিন গিফট স্ক্রিন */
 #giftScreen{{
   position:fixed;inset:0;z-index:10;
   display:flex;flex-direction:column;align-items:center;justify-content:space-between;
-  padding:50px 20px 40px 20px;text-align:center;transition:opacity 0.8s ease, transform 0.8s ease;cursor:pointer;
+  padding:50px 20px 70px 20px;text-align:center;transition:opacity 0.8s ease;cursor:pointer;
 }}
-#giftScreen.hide{{opacity:0;transform:scale(0.92);pointer-events:none;}}
+#giftScreen.hide{{opacity:0;pointer-events:none;}}
 
-/* ওপরে ফ্রস্টেড গ্লাস ছোট ক্যাপসুল বার */
-.top-pill-badge {{
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.2px solid rgba(255, 179, 209, 0.35);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  padding: 8px 24px;
-  border-radius: 50px;
-  box-shadow: 0 0 20px rgba(255, 45, 117, 0.35);
-  animation: badgeFloat 2.4s ease-in-out infinite;
-}}
-@keyframes badgeFloat {{
-  0%, 100% {{ transform: translateY(0); }}
-  50% {{ transform: translateY(-5px); }}
+/* লেখাটি সবার ওপরে থাকবে যেন লাভ বা বক্সকে স্পর্শ না করে */
+.top-tap-hint{{
+  font-size:1.25rem;color:#ffe082;
+  font-family: 'Anek Bangla', sans-serif;font-weight: 700;
+  animation:pulseGlow 2s ease-in-out infinite;
+  text-shadow: 0 0 15px rgba(255, 224, 130, 0.7);
+  letter-spacing: 0.5px;
 }}
 
-.pill-text {{
-  font-size: 1.05rem;
-  color: #ffe082;
-  font-family: 'Anek Bangla', sans-serif;
-  font-weight: 700;
-  text-shadow: 0 0 10px rgba(255, 224, 130, 0.6);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.gift-box-wrapper{{
+  display:flex;align-items:center;justify-content:center;
+  margin-top:auto;margin-bottom:auto;
 }}
 
-/* সেন্ট্রাল এরিয়া: লাফালাফি করা স্পন্দিত লাভ ও থ্রিডি ক্রিস্টাল বক্স */
-.hero-gift-container {{
-  position: relative;
-  width: 320px;
-  height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: auto 0;
+.gift-box{{
+  position:relative;width:155px;height:155px;cursor:pointer;
+  animation:boxShake 1.4s ease-in-out infinite;
+  filter:drop-shadow(0 20px 40px rgba(255,45,117,0.85));
+  transition:transform 0.3s ease;
+}}
+.gift-box:hover{{transform:scale(1.08);}}
+@keyframes boxShake{{
+  0%,100%{{transform:rotate(0) scale(1);}}
+  15%{{transform:rotate(-6deg) scale(1.03);}}
+  30%{{transform:rotate(6deg) scale(1.05);}}
+  45%{{transform:rotate(-4deg) scale(1.03);}}
+  60%{{transform:rotate(4deg) scale(1.05);}}
+  75%{{transform:rotate(0) scale(1);}}
 }}
 
-/* পেছনের স্পন্দিত ও লাফালাফি করা হার্ট */
-.hero-heart-pulse {{
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 310px; height: 280px;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.85;
-  filter: drop-shadow(0 0 45px rgba(255, 26, 102, 0.95));
-  animation: heartJumpPulse 1.8s ease-in-out infinite;
+.gift-lid{{
+  position:absolute;top:-12px;left:-10px;width:175px;height:42px;
+  background:linear-gradient(135deg,#ff2d75,#ff6b9d);
+  border-radius:8px;box-shadow:0 4px 20px rgba(255,45,117,0.7);
+  transition:all 0.9s ease;
 }}
-@keyframes heartJumpPulse {{
-  0%   {{ transform: translate(-50%, -50%) scale(0.95); opacity: 0.75; }}
-  25%  {{ transform: translate(-50%, -55%) scale(1.08); opacity: 0.95; }}
-  40%  {{ transform: translate(-50%, -50%) scale(1.02); opacity: 0.85; }}
-  60%  {{ transform: translate(-50%, -53%) scale(1.05); opacity: 0.92; }}
-  100% {{ transform: translate(-50%, -50%) scale(0.95); opacity: 0.75; }}
+.gift-lid::before{{
+  content:"";position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  width:50px;height:45px;background:linear-gradient(135deg,#ffb3d1,#ff2d75);
+  clip-path:polygon(50% 0%, 0% 100%, 50% 75%, 100% 100%);border-radius:0 0 20px 20px;
+}}
+.gift-box.open .gift-lid{{transform:translateY(-180px) rotate(-45deg);opacity:0;}}
+
+.gift-body{{
+  position:absolute;top:30px;left:5px;width:145px;height:125px;
+  background:linear-gradient(135deg,#d81b60,#ff4081);border-radius:10px;
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.35),0 10px 30px rgba(255,45,117,0.5);overflow:hidden;
+}}
+.gift-body::before{{
+  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:22px;height:100%;background:linear-gradient(180deg,#ffe082,#ffb3d1);
+}}
+.gift-body::after{{
+  content:"";position:absolute;top:50%;left:0;transform:translateY(-50%);
+  width:100%;height:22px;background:linear-gradient(90deg,#ffe082,#ffb3d1);
 }}
 
-/* থ্রিডি গ্লাস ক্রিস্টাল গিফট বক্স */
-.crystal-box {{
-  position: relative;
-  z-index: 2;
-  width: 190px;
-  height: 190px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: boxFloat 3s ease-in-out infinite;
-  filter: drop-shadow(0 15px 35px rgba(255, 107, 157, 0.8));
-}}
-@keyframes boxFloat {{
-  0%, 100% {{ transform: translateY(0) rotate(0deg); }}
-  50% {{ transform: translateY(-8px) rotate(1deg); }}
-}}
-
-.box-svg {{
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+@keyframes pulseGlow{{
+  0%,100%{{opacity:0.85;transform:scale(1);}}
+  50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 25px #ff3d7f;}}
 }}
 
 /* Step 2: চিঠি স্ক্রিন */
@@ -304,11 +304,11 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   animation:pulseGlow 1.6s infinite;
 }}
 
-/* স্থির ফ্রস্টেড গ্লাস বক্স */
+/* স্ক্রিনের মাঝে স্থির পারফেক্ট সাইজ গ্লাস বক্স */
 .message-box{{
   position:relative;
   max-width:360px;width:92%;
-  height: 405px;
+  height: 405px; /* চিঠি সম্পূর্ণ ফিট হওয়ার পারফেক্ট সাইজ */
   background: rgba(22, 0, 32, 0.45);
   border: 1.8px solid rgba(255, 65, 130, 0.65);
   border-radius: 28px;
@@ -331,9 +331,10 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   z-index: 1;
   opacity: 0.65;
   filter: drop-shadow(0 0 30px #ff0044) blur(1px);
-  animation: heartJumpPulse 2.4s ease-in-out infinite;
+  animation: heartPulse 2.4s ease-in-out infinite;
 }}
 
+/* সব টেক্সট একসাথে ফিট হওয়ার জন্য অপ্টিমাইজড টেক্সট কনটেইনার */
 .typed-text{{
   position: relative;
   z-index: 2;
@@ -453,6 +454,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 .wa-btn{{background:#25D366;box-shadow:0 5px 15px rgba(37,211,102,0.4);}}
 .tg-btn{{background:#0088cc;box-shadow:0 5px 15px rgba(0,136,204,0.4);}}
 
+/* কিছু বলতে চাইলে বাটন */
 .open-reply-btn{{
   margin-top:15px;width:100%;padding:13px;
   background: linear-gradient(135deg, #ffe082, #ffb3d1);
@@ -461,7 +463,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   animation:pulseGlow 2s infinite;display:flex;align-items:center;justify-content:center;gap:6px;
 }}
 
-/* Step 4: নতুন মেসেজ পেজ */
+/* Step 4: নতুন পেজ - মেসেজ লেখার পেজ */
 #feedbackPage{{
   position:fixed;inset:0;z-index:20;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:22px;text-align:center;
@@ -478,8 +480,13 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   backdrop-filter: blur(25px);-webkit-backdrop-filter: blur(25px);
   box-shadow: 0 0 35px rgba(255, 45, 117, 0.45);
 }}
-.feedback-card h3{{font-family: 'Anek Bangla', sans-serif;font-size:1.35rem;color:#ffe082;margin-bottom:10px;}}
-.feedback-card p{{font-family: 'Anek Bangla', sans-serif;font-size:0.95rem;color:#ddd;margin-bottom:20px;line-height:1.6;}}
+
+.feedback-card h3{{
+  font-family: 'Anek Bangla', sans-serif;font-size:1.35rem;color:#ffe082;margin-bottom:10px;
+}}
+.feedback-card p{{
+  font-family: 'Anek Bangla', sans-serif;font-size:0.95rem;color:#ddd;margin-bottom:20px;line-height:1.6;
+}}
 
 .reply-textarea{{
   width:100%;height:120px;border-radius:18px;
@@ -487,7 +494,9 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   color:#fff;padding:14px;font-family:'Anek Bangla',sans-serif;font-size:1rem;
   resize:none;outline:none;box-sizing:border-box;margin-bottom:18px;
 }}
-.reply-textarea:focus{{border-color:#ff2d75;box-shadow:0 0 15px rgba(255,45,117,0.5);}}
+.reply-textarea:focus{{
+  border-color:#ff2d75;box-shadow:0 0 15px rgba(255,45,117,0.5);
+}}
 
 .send-reply-btn{{
   width:100%;padding:14px;background:linear-gradient(135deg,#ff2d75,#ff6b9d);
@@ -501,10 +510,6 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   font-family:'Anek Bangla',sans-serif;
 }}
 
-@keyframes pulseGlow{{
-  0%,100%{{opacity:0.85;transform:scale(1);}}
-  50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 25px #ff3d7f;}}
-}}
 @keyframes fadeInUp{{
   from{{opacity:0;transform:translateY(30px);}}
   to{{opacity:1;transform:translateY(0);}}
@@ -516,72 +521,19 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 <audio id="bgMusic" src="{music_src}" preload="auto" loop></audio>
 
 <div id="customBg"></div>
+<div class="giant-heart-bg" id="giantHeart">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
-<!-- Step 1: প্রিমিয়াম ক্রিস্টাল গিফট স্ক্রিন -->
+<!-- Step 1: ক্লিন গিফট স্ক্রিন -->
 <div id="giftScreen">
-  <div class="top-pill-badge">
-    <div class="pill-text">👇 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
-  </div>
-
-  <div class="hero-gift-container">
-    <!-- ব্যাকগ্রাউন্ডের লাফালাফি করা স্পন্দিত লাভ -->
-    <svg class="hero-heart-pulse" viewBox="0 0 100 90">
-      <defs>
-        <radialGradient id="jumpHeartGrad" cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stop-color="#ff2a7a" stop-opacity="0.95"/>
-          <stop offset="55%" stop-color="#d6004b" stop-opacity="0.75"/>
-          <stop offset="100%" stop-color="#6b0024" stop-opacity="0.15"/>
-        </radialGradient>
-      </defs>
-      <path fill="url(#jumpHeartGrad)" d="M50,85 C50,85 10,55 10,28 C10,12 22,2 35,2 C43,2 48,7 50,12 C52,7 57,2 65,2 C78,2 90,12 90,28 C90,55 50,85 50,85 Z" />
-    </svg>
-
-    <!-- থ্রিডি ক্রিস্টাল গ্লাস গিফট বক্স ভেক্টর -->
-    <div class="crystal-box" id="crystalGiftBox">
-      <svg class="box-svg" viewBox="0 0 200 200">
-        <defs>
-          <linearGradient id="glassBody" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
-            <stop offset="50%" stop-color="#ffb3d1" stop-opacity="0.25"/>
-            <stop offset="100%" stop-color="#ff2d75" stop-opacity="0.45"/>
-          </linearGradient>
-          <linearGradient id="neonRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffe082"/>
-            <stop offset="50%" stop-color="#ff6b9d"/>
-            <stop offset="100%" stop-color="#ff2d75"/>
-          </linearGradient>
-          <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur"/>
-            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-          </filter>
-        </defs>
-
-        <!-- মূল কিউব বডি (গ্লাস) -->
-        <polygon points="100,65 160,95 100,125 40,95" fill="url(#glassBody)" stroke="#ffb3d1" stroke-width="1.5" stroke-opacity="0.8"/>
-        <polygon points="40,95 100,125 100,185 40,155" fill="#46002c" fill-opacity="0.5" stroke="#ff4081" stroke-width="1.5" stroke-opacity="0.6"/>
-        <polygon points="160,95 100,125 100,185 160,155" fill="#88004b" fill-opacity="0.45" stroke="#ff4081" stroke-width="1.5" stroke-opacity="0.6"/>
-
-        <!-- গ্লাস বর্ডার গ্লো -->
-        <polyline points="40,95 100,125 160,95" fill="none" stroke="#ffe082" stroke-width="1.8" opacity="0.8"/>
-        <line x1="100" y1="125" x2="100" y2="185" stroke="#ffe082" stroke-width="1.8" opacity="0.8"/>
-
-        <!-- উল্লম্ব নিয়ন রিবন -->
-        <polygon points="94,68 106,62 106,182 94,188" fill="url(#neonRibbon)" filter="url(#neonGlow)"/>
-        
-        <!-- আনুভূমিক নিয়ন রিবন -->
-        <polygon points="38,122 100,153 100,161 38,130" fill="url(#neonRibbon)" filter="url(#neonGlow)"/>
-        <polygon points="162,122 100,153 100,161 162,130" fill="url(#neonRibbon)" filter="url(#neonGlow)"/>
-
-        <!-- উপরের থ্রিডি বো (Bow) -->
-        <ellipse cx="80" cy="56" rx="22" ry="12" transform="rotate(-25 80 56)" fill="none" stroke="url(#neonRibbon)" stroke-width="4.5" filter="url(#neonGlow)"/>
-        <ellipse cx="120" cy="56" rx="22" ry="12" transform="rotate(25 120 56)" fill="none" stroke="url(#neonRibbon)" stroke-width="4.5" filter="url(#neonGlow)"/>
-        <circle cx="100" cy="62" r="9" fill="#ffe082" filter="url(#neonGlow)"/>
-      </svg>
+  <div class="top-tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
+  <div class="gift-box-wrapper">
+    <div class="gift-box" id="giftBox">
+      <div class="gift-lid"></div>
+      <div class="gift-body"></div>
     </div>
   </div>
-
-  <div style="height: 10px;"></div>
+  <div style="height: 20px;"></div>
 </div>
 
 <!-- Step 2: চিঠি স্ক্রিন -->
@@ -644,7 +596,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
       <button class="open-reply-btn" onclick="openNewPage('YES')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
 
-    <!-- NO রেসপন্স কার্ড -->
+    <!-- NO রেসপন্স কার্ড (শুদ্ধ বানান ও কোনো গোলাপ ছাড়া) -->
     <div id="noResult">
       <p style="font-size:1.05rem;line-height:1.8;color:#ffb3d1;font-family:'Anek Bangla',sans-serif;font-weight:600;margin-bottom:12px;">
         তোমার মূল্যবান সময় দিয়ে পড়ার জন্য ধন্যবাদ! যাক ব্যাপার না, তুমি হয়তো আমার ভাগ্যে ছিলে না... 🥺
@@ -749,6 +701,7 @@ function loop() {{
   requestAnimationFrame(loop);
 }}
 
+// প্রতিটি লাইন টাইপিং লজিক
 var linesData = {lines_json};
 
 function typeLines(lines, callback) {{
@@ -762,6 +715,7 @@ function typeLines(lines, callback) {{
     }}
 
     var lineSpan = document.createElement("span");
+    // এক লাইন গোল্ডেন, পরের লাইন পিংকিশ-হোয়াইট
     lineSpan.className = (lineIdx % 2 === 0) ? "line-gold" : "line-pink";
     container.appendChild(lineSpan);
 
@@ -785,8 +739,9 @@ function typeLines(lines, callback) {{
 }}
 
 function openGift() {{
-  var giftScreen = document.getElementById("giftScreen");
-  if(giftScreen.classList.contains("hide")) return;
+  var giftBox = document.getElementById("giftBox");
+  if(giftBox.classList.contains("open")) return;
+  giftBox.classList.add("open");
 
   try {{
     var audio = document.getElementById("bgMusic");
@@ -796,8 +751,8 @@ function openGift() {{
   for(var i=0; i<25; i++) hearts.push(new Heart());
   loop();
 
-  giftScreen.classList.add("hide");
   setTimeout(function(){{
+    document.getElementById("giftScreen").classList.add("hide");
     document.getElementById("wishScreen").classList.add("show");
     typeLines(linesData, function(){{
       document.getElementById("nextStepBtn").style.display = "inline-block";
@@ -806,13 +761,17 @@ function openGift() {{
 }}
 
 document.getElementById("giftScreen").addEventListener("click", openGift);
+document.getElementById("giftBox").addEventListener("click", function(e){{
+  e.stopPropagation();
+  openGift();
+}});
 
 document.getElementById("nextStepBtn").addEventListener("click", function(){{
   document.getElementById("wishScreen").classList.remove("show");
   document.getElementById("proposalScreen").classList.add("show");
 }});
 
-// YES ক্লিক
+// YES ক্লিক ইভেন্ট
 document.getElementById("btnYes").addEventListener("click", function(){{
   document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("yesResult").style.display = "block";
@@ -832,7 +791,7 @@ document.getElementById("btnYes").addEventListener("click", function(){{
   }}
 }});
 
-// NO ক্লিক
+// NO ক্লিক ইভেন্ট
 document.getElementById("btnNo").addEventListener("click", function(){{
   document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("noResult").style.display = "block";
@@ -911,7 +870,7 @@ def handle_all(message):
             bot.send_message(chat_id, "৫️⃣ এবার 'Do you love me?' এর ওপরে *কী লিখতে চান* (যেমন কোনো রোমান্টিক কথা) লিখে পাঠান:\n\n_(ডিফল্ট টেক্সট রাখতে চাইলে /skip লিখুন)_")
             return
 
-    # ৫. প্রপোজাল নোট
+    # ৫. 'Do you love me' এর ওপরের লেখা
     if step == 'PROPOSAL_NOTE' and text:
         if text != "/skip":
             user_data[chat_id]['pnote'] = text
@@ -971,7 +930,7 @@ def handle_all(message):
             chat_id, 
             f"🎉 *আপনার স্পেশাল উইশ পেজ সফলভাবে তৈরি হয়েছে!*\n\n"
             f"🔗 *লিংক:* {short_link}\n\n"
-            f"✅ নতুন ক্রিস্টাল বক্স ও জাম্পিং হার্ট অ্যানিমেশন সফলভাবে সেট করা হয়েছে।"
+            f"✅ সব কাস্টমাইজেশন শতভাগ সফলভাবে সেট করা হয়েছে।"
         )
         user_data.pop(chat_id, None)
         return
