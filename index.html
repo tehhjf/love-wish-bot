@@ -42,18 +42,18 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
   <div class="app-title">✨ WISH MASTER STUDIO ✨</div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-  <!-- Step 1 -->
+  <!-- ধাপ ১ -->
   <div class="step-pane active" id="step1">
     <label>১️⃣ আপনার নাম (Sender):</label>
-    <input type="text" id="sName" value="Emon">
+    <input type="text" id="sName" placeholder="আপনার নাম লিখুন">
     <label>২️⃣ তার নাম (Receiver):</label>
-    <input type="text" id="rName" value="Tamanna">
+    <input type="text" id="rName" placeholder="তার নাম লিখুন">
     <div class="btn-row">
       <button class="app-btn btn-primary" onclick="setStep(2)">পরবর্তী ধাপ 👉</button>
     </div>
   </div>
 
-  <!-- Step 2 -->
+  <!-- ধাপ ২ -->
   <div class="step-pane" id="step2">
     <label>৩️⃣ চিঠির বার্তা (প্রতি লাইন আলাদা রাখুন):</label>
     <textarea id="letterText" rows="6">গুছিয়ে বলতে পারিনা কোন কিছু..!😅
@@ -72,7 +72,7 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
     </div>
   </div>
 
-  <!-- Step 3 -->
+  <!-- ধাপ ৩ -->
   <div class="step-pane" id="step3">
     <label>৪️⃣ প্রপোজাল নোট:</label>
     <input type="text" id="pNote" value="মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈">
@@ -84,7 +84,7 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
     </div>
   </div>
 
-  <!-- Step 4 -->
+  <!-- ধাপ ৪ -->
   <div class="step-pane" id="step4">
     <label>৬️⃣ প্রোফাইল ফটো (প্রপোজাল পেজের গোল ফ্রেমের জন্য):</label>
     <div class="upload-card" onclick="document.getElementById('photoInput').click()">
@@ -108,14 +108,14 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
     </div>
   </div>
 
-  <!-- Result Box -->
+  <!-- লিংক ফলাফল বক্স -->
   <div class="result-box" id="resultCard">
     <div style="font-size:0.95rem;color:#fff;font-weight:700;">🎉 আপনার উইশ লিংক রেডি!</div>
     <div class="result-url" id="linkText"></div>
     <button class="copy-btn" onclick="copyFinalLink()">কপি করুন 📋</button>
   </div>
 
-  <!-- Live Response Box -->
+  <!-- লাইভ রেসপন্স ফিড -->
   <div class="response-board">
     <div class="board-header">
       <span>🔔 লাইভ রেসপন্স ফিড:</span>
@@ -171,8 +171,8 @@ function createWishLink() {
   const wishId = "wish_" + Math.random().toString(36).substring(2, 9);
   
   const payload = {
-    sender: document.getElementById('sName').value.trim(),
-    receiver: document.getElementById('rName').value.trim(),
+    sender: document.getElementById('sName').value.trim() || "Anonymous",
+    receiver: document.getElementById('rName').value.trim() || "Special Someone",
     message: document.getElementById('letterText').value.trim(),
     proposalNote: document.getElementById('pNote').value.trim(),
     wa: document.getElementById('waNum').value.trim(),
@@ -191,8 +191,8 @@ function createWishLink() {
     btn.disabled = false;
     btn.innerText = "উইশ লিংক বানান 🚀";
     
-    const basePath = window.location.href.split('?')[0].replace('index.html', '').replace(/\/$/, '');
-    const finalUrl = `${basePath}/wish.html?id=${wishId}`;
+    // সরাসরি আপনার GitHub Pages লাইভ ডোমেইনের সাথে লিংক যুক্ত করা হয়েছে
+    const finalUrl = `https://tehhjf.github.io/love-wish-bot/wish.html?id=${wishId}`;
     
     document.getElementById('linkText').innerText = finalUrl;
     document.getElementById('resultCard').style.display = "block";
@@ -201,13 +201,13 @@ function createWishLink() {
   .catch(() => {
     btn.disabled = false;
     btn.innerText = "উইশ লিংক বানান 🚀";
-    alert("ডাটাবেজ কানেক্ট করা সম্ভব হয়নি।");
+    alert("ডাটাবেজ কানেক্ট করা সম্ভব হয়নি। ইন্টারনেট সংযোগ চেক করুন।");
   });
 }
 
 function copyFinalLink() {
   navigator.clipboard.writeText(document.getElementById('linkText').innerText);
-  alert("লিংক কপি হয়েছে! 💖");
+  alert("সারপ্রাইজ লিংক কপি হয়েছে! এবার যে কাউকেই ক্রোম ব্রাউজারে খুলতে পাঠাতে পারেন। 💖");
 }
 
 function startLiveTracking(id) {
