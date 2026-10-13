@@ -11,7 +11,8 @@ RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
 if not RENDER_URL:
     RENDER_URL = "https://love-wish-bot.onrender.com"
 
-TELEGRAM_TOKEN = "8699587679:AAFVFVjQrP-21R_CxMWS1cxqeQzaBCDjpyc"
+# Nuevo token configurado
+TELEGRAM_TOKEN = "8699587679:AAGvW12Wg-nsvolT9O4VSFQyVPoOI_BxFoU"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown", threaded=True)
 user_data = {}
@@ -21,7 +22,7 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 DATA_FILE = os.path.join(BASE_DIR, "wishes.json")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# ডাটাবেজ হ্যান্ডলিং
+# Manejo de almacenamiento
 def load_wishes():
     if os.path.exists(DATA_FILE):
         try:
@@ -41,7 +42,7 @@ def get_wish_entry(wish_id):
     wishes = load_wishes()
     return wishes.get(wish_id)
 
-# --- এইচটিটিপি সার্ভার ও ফ্রন্টএন্ড ---
+# --- Servidor HTTP y Frontend ---
 class CustomHTTPHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
@@ -53,7 +54,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         
-        # YES / NO রেসপন্স হ্যান্ডলার
+        # Manejador de respuesta YES / NO
         if parsed.path == "/api/response":
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length).decode('utf-8')
@@ -87,7 +88,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 return
 
-        # ইউজার থেকে কাস্টম মেসেজ পাঠানো
+        # Envío de mensaje personalizado desde la página
         if parsed.path == "/api/custom_message":
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length).decode('utf-8')
@@ -436,7 +437,6 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 .wa-btn{{background:#25D366;box-shadow:0 5px 15px rgba(37,211,102,0.4);}}
 .tg-btn{{background:#0088cc;box-shadow:0 5px 15px rgba(0,136,204,0.4);}}
 
-/* কিছু বলতে চাইলে বাটন */
 .open-reply-btn{{
   margin-top:14px;width:100%;padding:13px;
   background: linear-gradient(135deg, #ffe082, #ffb3d1);
@@ -445,7 +445,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   animation:pulseGlow 2s infinite;display:flex;align-items:center;justify-content:center;gap:6px;
 }}
 
-/* Step 4: নতুন পেজ - মেসেজ লেখার পেজ */
+/* Step 4: Nueva página para escribir mensaje */
 #feedbackPage{{
   position:fixed;inset:0;z-index:20;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:22px;text-align:center;
@@ -554,12 +554,10 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 <!-- Step 3: Proposal Screen -->
 <div id="proposalScreen">
   <div class="question-box">
-    <!-- শুধুমাত্র পিকচারটি থাকবে -->
     <div class="profile-avatar-wrap">
       <img src="{avatar_src}" alt="Profile" class="profile-avatar">
     </div>
     
-    <!-- ইয়েস/নো চাপার পর এগুলো মুছে যাবে -->
     <div id="topTextsWrap">
       <div class="proposal-top-text">{proposal_note}</div>
       <div class="question-title">💖 Do you love me? 💖</div>
@@ -570,7 +568,6 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
       </div>
     </div>
 
-    <!-- YES রেসপন্স কার্ড -->
     <div id="yesResult">
       <h3 style="color:#ffb3d1;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
       <p style="font-size:0.95rem;color:#fff;margin-bottom:12px;font-family:'Anek Bangla',sans-serif;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
@@ -581,7 +578,6 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
       <button class="open-reply-btn" onclick="openNewPage('YES')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
 
-    <!-- NO রেসপন্স কার্ড -->
     <div id="noResult">
       <h3 style="color:#ff8585;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
       <p style="font-size:0.95rem;color:#ddd;font-family:'Anek Bangla',sans-serif;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
@@ -590,7 +586,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   </div>
 </div>
 
-<!-- Step 4: নতুন পেজ - মেসেজ লেখার পেজ -->
+<!-- Step 4: Feedback Page -->
 <div id="feedbackPage">
   <div class="feedback-card">
     <div style="font-size:45px;margin-bottom:10px;">✍️💌</div>
@@ -737,7 +733,6 @@ document.getElementById("nextStepBtn").addEventListener("click", function(){{
   document.getElementById("proposalScreen").classList.add("show");
 }});
 
-// YES ক্লিক ইভেন্ট: টেক্সটগুলো হাইড করে শুধু পিক ও রেজাল্ট রাখা
 document.getElementById("btnYes").addEventListener("click", function(){{
   document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("yesResult").style.display = "block";
@@ -757,7 +752,6 @@ document.getElementById("btnYes").addEventListener("click", function(){{
   }}
 }});
 
-// NO ক্লিক ইভেন্ট: টেক্সটগুলো হাইড করে শুধু পিক ও রেজাল্ট রাখা
 document.getElementById("btnNo").addEventListener("click", function(){{
   document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("noResult").style.display = "block";
@@ -776,7 +770,7 @@ def start_server():
     server = HTTPServer(("0.0.0.0", PORT), CustomHTTPHandler)
     server.serve_forever()
 
-# --- বট হ্যান্ডলার ---
+# --- Manejadores del Bot ---
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     chat_id = message.chat.id
@@ -795,21 +789,21 @@ def handle_all(message):
         bot.send_message(chat_id, "✨ *উইশ পেজ ক্রিয়েটরে স্বাগতম!* ❤️\n\n১️⃣ প্রথমে *আপনার নাম* লিখে পাঠান:")
         return
 
-    # ১. আপনার নাম
+    # 1. Nombre del remitente
     if step == 'SENDER' and text:
         user_data[chat_id]['sender'] = text
         user_data[chat_id]['step'] = 'RECEIVER'
         bot.send_message(chat_id, "২️⃣ এবার আপনার *GF এর নাম* লিখে পাঠান:")
         return
 
-    # ২. GF এর নাম
+    # 2. Nombre del destinatario
     if step == 'RECEIVER' and text:
         user_data[chat_id]['receiver'] = text
         user_data[chat_id]['step'] = 'CUSTOM_MSG'
         bot.send_message(chat_id, "৩️⃣ উইশ পেজের চিঠির ভেতর *কী লিখতে চান (মেসেজ)* লিখে পাঠান:\n\n_(ডিফল্ট রোমান্টিক টেক্সট রাখতে চাইলে /skip লিখুন)_")
         return
 
-    # ৩. মেসেজ
+    # 3. Mensaje
     if step == 'CUSTOM_MSG' and text:
         if text != "/skip":
             user_data[chat_id]['msg'] = text
@@ -817,7 +811,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৪️⃣ এবার 'Do you love me?' পেজের গোল ফ্রেমের জন্য তার *প্রোফাইল পিক পাঠান (Photo)*:\n\n_(ছবি না দিতে চাইলে /skip লিখুন)_")
         return
 
-    # ৪. প্রোফাইল ফটো
+    # 4. Foto de perfil
     if step == 'PROFILE_PIC':
         if text == "/skip":
             user_data[chat_id]['avatar'] = ""
@@ -836,7 +830,7 @@ def handle_all(message):
             bot.send_message(chat_id, "৫️⃣ এবার 'Do you love me?' এর ওপরে *কী লিখতে চান* (যেমন কোনো রোমান্টিক কথা) লিখে পাঠান:\n\n_(ডিফল্ট টেক্সট রাখতে চাইলে /skip লিখুন)_")
             return
 
-    # ৫. 'Do you love me' এর ওপরের লেখা
+    # 5. Nota sobre 'Do you love me'
     if step == 'PROPOSAL_NOTE' and text:
         if text != "/skip":
             user_data[chat_id]['pnote'] = text
@@ -844,7 +838,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৬️⃣ এবার আপনার *WhatsApp নাম্বার* দিন (যেমন: 017xxxxxxxx):\n\n_(না দিতে চাইলে /skip লিখুন)_")
         return
 
-    # ৬. WhatsApp নাম্বার
+    # 6. Número de WhatsApp
     if step == 'WHATSAPP' and text:
         if text != "/skip":
             user_data[chat_id]['wa'] = text
@@ -852,7 +846,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৭️⃣ এবার আপনার *Telegram ইউজারনেম* পাঠান (যেমন: @yourusername):\n\n_(না দিতে চাইলে /skip লিখুন)_")
         return
 
-    # ৭. Telegram ইউজারনেম
+    # 7. Usuario de Telegram
     if step == 'TELEGRAM' and text:
         if text != "/skip":
             user_data[chat_id]['tg'] = text
@@ -860,7 +854,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৮️⃣ এবার ব্যাকগ্রাউন্ড মিউজিকের জন্য একটি *অডিও বা MP3 ফাইল পাঠান*:\n\n_(ডিফল্ট রোমান্টিক টিউন রাখতে চাইলে /skip লিখুন)_")
         return
 
-    # ৮. ব্যাকগ্রাউন্ড মিউজিক এবং লিংক তৈরি
+    # 8. Música de fondo y creación del enlace
     if step == 'BG_MUSIC':
         audio_name = ""
         audio_obj = message.audio or message.voice or (message.document if message.document and "audio" in (message.document.mime_type or "") else None)
