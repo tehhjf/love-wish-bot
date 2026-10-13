@@ -1,568 +1,401 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Special Surprise For You</title>
-<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>💖 Special Surprise For You</title>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Anek Bangla', sans-serif;
-  -webkit-tap-highlight-color: transparent;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-serif;background:#0d0015;color:#fff;}
+#customBg{position:fixed;inset:0;z-index:0;background:radial-gradient(circle at 50% 30%, #46002c 0%, #170024 60%, #07000e 100%);}
+
+.giant-heart-bg{
+  position:fixed;top:54%;left:50%;transform:translate(-50%,-50%);
+  z-index:1;font-size:350px;color:rgba(255,45,117,0.22);
+  filter:drop-shadow(0 0 80px rgba(255,45,117,0.55));
+  animation:heartPulse 2.2s ease-in-out infinite;pointer-events:none;user-select:none;
+}
+@keyframes heartPulse{0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-50%,-50%) scale(1.15);}}
+#heartsCanvas{position:fixed;inset:0;z-index:2;pointer-events:none;}
+
+/* Step 1 */
+#giftScreen{
+  position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;padding:50px 20px 70px 20px;
+  text-align:center;transition:opacity 0.8s ease;cursor:pointer;
+}
+#giftScreen.hide{opacity:0;pointer-events:none;}
+.top-tap-hint{
+  font-size:1.25rem;color:#ffe082;font-family:'Anek Bangla',sans-serif;font-weight:700;
+  animation:pulseGlow 2s ease-in-out infinite;text-shadow:0 0 15px rgba(255,224,130,0.7);
+}
+.gift-box-wrapper{display:flex;align-items:center;justify-content:center;margin-top:auto;margin-bottom:auto;}
+.gift-box{
+  position:relative;width:155px;height:155px;cursor:pointer;
+  animation:boxShake 1.4s ease-in-out infinite;filter:drop-shadow(0 20px 40px rgba(255,45,117,0.85));
+  transition:transform 0.3s ease;
+}
+@keyframes boxShake{
+  0%,100%{transform:rotate(0) scale(1);}
+  15%{transform:rotate(-6deg) scale(1.03);}
+  30%{transform:rotate(6deg) scale(1.05);}
+  45%{transform:rotate(-4deg) scale(1.03);}
+  60%{transform:rotate(4deg) scale(1.05);}
+  75%{transform:rotate(0) scale(1);}
+}
+.gift-lid{
+  position:absolute;top:-12px;left:-10px;width:175px;height:42px;
+  background:linear-gradient(135deg,#ff2d75,#ff6b9d);border-radius:8px;
+  box-shadow:0 4px 20px rgba(255,45,117,0.7);transition:all 0.9s ease;
+}
+.gift-lid::before{
+  content:"";position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  width:50px;height:45px;background:linear-gradient(135deg,#ffb3d1,#ff2d75);
+  clip-path:polygon(50% 0%, 0% 100%, 50% 75%, 100% 100%);border-radius:0 0 20px 20px;
+}
+.gift-box.open .gift-lid{transform:translateY(-180px) rotate(-45deg);opacity:0;}
+.gift-body{
+  position:absolute;top:30px;left:5px;width:145px;height:125px;
+  background:linear-gradient(135deg,#d81b60,#ff4081);border-radius:10px;
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.35),0 10px 30px rgba(255,45,117,0.5);overflow:hidden;
+}
+.gift-body::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:22px;height:100%;background:linear-gradient(180deg,#ffe082,#ffb3d1);}
+.gift-body::after{content:"";position:absolute;top:50%;left:0;transform:translateY(-50%);width:100%;height:22px;background:linear-gradient(90deg,#ffe082,#ffb3d1);}
+
+@keyframes pulseGlow{0%,100%{opacity:0.85;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);text-shadow:0 0 25px #ff3d7f;}}
+
+/* Step 2 */
+#wishScreen{
+  position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:12px 16px;text-align:center;
+  opacity:0;transition:opacity 0.8s ease;overflow:hidden;
+}
+#wishScreen.show{display:flex;opacity:1;}
+.names-container{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;width:100%;max-width:380px;}
+.from-to{font-family:'Poppins',sans-serif;font-size:0.8rem;color:#ffb3d1;letter-spacing:3px;font-weight:700;}
+.sender-name, .receiver-name{
+  font-family:'Dancing Script',cursive;font-size:2.4rem;line-height:1.1;
+  background:linear-gradient(135deg,#ffffff,#ffb3d1,#ff548e);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.heart-divider{font-size:1.8rem;color:#ff2d75;animation:pulseGlow 1.6s infinite;}
+.message-box{
+  position:relative;max-width:360px;width:92%;height:405px;
+  background:rgba(22,0,32,0.45);border:1.8px solid rgba(255,65,130,0.65);
+  border-radius:28px;padding:16px 14px;margin-bottom:16px;
+  backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.box-heart-bg{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:250px;height:230px;opacity:0.65;filter:drop-shadow(0 0 30px #ff0044) blur(1px);
+  animation:heartPulse 2.4s ease-in-out infinite;pointer-events:none;
+}
+.typed-text{position:relative;z-index:2;font-size:0.98rem;font-weight:600;line-height:1.55;text-align:center;width:100%;display:flex;flex-direction:column;align-items:center;}
+.line-gold{color:#ffe082;text-shadow:0 1px 8px rgba(0,0,0,0.9);display:block;margin:1px 0;}
+.line-pink{color:#ffffff;text-shadow:0 1px 8px rgba(0,0,0,0.9);display:block;margin:1px 0;}
+.next-step-btn{
+  display:none;padding:12px 38px;background:linear-gradient(135deg,#ff4081,#ff2d75);
+  color:#fff;border:none;border-radius:50px;font-size:1.05rem;font-weight:800;
+  cursor:pointer;box-shadow:0 8px 30px rgba(255,45,117,0.7);animation:pulseGlow 1.8s infinite;
+  font-family:'Poppins',sans-serif;letter-spacing:1.2px;
 }
 
-body {
-  background: radial-gradient(circle at 50% 20%, #2b001d 0%, #120019 60%, #05000a 100%);
-  color: #fff;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 16px 12px;
-  overflow-x: hidden;
-  position: relative;
+/* Step 3 */
+#proposalScreen{
+  position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px;text-align:center;opacity:0;transition:opacity 0.8s ease;
 }
+#proposalScreen.show{display:flex;opacity:1;}
+.question-box{
+  max-width:390px;width:100%;background:rgba(22,0,32,0.5);border:1.8px solid rgba(255,65,130,0.65);
+  border-radius:28px;padding:30px 20px;backdrop-filter:blur(20px);box-shadow:0 0 35px rgba(255,45,117,0.45);
+}
+.profile-avatar-wrap{width:130px;height:130px;margin:0 auto 16px;border-radius:50%;padding:4px;background:linear-gradient(135deg,#ff2d75,#ffe082,#ff6b9d);box-shadow:0 0 25px rgba(255,45,117,0.8);}
+.profile-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
+.proposal-top-text{font-size:1.1rem;color:#ffe082;margin-bottom:8px;font-weight:600;}
+.question-title{font-family:'Poppins',sans-serif;font-size:1.65rem;font-weight:700;color:#ffb3d1;margin-bottom:8px;}
+.question-sub{font-size:1rem;color:#f0f0f0;margin-bottom:24px;}
+.yn-btn-group{display:flex;justify-content:center;gap:15px;}
+.yn-btn{flex:1;padding:14px;border:none;border-radius:50px;font-size:1.15rem;font-weight:bold;cursor:pointer;font-family:'Poppins',sans-serif;}
+.btn-yes{background:linear-gradient(135deg,#ff2d75,#ff6b9d);color:#fff;box-shadow:0 8px 25px rgba(255,45,117,0.6);}
+.btn-no{background:rgba(255,255,255,0.15);color:#eee;border:1px solid rgba(255,255,255,0.25);}
+#yesResult{display:none;margin-top:16px;padding:18px 16px;background:rgba(255,45,117,0.25);border-radius:20px;border:1.5px solid rgba(255,45,117,0.55);}
+#noResult{display:none;margin-top:16px;padding:18px 16px;background:rgba(0,0,0,0.6);border-radius:20px;border:1.5px solid rgba(255,255,255,0.25);}
+.share-btn-wrap{display:flex;flex-direction:column;gap:10px;margin-top:15px;}
+.share-btn{padding:12px;border-radius:50px;border:none;color:#fff;font-size:0.95rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-family:'Poppins',sans-serif;}
+.wa-btn{background:#25D366;}
+.open-reply-btn{margin-top:15px;width:100%;padding:13px;background:linear-gradient(135deg,#ffe082,#ffb3d1);color:#150024;border:none;border-radius:50px;font-size:0.98rem;font-weight:700;cursor:pointer;}
 
-/* Floating Hearts Background */
-.heart-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.floating-heart {
-  position: absolute;
-  color: rgba(255, 45, 117, 0.35);
-  font-size: 18px;
-  animation: floatUp linear infinite;
-}
-
-@keyframes floatUp {
-  0% { transform: translateY(105vh) scale(0.6) rotate(0deg); opacity: 0; }
-  20% { opacity: 0.8; }
-  80% { opacity: 0.8; }
-  100% { transform: translateY(-15vh) scale(1.2) rotate(360deg); opacity: 0; }
-}
-
-/* Glass Container Frame */
-.main-wrapper {
-  width: 100%;
-  max-width: 420px;
-  background: rgba(25, 0, 35, 0.75);
-  border: 1.8px solid rgba(255, 65, 130, 0.45);
-  border-radius: 32px;
-  padding: 24px 18px;
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255, 45, 117, 0.15);
-  position: relative;
-  z-index: 10;
-  text-align: center;
-}
-
-/* Music Control Icon */
-.music-toggle {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(255, 45, 117, 0.2);
-  border: 1.5px solid #ff2d75;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #ffe082;
-  cursor: pointer;
-  z-index: 20;
-  font-size: 15px;
-  box-shadow: 0 0 12px rgba(255, 45, 117, 0.4);
-}
-
-.music-toggle.spin {
-  animation: rotateMusic 4s linear infinite;
-}
-
-@keyframes rotateMusic {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Profile Photo Section */
-.avatar-container {
-  width: 110px;
-  height: 110px;
-  margin: 10px auto 16px;
-  border-radius: 50%;
-  border: 3.5px solid #ffe082;
-  box-shadow: 0 0 25px rgba(255, 45, 117, 0.6);
-  padding: 3px;
-  background: linear-gradient(135deg, #ff2d75, #ffe082);
-  animation: pulseGlow 2.5s ease-in-out infinite alternate;
-}
-
-@keyframes pulseGlow {
-  0% { box-shadow: 0 0 15px rgba(255, 45, 117, 0.5); }
-  100% { box-shadow: 0 0 30px rgba(255, 224, 130, 0.8); }
-}
-
-.avatar-container img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #111;
-}
-
-/* Titles */
-.title-badge {
-  display: inline-block;
-  padding: 4px 14px;
-  border-radius: 20px;
-  background: rgba(255, 45, 117, 0.2);
-  border: 1px solid rgba(255, 45, 117, 0.4);
-  font-size: 0.82rem;
-  color: #ffe082;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.names-heading {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.35rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #fff, #ffb3d1, #ff2d75);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 15px;
-  line-height: 1.3;
-}
-
-/* Letter Scroll View */
-.letter-card {
-  background: rgba(0, 0, 0, 0.45);
-  border: 1.2px solid rgba(255, 179, 209, 0.25);
-  border-radius: 20px;
-  padding: 18px 16px;
-  margin-bottom: 18px;
-  text-align: left;
-  max-height: 220px;
-  overflow-y: auto;
-  position: relative;
-  scrollbar-width: thin;
-  scrollbar-color: #ff2d75 rgba(0, 0, 0, 0.2);
-}
-
-.letter-text {
-  font-size: 0.96rem;
-  line-height: 1.7;
-  color: #ffccd5;
-  white-space: pre-line;
-  font-weight: 600;
-}
-
-/* Proposal Prompt Box */
-.proposal-box {
-  background: linear-gradient(135deg, rgba(255, 45, 117, 0.2), rgba(255, 224, 130, 0.15));
-  border: 1.5px dashed #ff2d75;
-  border-radius: 20px;
-  padding: 16px 14px;
-  margin-bottom: 20px;
-}
-
-.proposal-question {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #ffe082;
-  margin-bottom: 14px;
-}
-
-/* Action Buttons (YES / NO) */
-.action-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  position: relative;
-}
-
-.btn-choice {
-  flex: 1;
-  padding: 12px 14px;
-  border-radius: 50px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-accept {
-  background: linear-gradient(135deg, #00e676, #00b0ff);
-  color: #05000a;
-  box-shadow: 0 5px 20px rgba(0, 230, 118, 0.45);
-}
-
-.btn-accept:active {
-  transform: scale(0.95);
-}
-
-.btn-reject {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  position: relative;
-}
-
-/* Custom Message Form */
-.feedback-container {
-  margin-top: 14px;
-  text-align: left;
-}
-
-.feedback-container label {
-  display: block;
-  font-size: 0.88rem;
-  color: #ffb3d1;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.feedback-input-row {
-  display: flex;
-  gap: 8px;
-}
-
-.feedback-input {
-  flex: 1;
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.2px solid rgba(255, 179, 209, 0.3);
-  border-radius: 16px;
-  color: #fff;
-  font-size: 0.94rem;
-  outline: none;
-}
-
-.feedback-input:focus {
-  border-color: #ff2d75;
-  box-shadow: 0 0 12px rgba(255, 45, 117, 0.4);
-}
-
-.btn-send-msg {
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: #ff2d75;
-  border: none;
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255, 45, 117, 0.45);
-}
-
-/* Status Notifications */
-.alert-popup {
-  display: none;
-  margin-top: 15px;
-  padding: 12px;
-  border-radius: 16px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  animation: fadeIn 0.3s ease;
-}
-
-.alert-success {
-  background: rgba(0, 230, 118, 0.15);
-  border: 1.2px solid #00e676;
-  color: #85ffb9;
-}
-
-/* WhatsApp Redirection Link */
-.wa-link-btn {
-  display: none;
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 50px;
-  background: #25d366;
-  color: #fff;
-  text-decoration: none;
-  font-weight: 800;
-  font-size: 0.95rem;
-  box-shadow: 0 5px 20px rgba(37, 211, 102, 0.45);
-}
-
-/* Footer Signature */
-.site-footer {
-  margin-top: 20px;
-  padding-top: 12px;
-  border-top: 1px dashed rgba(255, 179, 209, 0.2);
-  font-size: 0.8rem;
-  color: #ffe082;
-  font-weight: 600;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* Step 4 */
+#feedbackPage{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;background:radial-gradient(circle at 50% 30%, #46002c 0%, #170024 75%, #07000e 100%);}
+#feedbackPage.show{display:flex;}
+.feedback-card{max-width:390px;width:100%;background:rgba(22,0,32,0.6);border:1.8px solid rgba(255,65,130,0.65);border-radius:28px;padding:28px 20px;}
+.reply-textarea{width:100%;height:120px;border-radius:18px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,179,209,0.4);color:#fff;padding:14px;font-size:1rem;resize:none;outline:none;margin:15px 0;}
+.send-reply-btn{width:100%;padding:14px;background:linear-gradient(135deg,#ff2d75,#ff6b9d);color:#fff;border:none;border-radius:50px;font-size:1.05rem;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
 
-<div class="heart-bg" id="heartBg"></div>
+<audio id="bgMusic" loop></audio>
+<div id="customBg"></div>
+<div class="giant-heart-bg">❤️</div>
+<canvas id="heartsCanvas"></canvas>
 
-<div class="main-wrapper">
-  <!-- Music Controller -->
-  <div class="music-toggle spin" id="musicBtn" onclick="toggleAudio()">
-    <i class="fa-solid fa-music"></i>
-  </div>
-
-  <!-- Profile Image -->
-  <div class="avatar-container">
-    <img id="avatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300" alt="Avatar">
-  </div>
-
-  <div class="title-badge">💌 SECRET CONFESSION</div>
-  <div class="names-heading" id="namesHeading">Loading Surprise...</div>
-
-  <!-- Letter Text -->
-  <div class="letter-card">
-    <div class="letter-text" id="letterContent">
-      অনুভূতির চিঠি লোড হচ্ছে, একটু অপেক্ষা করুন... ✨
+<div id="giftScreen">
+  <div class="top-tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
+  <div class="gift-box-wrapper">
+    <div class="gift-box" id="giftBox">
+      <div class="gift-lid"></div>
+      <div class="gift-body"></div>
     </div>
   </div>
+  <div style="height:20px;"></div>
+</div>
 
-  <!-- Proposal Interactivity -->
-  <div class="proposal-box" id="proposalSection">
-    <div class="proposal-question" id="proposalText">তুমি কি আমার প্রস্তাবে রাজি? 🙈</div>
-    
-    <div class="action-buttons" id="choiceContainer">
-      <button class="btn-choice btn-accept" onclick="submitDecision('YES')">
-        <i class="fa-solid fa-heart"></i> হ্যাঁ, রাজি! 🥰
-      </button>
-      <button class="btn-choice btn-reject" id="btnReject" onclick="submitDecision('NO')">
-        না.. 🥺
-      </button>
-    </div>
-
-    <div class="alert-popup alert-success" id="statusMessage"></div>
-    <a href="#" class="wa-link-btn" id="waDirectBtn" target="_blank">
-      <i class="fa-brands fa-whatsapp"></i> সরাসরি WhatsApp-এ বলুন
-    </a>
+<div id="wishScreen">
+  <div class="names-container">
+    <div><div class="from-to">FROM</div><div class="sender-name" id="sNameDisplay">—</div></div>
+    <div class="heart-divider">❤️</div>
+    <div><div class="from-to">TO</div><div class="receiver-name" id="rNameDisplay">—</div></div>
   </div>
 
-  <!-- Custom Feedback Text Input -->
-  <div class="feedback-container">
-    <label>✍️ মনের কোনো কথা থাকলে লিখে পাঠিয়ে দিন:</label>
-    <div class="feedback-input-row">
-      <input type="text" id="customReply" class="feedback-input" placeholder="এখানে লিখুন...">
-      <button class="btn-send-msg" id="btnSendReply" onclick="submitCustomText()">পাঠান</button>
-    </div>
+  <div class="message-box">
+    <svg class="box-heart-bg" viewBox="0 0 100 90">
+      <defs>
+        <radialGradient id="heartGrad" cx="50%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="#ff1a66" stop-opacity="0.95"/>
+          <stop offset="60%" stop-color="#e6004c" stop-opacity="0.75"/>
+          <stop offset="100%" stop-color="#b3003b" stop-opacity="0.2"/>
+        </radialGradient>
+      </defs>
+      <path fill="url(#heartGrad)" d="M50,85 C50,85 10,55 10,28 C10,12 22,2 35,2 C43,2 48,7 50,12 C52,7 57,2 65,2 C78,2 90,12 90,28 C90,55 50,85 50,85 Z" />
+    </svg>
+    <div class="typed-text" id="typedText"></div>
   </div>
+  <button class="next-step-btn" id="nextStepBtn">NEXT STEP 👉</button>
+</div>
 
-  <div class="site-footer">
-    Created with ❤️ by <span style="color:#ff6b9d;">CYBER 67 EMON</span>
+<div id="proposalScreen">
+  <div class="question-box">
+    <div class="profile-avatar-wrap">
+      <img src="" id="userAvatar" class="profile-avatar">
+    </div>
+    <div id="topTextsWrap">
+      <div class="proposal-top-text" id="pNoteDisplay"></div>
+      <div class="question-title">💖 Do you love me? 💖</div>
+      <div class="question-sub">মনের সব কথা আজ খুলে বলো... 🙈</div>
+      <div class="yn-btn-group" id="btnGroup">
+        <button class="yn-btn btn-yes" id="btnYes">YES 🥰</button>
+        <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
+      </div>
+    </div>
+
+    <div id="yesResult">
+      <h3 style="color:#ffb3d1;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
+      <p style="font-size:0.95rem;color:#fff;margin-bottom:12px;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
+      <div class="share-btn-wrap">
+        <a class="share-btn wa-btn" id="waShare" href="#" target="_blank">💬 WhatsApp</a>
+      </div>
+      <button class="open-reply-btn" onclick="openNewPage('YES')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
+    </div>
+
+    <div id="noResult">
+      <p style="font-size:1.05rem;line-height:1.8;color:#ffb3d1;font-weight:600;margin-bottom:12px;">
+        তোমার মূল্যবান সময় দিয়ে পড়ার জন্য ধন্যবাদ! যাক ব্যাপার না, তুমি হয়তো আমার ভাগ্যে ছিলে না... 🥺
+      </p>
+      <button class="open-reply-btn" onclick="openNewPage('NO')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
+    </div>
   </div>
 </div>
 
-<audio id="audioTrack" loop></audio>
+<div id="feedbackPage">
+  <div class="feedback-card">
+    <div style="font-size:45px;margin-bottom:10px;">✍️💌</div>
+    <h3 style="font-size:1.35rem;color:#ffe082;margin-bottom:8px;">মনের কথাটি লিখে পাঠান</h3>
+    <p style="font-size:0.95rem;color:#ddd;">আপনি যা লিখতে চান তা লিখে নিচে সেন্ড করুন, এটি সরাসরি তার কাছে পৌঁছে যাবে...</p>
+    <textarea class="reply-textarea" id="customInputMsg" placeholder="আপনার মনের কথা এখানে লিখুন..."></textarea>
+    <button class="send-reply-btn" id="sendCustomBtn" onclick="submitCustomMessage()">SEND MESSAGE 🚀</button>
+    <div id="replySuccessAlert" style="display:none;margin-top:15px;color:#85ffb9;font-weight:700;">✅ আপনার মেসেজটি সফলভাবে পাঠানো হয়েছে! 💖</div>
+  </div>
+</div>
 
 <script>
+(function(){
+"use strict";
+
 const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
 const urlParams = new URLSearchParams(window.location.search);
 const wishId = urlParams.get('id');
-const audioEl = document.getElementById('audioTrack');
-const musicBtn = document.getElementById('musicBtn');
-let isAudioPlaying = false;
-let globalWaNumber = "";
 
-// ১. ব্যাকগ্রাউন্ডে হার্ট পার্টিকেল তৈরি
-function createHeartParticles() {
-  const container = document.getElementById('heartBg');
-  const symbols = ['💖', '💕', '🌸', '✨', '❤️'];
-  for (let i = 0; i < 22; i++) {
-    const heart = document.createElement('div');
-    heart.className = 'floating-heart';
-    heart.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-    heart.style.left = Math.random() * 100 + "vw";
-    heart.style.animationDuration = (Math.random() * 5 + 6) + "s";
-    heart.style.animationDelay = (Math.random() * 6) + "s";
-    container.appendChild(heart);
-  }
-}
-createHeartParticles();
+let senderName = "Emon";
+let receiverName = "Tamanna";
+let waNumber = "";
+let linesData = [];
+let userLastChoice = "";
 
-// ২. Firebase থেকে উইশ লোড করা
 if (wishId) {
   fetch(`${DB_URL}/wishes/${wishId}.json`)
     .then(res => res.json())
     .then(data => {
       if (!data) return;
+      senderName = data.sender || "Emon";
+      receiverName = data.receiver || "Tamanna";
+      waNumber = (data.wa || "").replace(/[^0-9]/g, '');
 
-      if (data.sender && data.receiver) {
-        document.getElementById('namesHeading').innerText = `${data.receiver} & ${data.sender}`;
-      }
-      if (data.message) {
-        document.getElementById('letterContent').innerText = data.message;
-      }
-      if (data.proposalNote) {
-        document.getElementById('proposalText').innerText = data.proposalNote;
-      }
-      if (data.avatar) {
-        document.getElementById('avatarImg').src = data.avatar;
-      }
-      if (data.wa) {
-        globalWaNumber = data.wa.replace(/[^0-9]/g, '');
-      }
+      document.getElementById('sNameDisplay').innerText = senderName;
+      document.getElementById('rNameDisplay').innerText = receiverName;
+      document.getElementById('pNoteDisplay').innerText = data.proposalNote || "";
+      document.getElementById('userAvatar').src = data.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300";
+
       if (data.audio) {
-        audioEl.src = data.audio;
-        playAudioSafe();
+        document.getElementById('bgMusic').src = data.audio;
       }
 
-      // যদি আগে থেকেই উত্তর দেওয়া থাকে
-      if (data.response) {
-        displayCompletedStatus(data.response);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      document.getElementById('letterContent').innerText = "তথ্য লোড করতে সমস্যা হয়েছে। ইন্টারনেট চেক করুন।";
+      const rawMsg = data.message || "";
+      linesData = rawMsg.split('\n').map(l => l.trim()).filter(l => l);
     });
-} else {
-  document.getElementById('letterContent').innerText = "কোনো উইশ আইডি পাওয়া যায়নি।";
 }
 
-// ৩. অডিও হ্যান্ডলার
-function playAudioSafe() {
-  audioEl.play().then(() => {
-    isAudioPlaying = true;
-    musicBtn.classList.add('spin');
-  }).catch(() => {
-    isAudioPlaying = false;
-    musicBtn.classList.remove('spin');
-    // ব্রাউজার অটোপ্লে ব্লক করলে প্রথম ক্লিকে প্লে হবে
-    document.body.addEventListener('click', () => {
-      if (!isAudioPlaying && audioEl.src) {
-        audioEl.play().then(() => {
-          isAudioPlaying = true;
-          musicBtn.classList.add('spin');
-        }).catch(()=>{});
-      }
-    }, { once: true });
+// সরাসরি Firebase ডাটাবেজে PATCH হয়ে অ্যাপসে লাইভ নোটিফিকেশন পাঠাবে
+function sendResponseToServer(choice) {
+  if (!wishId) return;
+  fetch(`${DB_URL}/wishes/${wishId}.json`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ response: choice })
+  }).catch(()=>{});
+}
+
+window.openNewPage = function(choice) {
+  userLastChoice = choice;
+  document.getElementById("proposalScreen").style.display = "none";
+  document.getElementById("feedbackPage").classList.add("show");
+};
+
+// স্পেশাল মেসেজও অ্যাপসে PATCH হয়ে চলে যাবে
+window.submitCustomMessage = function() {
+  const msgText = document.getElementById("customInputMsg").value.trim();
+  if(!msgText) { alert("দয়া করে কিছু লিখে তারপর সেন্ড করুন!"); return; }
+
+  const btn = document.getElementById("sendCustomBtn");
+  btn.disabled = true;
+  btn.textContent = "পাঠানো হচ্ছে...";
+
+  fetch(`${DB_URL}/wishes/${wishId}.json`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ customFeedback: msgText })
+  })
+  .then(() => {
+    btn.style.display = "none";
+    document.getElementById("customInputMsg").style.display = "none";
+    document.getElementById("replySuccessAlert").style.display = "block";
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = "SEND MESSAGE 🚀";
   });
+};
+
+const canvas = document.getElementById("heartsCanvas");
+const ctx = canvas.getContext("2d");
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+const hearts = [];
+const heartEmojis = ["❤️","💖","💕","🌸","✨"];
+
+function Heart() {
+  this.x = Math.random() * W;
+  this.y = H + 20;
+  this.size = 14 + Math.random() * 24;
+  this.speedY = 1 + Math.random() * 2;
+  this.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+}
+Heart.prototype.update = function() {
+  this.y -= this.speedY;
+  if(this.y < -30) { this.y = H + 20; this.x = Math.random() * W; }
+};
+Heart.prototype.draw = function() {
+  ctx.font = this.size + "px serif";
+  ctx.fillText(this.emoji, this.x, this.y);
+};
+function loop() {
+  ctx.clearRect(0,0,W,H);
+  for(let i=0; i<hearts.length; i++){ hearts[i].update(); hearts[i].draw(); }
+  requestAnimationFrame(loop);
 }
 
-function toggleAudio() {
-  if (audioEl.paused) {
-    audioEl.play().then(() => {
-      isAudioPlaying = true;
-      musicBtn.classList.add('spin');
-    });
-  } else {
-    audioEl.pause();
-    isAudioPlaying = false;
-    musicBtn.classList.remove('spin');
+function typeLines(lines, callback) {
+  const container = document.getElementById("typedText");
+  let lineIdx = 0;
+  function processNextLine() {
+    if(lineIdx >= lines.length) { if(callback) callback(); return; }
+    const lineSpan = document.createElement("span");
+    lineSpan.className = (lineIdx % 2 === 0) ? "line-gold" : "line-pink";
+    container.appendChild(lineSpan);
+    const text = lines[lineIdx];
+    let charIdx = 0;
+    function stepChar() {
+      if(charIdx < text.length) {
+        lineSpan.textContent += text.charAt(charIdx);
+        charIdx++;
+        setTimeout(stepChar, 50);
+      } else {
+        lineIdx++;
+        setTimeout(processNextLine, 180);
+      }
+    }
+    stepChar();
   }
+  processNextLine();
 }
 
-// ৪. "না" বাটন টাচ করলে সরে যাওয়ার মজার ইফেক্ট
-const btnReject = document.getElementById('btnReject');
-btnReject.addEventListener('mouseover', moveRejectButton);
-btnReject.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  moveRejectButton();
+function openGift() {
+  const giftBox = document.getElementById("giftBox");
+  if(giftBox.classList.contains("open")) return;
+  giftBox.classList.add("open");
+
+  try {
+    const audio = document.getElementById("bgMusic");
+    if(audio && audio.src) { audio.play().catch(()=>{}); }
+  } catch(e) {}
+
+  for(let i=0; i<25; i++) hearts.push(new Heart());
+  loop();
+
+  setTimeout(() => {
+    document.getElementById("giftScreen").classList.add("hide");
+    document.getElementById("wishScreen").classList.add("show");
+    typeLines(linesData, () => {
+      document.getElementById("nextStepBtn").style.display = "inline-block";
+    });
+  }, 650);
+}
+
+document.getElementById("giftScreen").addEventListener("click", openGift);
+
+document.getElementById("nextStepBtn").addEventListener("click", () => {
+  document.getElementById("wishScreen").classList.remove("show");
+  document.getElementById("proposalScreen").classList.add("show");
 });
 
-function moveRejectButton() {
-  const x = (Math.random() - 0.5) * 160;
-  const y = (Math.random() - 0.5) * 80;
-  btnReject.style.transform = `translate(${x}px, ${y}px)`;
-}
+document.getElementById("btnYes").addEventListener("click", () => {
+  document.getElementById("topTextsWrap").style.display = "none";
+  document.getElementById("yesResult").style.display = "block";
+  sendResponseToServer("YES");
 
-// ৫. Firebase-এ YES / NO পাঠানো (অ্যাপসের লাইভ ফিডে তৎক্ষণাৎ যাবে)
-function submitDecision(answer) {
-  if (!wishId) return;
+  const replyTxt = encodeURIComponent(`হ্যাঁ ${senderName}! আমিও তোমাকে ভালোবাসি! ❤️🥰`);
+  document.getElementById("waShare").href = waNumber ? `https://wa.me/${waNumber}?text=${replyTxt}` : `https://api.whatsapp.com/send?text=${replyTxt}`;
+});
 
-  const btnContainer = document.getElementById('choiceContainer');
-  btnContainer.style.opacity = '0.5';
-  btnContainer.style.pointerEvents = 'none';
+document.getElementById("btnNo").addEventListener("click", () => {
+  document.getElementById("topTextsWrap").style.display = "none";
+  document.getElementById("noResult").style.display = "block";
+  sendResponseToServer("NO");
+});
 
-  fetch(`${DB_URL}/wishes/${wishId}.json`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ response: answer })
-  })
-  .then(() => {
-    displayCompletedStatus(answer);
-  })
-  .catch(err => {
-    console.error(err);
-    alert("রেসপন্স পাঠানো যায়নি। ইন্টারনেট কানেকশন চেক করুন।");
-    btnContainer.style.opacity = '1';
-    btnContainer.style.pointerEvents = 'all';
-  });
-}
-
-function displayCompletedStatus(answer) {
-  document.getElementById('choiceContainer').style.display = 'none';
-  const statusBox = document.getElementById('statusMessage');
-  const isYes = answer === "YES";
-  
-  statusBox.className = isYes ? 'alert-popup alert-success' : 'alert-popup alert-success';
-  statusBox.style.display = 'block';
-  statusBox.innerHTML = isYes 
-    ? `🎉 আপনি রাজি হয়েছেন! আপনার উত্তরটি অ্যাপে পাঠানো হয়েছে। 🥰` 
-    : `💔 আপনার উত্তর (${answer}) অ্যাপে পাঠানো হয়েছে।`;
-
-  if (globalWaNumber && isYes) {
-    const waBtn = document.getElementById('waDirectBtn');
-    waBtn.href = `https://wa.me/${globalWaNumber}?text=${encodeURIComponent("আমি তোমার প্রপোজাল গ্রহণ করেছি! 🥰💖")}`;
-    waBtn.style.display = 'block';
-  }
-}
-
-// ৬. স্পেশাল মেসেজ Firebase-এ পাঠানো (অ্যাপের ফিডে যাবে)
-function submitCustomText() {
-  const input = document.getElementById('customReply');
-  const text = input.value.trim();
-  if (!text || !wishId) return;
-
-  const sendBtn = document.getElementById('btnSendReply');
-  sendBtn.disabled = true;
-  sendBtn.innerText = "...";
-
-  fetch(`${DB_URL}/wishes/${wishId}.json`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customFeedback: text })
-  })
-  .then(() => {
-    sendBtn.disabled = false;
-    sendBtn.innerText = "পাঠান";
-    input.value = "";
-    alert("আপনার মেসেজটি সফলভাবে পৌঁছে গেছে! 💌");
-  })
-  .catch(err => {
-    console.error(err);
-    sendBtn.disabled = false;
-    sendBtn.innerText = "পাঠান";
-    alert("মেসেজটি পাঠানো সম্ভব হয়নি।");
-  });
-}
+})();
 </script>
 </body>
 </html>
