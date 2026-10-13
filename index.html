@@ -86,7 +86,7 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
 
   <!-- ধাপ ৪ -->
   <div class="step-pane" id="step4">
-    <label>৬️⃣ প্রোফাইল ফটো (প্রপোজাল পেজের গোল ফ্রেমের জন্য):</label>
+    <label>৬️⃣ প্রোফাইল ফটো:</label>
     <div class="upload-card" onclick="document.getElementById('photoInput').click()">
       <span style="font-size:30px;display:block;">🖼️</span>
       <span style="font-size:0.85rem;color:#ffe082;">ট্যাপ করে ছবি নির্বাচন করুন</span>
@@ -94,7 +94,7 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
     </div>
     <div class="preview-wrap" id="previewWrap"><img src="" id="avatarPreview" class="preview-img"></div>
 
-    <label>৭️⃣ ব্যাকগ্রাউন্ড মিউজিক (MP3 গান):</label>
+    <label>৭️⃣ ব্যাকগ্রাউন্ড মিউজিক:</label>
     <div class="upload-card" onclick="document.getElementById('audioInput').click()">
       <span style="font-size:30px;display:block;">🎵</span>
       <span style="font-size:0.85rem;color:#ffe082;">ট্যাপ করে গান নির্বাচন করুন</span>
@@ -135,6 +135,7 @@ let encodedPhoto = "";
 let encodedAudio = "";
 let notifiedChoice = null;
 let notifiedMessage = null;
+let pollTimer = null;
 
 function setStep(num) {
   document.querySelectorAll('.step-pane').forEach(el => el.classList.remove('active'));
@@ -191,7 +192,6 @@ function createWishLink() {
     btn.disabled = false;
     btn.innerText = "উইশ লিংক বানান 🚀";
     
-    // সরাসরি আপনার GitHub Pages লাইভ ডোমেইনের সাথে লিংক যুক্ত করা হয়েছে
     const finalUrl = `https://tehhjf.github.io/love-wish-bot/wish.html?id=${wishId}`;
     
     document.getElementById('linkText').innerText = finalUrl;
@@ -201,52 +201,59 @@ function createWishLink() {
   .catch(() => {
     btn.disabled = false;
     btn.innerText = "উইশ লিংক বানান 🚀";
-    alert("ডাটাবেজ কানেক্ট করা সম্ভব হয়নি। ইন্টারনেট সংযোগ চেক করুন।");
+    alert("ডাটাবেজ কানেক্ট করা সম্ভব হয়নি।");
   });
 }
 
 function copyFinalLink() {
   navigator.clipboard.writeText(document.getElementById('linkText').innerText);
-  alert("সারপ্রাইজ লিংক কপি হয়েছে! এবার যে কাউকেই ক্রোম ব্রাউজারে খুলতে পাঠাতে পারেন। 💖");
+  alert("সারপ্রাইজ লিংক কপি হয়েছে! 💖");
 }
 
 function startLiveTracking(id) {
-  const eventSource = new EventSource(`${DB_URL}/wishes/${id}.json`);
-  eventSource.onmessage = e => {
-    const data = JSON.parse(e.data);
-    if (!data) return;
-    const logBox = document.getElementById('liveLogs');
-    let logsHtml = "";
+  if (pollTimer) clearInterval(pollTimer);
 
-    if (data.response) {
-      const isYes = data.response === "YES";
-      logsHtml += `<div class="log-item" style="border-left-color:${isYes ? '#85ffb9' : '#ff4d4d'};">
-        💌 <strong>${data.receiver}</strong> উত্তর দিয়েছে: 
-        <span style="color:${isYes ? '#85ffb9' : '#ff4d4d'};font-weight:700;">${data.response} ${isYes ? '🥰' : '🥺'}</span>
-      </div>`;
+  const fetchLiveStatus = () => {
+    fetch(`${DB_URL}/wishes/${id}.json?t=${Date.now()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data) return;
+        const logBox = document.getElementById('liveLogs');
+        let logsHtml = "";
 
-      if (notifiedChoice !== data.response) {
-        notifiedChoice = data.response;
-        alert(`🔔 রেসপন্স নোটিফিকেশন:\n${data.receiver} উত্তর দিয়েছেন: ${data.response}!`);
-      }
-    }
+        if (data.response) {
+          const isYes = data.response === "YES";
+          logsHtml += `<div class="log-item" style="border-left-color:${isYes ? '#85ffb9' : '#ff4d4d'};">
+            💌 <strong>${data.receiver}</strong> উত্তর দিয়েছে: 
+            <span style="color:${isYes ? '#85ffb9' : '#ff4d4d'};font-weight:700;">${data.response} ${isYes ? '🥰' : '🥺'}</span>
+          </div>`;
 
-    if (data.customFeedback) {
-      logsHtml += `<div class="log-item" style="border-left-color:#ffe082;">
-        📝 <strong>${data.receiver}-এর স্পেশাল মেসেজ:</strong><br>
-        <span style="color:#ffe082;font-style:italic;">"${data.customFeedback}"</span>
-      </div>`;
+          if (notifiedChoice !== data.response) {
+            notifiedChoice = data.response;
+            alert(`🔔 রেসপন্স অ্যালার্ট:\n${data.receiver} উত্তর দিয়েছেন: ${data.response}!`);
+          }
+        }
 
-      if (notifiedMessage !== data.customFeedback) {
-        notifiedMessage = data.customFeedback;
-        alert(`💌 নতুন মেসেজ নোটিফিকেশন:\n${data.receiver} লিখেছেন: "${data.customFeedback}"`);
-      }
-    }
+        if (data.customFeedback) {
+          logsHtml += `<div class="log-item" style="border-left-color:#ffe082;">
+            📝 <strong>${data.receiver}-এর বার্তা:</strong><br>
+            <span style="color:#ffe082;font-style:italic;">"${data.customFeedback}"</span>
+          </div>`;
 
-    if (logsHtml) {
-      logBox.innerHTML = logsHtml;
-    }
+          if (notifiedMessage !== data.customFeedback) {
+            notifiedMessage = data.customFeedback;
+            alert(`💌 নতুন মেসেজ নোটিফিকেশন:\n"${data.customFeedback}"`);
+          }
+        }
+
+        if (logsHtml) {
+          logBox.innerHTML = logsHtml;
+        }
+      })
+      .catch(() => {});
   };
+
+  pollTimer = setInterval(fetchLiveStatus, 2000);
 }
 </script>
 </body>
