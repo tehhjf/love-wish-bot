@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>💖 Special Surprise For You</title>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-serif;background:#0d0015;color:#fff;}
+#customBg{position:fixed;inset:0;z-index:0;background:radial-gradient(circle at 50% 30%, #46002c 0%, #170024 60%, #07000e 100%);}
+
+.giant-heart-bg{
+  position:fixed;top:54%;left:50%;transform:translate(-50%,-50%);
+  z-index:1;font-size:350px;color:rgba(255,45,117,0.22);
+  filter:drop-shadow(0 0 80px rgba(255,45,117,0.55));
+  animation:heartPulse 2.2s ease-in-out infinite;pointer-events:none;user-select:none;
+}
+@keyframes heartPulse{0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-50%,-50%) scale(1.15);}}
+#heartsCanvas{position:fixed;inset:0;z-index:2;pointer-events:none;}
+
+/* Step 1 */
+#giftScreen{
+  position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;padding:50px 20px 70px 20px;
+  text-align:center;transition:opacity 0.8s ease;cursor:pointer;
+}
+#giftScreen.hide{opacity:0;pointer-events:none;}
+.top-tap-hint{
+  font-size:1.25rem;color:#ffe082;font-family:'Anek Bangla',sans-serif;font-weight:700;
+  animation:pulseGlow 2s ease-in-out infinite;text-shadow:0 0 15px rgba(255,224,130,0.7);
+}
+.gift-box-wrapper{display:flex;align-items:center;justify-content:center;margin-top:auto;margin-bottom:auto;}
+.gift-box{
+  position:relative;width:155px;height:155px;cursor:pointer;
+  animation:boxShake 1.4s ease-in-out infinite;filter:drop-shadow(0 20px 40px rgba(255,45,117,0.85));
+  transition:transform 0.3s ease;
+}
+@keyframes boxShake{
+  0%,100%{transform:rotate(0) scale(1);}
+  15%{transform:rotate(-6deg) scale(1.03);}
+  30%{transform:rotate(6deg) scale(1.05);}
+  45%{transform:rotate(-4deg) scale(1.03);}
+  60%{transform:rotate(4deg) scale(1.05);}
+  75%{transform:rotate(0) scale(1);}
+}
+.gift-lid{
+  position:absolute;top:-12px;left:-10px;width:175px;height:42px;
+  background:linear-gradient(135deg,#ff2d75,#ff6b9d);border-radius:8px;
+  box-shadow:0 4px 20px rgba(255,45,117,0.7);transition:all 0.9s ease;
+}
+.gift-lid::before{
+  content:"";position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  width:50px;height:45px;background:linear-gradient(135deg,#ffb3d1,#ff2d75);
+  clip-path:polygon(50% 0%, 0% 100%, 50% 75%, 100% 100%);border-radius:0 0 20px 20px;
+}
+.gift-box.open .gift-lid{transform:translateY(-180px) rotate(-45deg);opacity:0;}
+.gift-body{
+  position:absolute;top:30px;left:5px;width:145px;height:125px;
+  background:linear-gradient(135deg,#d81b60,#ff4081);border-radius:10px;
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.35),0 10px 30px rgba(255,45,117,0.5);overflow:hidden;
+}
+.gift-body::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:22px;height:100%;background:linear-gradient(180deg,#ffe082,#ffb3d1);}
+.gift-body::after{content:"";position:absolute;top:50%;left:0;transform:translateY(-50%);width:100%;height:22px;background:linear-gradient(90deg,#ffe082,#ffb3d1);}
+
+@keyframes pulseGlow{0%,100%{opacity:0.85;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);text-shadow:0 0 25px #ff3d7f;}}
+
+/* Step 2 */
+#wishScreen{
+  position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:12px 16px;text-align:center;
+  opacity:0;transition:opacity 0.8s ease;overflow:hidden;
+}
+#wishScreen.show{display:flex;opacity:1;}
+.names-container{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;width:100%;max-width:380px;}
+.from-to{font-family:'Poppins',sans-serif;font-size:0.8rem;color:#ffb3d1;letter-spacing:3px;font-weight:700;}
+.sender-name, .receiver-name{
+  font-family:'Dancing Script',cursive;font-size:2.4rem;line-height:1.1;
+  background:linear-gradient(135deg,#ffffff,#ffb3d1,#ff548e);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.heart-divider{font-size:1.8rem;color:#ff2d75;animation:pulseGlow 1.6s infinite;}
+.message-box{
+  position:relative;max-width:360px;width:92%;height:405px;
+  background:rgba(22,0,32,0.45);border:1.8px solid rgba(255,65,130,0.65);
+  border-radius:28px;padding:16px 14px;margin-bottom:16px;
+  backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.box-heart-bg{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:250px;height:230px;opacity:0.65;filter:drop-shadow(0 0 30px #ff0044) blur(1px);
+  animation:heartPulse 2.4s ease-in-out infinite;pointer-events:none;
+}
+.typed-text{position:relative;z-index:2;font-size:0.98rem;font-weight:600;line-height:1.55;text-align:center;width:100%;display:flex;flex-direction:column;align-items:center;}
+.line-gold{color:#ffe082;text-shadow:0 1px 8px rgba(0,0,0,0.9);display:block;margin:1px 0;}
+.line-pink{color:#ffffff;text-shadow:0 1px 8px rgba(0,0,0,0.9);display:block;margin:1px 0;}
+.next-step-btn{
+  display:none;padding:12px 38px;background:linear-gradient(135deg,#ff4081,#ff2d75);
+  color:#fff;border:none;border-radius:50px;font-size:1.05rem;font-weight:800;
+  cursor:pointer;box-shadow:0 8px 30px rgba(255,45,117,0.7);animation:pulseGlow 1.8s infinite;
+  font-family:'Poppins',sans-serif;letter-spacing:1.2px;
+}
+
+/* Step 3 */
+#proposalScreen{
+  position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px;text-align:center;opacity:0;transition:opacity 0.8s ease;
+}
+#proposalScreen.show{display:flex;opacity:1;}
+.question-box{
+  max-width:390px;width:100%;background:rgba(22,0,32,0.5);border:1.8px solid rgba(255,65,130,0.65);
+  border-radius:28px;padding:30px 20px;backdrop-filter:blur(20px);box-shadow:0 0 35px rgba(255,45,117,0.45);
+}
+.profile-avatar-wrap{width:130px;height:130px;margin:0 auto 16px;border-radius:50%;padding:4px;background:linear-gradient(135deg,#ff2d75,#ffe082,#ff6b9d);box-shadow:0 0 25px rgba(255,45,117,0.8);}
+.profile-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
+.proposal-top-text{font-size:1.1rem;color:#ffe082;margin-bottom:8px;font-weight:600;}
+.question-title{font-family:'Poppins',sans-serif;font-size:1.65rem;font-weight:700;color:#ffb3d1;margin-bottom:8px;}
+.question-sub{font-size:1rem;color:#f0f0f0;margin-bottom:24px;}
+.yn-btn-group{display:flex;justify-content:center;gap:15px;}
+.yn-btn{flex:1;padding:14px;border:none;border-radius:50px;font-size:1.15rem;font-weight:bold;cursor:pointer;font-family:'Poppins',sans-serif;}
+.btn-yes{background:linear-gradient(135deg,#ff2d75,#ff6b9d);color:#fff;box-shadow:0 8px 25px rgba(255,45,117,0.6);}
+.btn-no{background:rgba(255,255,255,0.15);color:#eee;border:1px solid rgba(255,255,255,0.25);}
+#yesResult{display:none;margin-top:16px;padding:18px 16px;background:rgba(255,45,117,0.25);border-radius:20px;border:1.5px solid rgba(255,45,117,0.55);}
+#noResult{display:none;margin-top:16px;padding:18px 16px;background:rgba(0,0,0,0.6);border-radius:20px;border:1.5px solid rgba(255,255,255,0.25);}
+.share-btn-wrap{display:flex;flex-direction:column;gap:10px;margin-top:15px;}
+.share-btn{padding:12px;border-radius:50px;border:none;color:#fff;font-size:0.95rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-family:'Poppins',sans-serif;}
+.wa-btn{background:#25D366;}
+.open-reply-btn{margin-top:15px;width:100%;padding:13px;background:linear-gradient(135deg,#ffe082,#ffb3d1);color:#150024;border:none;border-radius:50px;font-size:0.98rem;font-weight:700;cursor:pointer;}
+
+/* Step 4 */
+#feedbackPage{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;background:radial-gradient(circle at 50% 30%, #46002c 0%, #170024 75%, #07000e 100%);}
+#feedbackPage.show{display:flex;}
+.feedback-card{max-width:390px;width:100%;background:rgba(22,0,32,0.6);border:1.8px solid rgba(255,65,130,0.65);border-radius:28px;padding:28px 20px;}
+.reply-textarea{width:100%;height:120px;border-radius:18px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,179,209,0.4);color:#fff;padding:14px;font-size:1rem;resize:none;outline:none;margin:15px 0;}
+.send-reply-btn{width:100%;padding:14px;background:linear-gradient(135deg,#ff2d75,#ff6b9d);color:#fff;border:none;border-radius:50px;font-size:1.05rem;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<audio id="bgMusic" loop></audio>
+<div id="customBg"></div>
+<div class="giant-heart-bg">❤️</div>
+<canvas id="heartsCanvas"></canvas>
+
+<div id="giftScreen">
+  <div class="top-tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
+  <div class="gift-box-wrapper">
+    <div class="gift-box" id="giftBox">
+      <div class="gift-lid"></div>
+      <div class="gift-body"></div>
+    </div>
+  </div>
+  <div style="height:20px;"></div>
+</div>
+
+<div id="wishScreen">
+  <div class="names-container">
+    <div><div class="from-to">FROM</div><div class="sender-name" id="sNameDisplay">—</div></div>
+    <div class="heart-divider">❤️</div>
+    <div><div class="from-to">TO</div><div class="receiver-name" id="rNameDisplay">—</div></div>
+  </div>
+
+  <div class="message-box">
+    <svg class="box-heart-bg" viewBox="0 0 100 90">
+      <defs>
+        <radialGradient id="heartGrad" cx="50%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="#ff1a66" stop-opacity="0.95"/>
+          <stop offset="60%" stop-color="#e6004c" stop-opacity="0.75"/>
+          <stop offset="100%" stop-color="#b3003b" stop-opacity="0.2"/>
+        </radialGradient>
+      </defs>
+      <path fill="url(#heartGrad)" d="M50,85 C50,85 10,55 10,28 C10,12 22,2 35,2 C43,2 48,7 50,12 C52,7 57,2 65,2 C78,2 90,12 90,28 C90,55 50,85 50,85 Z" />
+    </svg>
+    <div class="typed-text" id="typedText"></div>
+  </div>
+  <button class="next-step-btn" id="nextStepBtn">NEXT STEP 👉</button>
+</div>
+
+<div id="proposalScreen">
+  <div class="question-box">
+    <div class="profile-avatar-wrap">
+      <img src="" id="userAvatar" class="profile-avatar">
+    </div>
+    <div id="topTextsWrap">
+      <div class="proposal-top-text" id="pNoteDisplay"></div>
+      <div class="question-title">💖 Do you love me? 💖</div>
+      <div class="question-sub">মনের সব কথা আজ খুলে বলো... 🙈</div>
+      <div class="yn-btn-group" id="btnGroup">
+        <button class="yn-btn btn-yes" id="btnYes">YES 🥰</button>
+        <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
+      </div>
+    </div>
+
+    <div id="yesResult">
+      <h3 style="color:#ffb3d1;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
+      <p style="font-size:0.95rem;color:#fff;margin-bottom:12px;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
+      <div class="share-btn-wrap">
+        <a class="share-btn wa-btn" id="waShare" href="#" target="_blank">💬 WhatsApp</a>
+      </div>
+      <button class="open-reply-btn" onclick="openNewPage('YES')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
+    </div>
+
+    <div id="noResult">
+      <p style="font-size:1.05rem;line-height:1.8;color:#ffb3d1;font-weight:600;margin-bottom:12px;">
+        তোমার মূল্যবান সময় দিয়ে পড়ার জন্য ধন্যবাদ! যাক ব্যাপার না, তুমি হয়তো আমার ভাগ্যে ছিলে না... 🥺
+      </p>
+      <button class="open-reply-btn" onclick="openNewPage('NO')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
+    </div>
+  </div>
+</div>
+
+<div id="feedbackPage">
+  <div class="feedback-card">
+    <div style="font-size:45px;margin-bottom:10px;">✍️💌</div>
+    <h3 style="font-size:1.35rem;color:#ffe082;margin-bottom:8px;">মনের কথাটি লিখে পাঠান</h3>
+    <p style="font-size:0.95rem;color:#ddd;">আপনি যা লিখতে চান তা লিখে নিচে সেন্ড করুন, এটি সরাসরি তার কাছে পৌঁছে যাবে...</p>
+    <textarea class="reply-textarea" id="customInputMsg" placeholder="আপনার মনের কথা এখানে লিখুন..."></textarea>
+    <button class="send-reply-btn" id="sendCustomBtn" onclick="submitCustomMessage()">SEND MESSAGE 🚀</button>
+    <div id="replySuccessAlert" style="display:none;margin-top:15px;color:#85ffb9;font-weight:700;">✅ আপনার মেসেজটি সফলভাবে পাঠানো হয়েছে! 💖</div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
+const urlParams = new URLSearchParams(window.location.search);
+const wishId = urlParams.get('id');
+
+let senderName = "Emon";
+let receiverName = "Tamanna";
+let waNumber = "";
+let linesData = [];
+let userLastChoice = "";
+
+if (wishId) {
+  fetch(`${DB_URL}/wishes/${wishId}.json`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data) return;
+      senderName = data.sender || "Emon";
+      receiverName = data.receiver || "Tamanna";
+      waNumber = (data.wa || "").replace(/[^0-9]/g, '');
+
+      document.getElementById('sNameDisplay').innerText = senderName;
+      document.getElementById('rNameDisplay').innerText = receiverName;
+      document.getElementById('pNoteDisplay').innerText = data.proposalNote || "";
+      document.getElementById('userAvatar').src = data.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300";
+
+      if (data.audio) {
+        document.getElementById('bgMusic').src = data.audio;
+      }
+
+      const rawMsg = data.message || "";
+      linesData = rawMsg.split('\n').map(l => l.trim()).filter(l => l);
+    });
+}
+
+function sendResponseToServer(choice) {
+  if (!wishId) return;
+  fetch(`${DB_URL}/wishes/${wishId}/response.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(choice)
+  }).catch(()=>{});
+}
+
+window.openNewPage = function(choice) {
+  userLastChoice = choice;
+  document.getElementById("proposalScreen").style.display = "none";
+  document.getElementById("feedbackPage").classList.add("show");
+};
+
+window.submitCustomMessage = function() {
+  const msgText = document.getElementById("customInputMsg").value.trim();
+  if(!msgText) { alert("দয়া করে কিছু লিখে তারপর সেন্ড করুন!"); return; }
+
+  const btn = document.getElementById("sendCustomBtn");
+  btn.disabled = true;
+  btn.textContent = "পাঠানো হচ্ছে...";
+
+  fetch(`${DB_URL}/wishes/${wishId}/customFeedback.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(msgText)
+  })
+  .then(() => {
+    btn.style.display = "none";
+    document.getElementById("customInputMsg").style.display = "none";
+    document.getElementById("replySuccessAlert").style.display = "block";
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = "SEND MESSAGE 🚀";
+  });
+};
+
+const canvas = document.getElementById("heartsCanvas");
+const ctx = canvas.getContext("2d");
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+const hearts = [];
+const heartEmojis = ["❤️","💖","💕","🌸","✨"];
+
+function Heart() {
+  this.x = Math.random() * W;
+  this.y = H + 20;
+  this.size = 14 + Math.random() * 24;
+  this.speedY = 1 + Math.random() * 2;
+  this.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+}
+Heart.prototype.update = function() {
+  this.y -= this.speedY;
+  if(this.y < -30) { this.y = H + 20; this.x = Math.random() * W; }
+};
+Heart.prototype.draw = function() {
+  ctx.font = this.size + "px serif";
+  ctx.fillText(this.emoji, this.x, this.y);
+};
+function loop() {
+  ctx.clearRect(0,0,W,H);
+  for(let i=0; i<hearts.length; i++){ hearts[i].update(); hearts[i].draw(); }
+  requestAnimationFrame(loop);
+}
+
+function typeLines(lines, callback) {
+  const container = document.getElementById("typedText");
+  let lineIdx = 0;
+  function processNextLine() {
+    if(lineIdx >= lines.length) { if(callback) callback(); return; }
+    const lineSpan = document.createElement("span");
+    lineSpan.className = (lineIdx % 2 === 0) ? "line-gold" : "line-pink";
+    container.appendChild(lineSpan);
+    const text = lines[lineIdx];
+    let charIdx = 0;
+    function stepChar() {
+      if(charIdx < text.length) {
+        lineSpan.textContent += text.charAt(charIdx);
+        charIdx++;
+        setTimeout(stepChar, 50);
+      } else {
+        lineIdx++;
+        setTimeout(processNextLine, 180);
+      }
+    }
+    stepChar();
+  }
+  processNextLine();
+}
+
+function openGift() {
+  const giftBox = document.getElementById("giftBox");
+  if(giftBox.classList.contains("open")) return;
+  giftBox.classList.add("open");
+
+  try {
+    const audio = document.getElementById("bgMusic");
+    if(audio && audio.src) { audio.play().catch(()=>{}); }
+  } catch(e) {}
+
+  for(let i=0; i<25; i++) hearts.push(new Heart());
+  loop();
+
+  setTimeout(() => {
+    document.getElementById("giftScreen").classList.add("hide");
+    document.getElementById("wishScreen").classList.add("show");
+    typeLines(linesData, () => {
+      document.getElementById("nextStepBtn").style.display = "inline-block";
+    });
+  }, 650);
+}
+
+document.getElementById("giftScreen").addEventListener("click", openGift);
+
+document.getElementById("nextStepBtn").addEventListener("click", () => {
+  document.getElementById("wishScreen").classList.remove("show");
+  document.getElementById("proposalScreen").classList.add("show");
+});
+
+document.getElementById("btnYes").addEventListener("click", () => {
+  document.getElementById("topTextsWrap").style.display = "none";
+  document.getElementById("yesResult").style.display = "block";
+  sendResponseToServer("YES");
+
+  const replyTxt = encodeURIComponent(`হ্যাঁ ${senderName}! আমিও তোমাকে ভালোবাসি! ❤️🥰`);
+  document.getElementById("waShare").href = waNumber ? `https://wa.me/${waNumber}?text=${replyTxt}` : `https://api.whatsapp.com/send?text=${replyTxt}`;
+});
+
+document.getElementById("btnNo").addEventListener("click", () => {
+  document.getElementById("topTextsWrap").style.display = "none";
+  document.getElementById("noResult").style.display = "block";
+  sendResponseToServer("NO");
+});
+
+})();
+</script>
+</body>
+</html>
