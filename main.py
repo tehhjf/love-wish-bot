@@ -52,6 +52,8 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
+        
+        # YES / NO রেসপন্স হ্যান্ডলার
         if parsed.path == "/api/response":
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length).decode('utf-8')
@@ -68,7 +70,7 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
                     emoji = "💖 [YES চাপ দিয়েছে! 🥰]" if choice == "YES" else "💔 [NO চাপ দিয়েছে... 🥺]"
                     
                     msg_text = (
-                        f"🔔 *উইশ পেজ থেকে নতুন রেসপন্স এসেছে!*\n\n"
+                        f"🔔 *উইশ পেজ থেকে নতুন রেসপন্স!*\n\n"
                         f"👤 *প্রেরক:* {s_name}\n"
                         f"🎯 *প্রাপক:* {r_name}\n"
                         f"👉 *উত্তর:* *{choice}* {emoji}"
@@ -80,7 +82,39 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b'{"status":"ok"}')
                 return
-            except Exception as e:
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+                return
+
+        # ইউজার থেকে কাস্টম মেসেজ পাঠানো
+        if parsed.path == "/api/custom_message":
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length).decode('utf-8')
+            try:
+                data = json.loads(post_data)
+                wish_id = data.get("wish_id")
+                user_msg = data.get("message", "").strip()
+                choice = data.get("choice", "")
+                
+                wish_info = get_wish_entry(wish_id)
+                if wish_info and wish_info.get("creator_chat_id") and user_msg:
+                    target_chat_id = wish_info.get("creator_chat_id")
+                    r_name = wish_info.get("to", "Partner")
+                    
+                    alert_text = (
+                        f"💌 *উইশ পেজ থেকে {r_name} আপনাকে মেসেজ পাঠিয়েছে!*\n\n"
+                        f"📝 *মেসেজ:* \"{user_msg}\"\n\n"
+                        f"👉 *আগের পছন্দ ছিল:* {choice}"
+                    )
+                    bot.send_message(target_chat_id, alert_text)
+                
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"status":"ok"}')
+                return
+            except Exception:
                 self.send_response(500)
                 self.end_headers()
                 return
@@ -139,7 +173,6 @@ class CustomHTTPHandler(SimpleHTTPRequestHandler):
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>💖 Special Surprise For You</title>
-<!-- প্রিমিয়াম স্টাইলিশ বাংলা ও হ্যান্ডরাইটিং ফন্ট -->
 <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Galada&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}}
@@ -147,7 +180,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 
 #customBg{{
   position:fixed;inset:0;z-index:0;
-  background: radial-gradient(circle at 50% 25%, #46002c 0%, #170024 60%, #07000e 100%);
+  background: radial-gradient(circle at 50% 30%, #46002c 0%, #170024 60%, #07000e 100%);
 }}
 
 .giant-heart-bg{{
@@ -158,7 +191,9 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   filter:drop-shadow(0 0 80px rgba(255,45,117,0.5));
   animation:heartPulse 2.2s ease-in-out infinite;
   pointer-events:none;user-select:none;
+  opacity:0;transition:opacity 1s ease;
 }}
+.giant-heart-bg.show{{opacity:1;}}
 @keyframes heartPulse{{
   0%,100%{{transform:translate(-50%,-50%) scale(1);}}
   50%{{transform:translate(-50%,-50%) scale(1.15);}}
@@ -166,24 +201,24 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 
 #heartsCanvas{{position:fixed;inset:0;z-index:2;pointer-events:none;}}
 
-/* Step 1: Gift Screen */
+/* Step 1: Clean Gift Screen */
 #giftScreen{{
   position:fixed;inset:0;z-index:10;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px;text-align:center;transition:opacity 0.8s ease;cursor:pointer;
+  padding:25px;text-align:center;transition:opacity 0.8s ease;cursor:pointer;
 }}
 #giftScreen.hide{{opacity:0;pointer-events:none;}}
 
 .gift-title{{
   font-family: 'Anek Bangla', sans-serif;
-  font-size:1.25rem;line-height:1.8;color:#fff;
-  max-width:360px;margin-bottom:30px;font-weight:600;
+  font-size:1.22rem;line-height:1.75;color:#fff;
+  max-width:360px;margin-bottom:40px;font-weight:600;
   text-shadow:0 2px 15px rgba(255,45,117,0.95);
 }}
 .gift-title .first-line {{
   font-family: 'Galada', cursive;
   font-size: 1.45rem;color: #ffe082;
-  display: block;margin-bottom: 6px;
+  display: block;margin-bottom: 8px;
   text-shadow: 0 0 12px rgba(255, 224, 130, 0.7);
 }}
 
@@ -231,7 +266,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 }}
 
 .tap-hint{{
-  margin-top:30px;font-size:1.05rem;color:#ffb3d1;
+  margin-top:35px;font-size:1.05rem;color:#ffb3d1;
   font-family: 'Anek Bangla', sans-serif;font-weight: 600;
   animation:pulseGlow 2s ease-in-out infinite;
 }}
@@ -240,7 +275,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   50%{{opacity:1;transform:scale(1.05);text-shadow:0 0 20px #ff3d7f;}}
 }}
 
-/* Step 2: উইশ লেটার স্ক্রিন */
+/* Step 2: Letter Screen */
 #wishScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:18px;text-align:center;
@@ -322,11 +357,11 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   letter-spacing: 1.2px;
 }}
 
-/* Step 3: Do you love me Screen */
+/* Step 3: Proposal Screen */
 #proposalScreen{{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:20px;text-align:center;
-  opacity:0;transition:opacity 0.8s ease;
+  opacity:0;transition:opacity 0.8s ease;overflow-y:auto;
 }}
 #proposalScreen.show{{display:flex;opacity:1;}}
 
@@ -337,6 +372,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   border-radius: 28px;padding: 30px 20px;
   backdrop-filter: blur(20px);-webkit-backdrop-filter: blur(20px);
   box-shadow: 0 0 35px rgba(255, 45, 117, 0.45);
+  transition: all 0.5s ease;
 }}
 
 .profile-avatar-wrap{{
@@ -356,6 +392,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   background:#1e002e;display:block;
 }}
 
+#topTextsWrap{{transition:all 0.4s ease;}}
 .proposal-top-text{{
   font-family: 'Anek Bangla', sans-serif;
   font-size:1.1rem;color:#ffe082;margin-bottom:8px;font-weight:600;
@@ -369,6 +406,7 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   font-family: 'Anek Bangla', sans-serif;
   font-size:1rem;color:#f0f0f0;margin-bottom:24px;
 }}
+
 .yn-btn-group{{display:flex;justify-content:center;gap:15px;}}
 .yn-btn{{
   flex:1;padding:14px;border:none;border-radius:50px;font-size:1.15rem;
@@ -378,8 +416,16 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 .btn-yes:hover{{transform:scale(1.05);}}
 .btn-no{{background:rgba(255,255,255,0.15);color:#eee;border:1px solid rgba(255,255,255,0.25);}}
 
-#yesResult{{display:none;margin-top:18px;padding:16px;background:rgba(255,45,117,0.25);border-radius:16px;border:1px solid rgba(255,45,117,0.5);}}
-#noResult{{display:none;margin-top:18px;padding:16px;background:rgba(0,0,0,0.5);border-radius:16px;border:1px solid rgba(255,255,255,0.2);}}
+#yesResult{{
+  display:none;margin-top:16px;padding:18px 16px;
+  background:rgba(255,45,117,0.25);border-radius:20px;border:1.5px solid rgba(255,45,117,0.55);
+  animation:fadeInUp 0.6s ease;
+}}
+#noResult{{
+  display:none;margin-top:16px;padding:18px 16px;
+  background:rgba(0,0,0,0.6);border-radius:20px;border:1.5px solid rgba(255,255,255,0.25);
+  animation:fadeInUp 0.6s ease;
+}}
 
 .share-btn-wrap{{display:flex;flex-direction:column;gap:10px;margin-top:15px;}}
 .share-btn{{
@@ -389,6 +435,67 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 }}
 .wa-btn{{background:#25D366;box-shadow:0 5px 15px rgba(37,211,102,0.4);}}
 .tg-btn{{background:#0088cc;box-shadow:0 5px 15px rgba(0,136,204,0.4);}}
+
+/* কিছু বলতে চাইলে বাটন */
+.open-reply-btn{{
+  margin-top:14px;width:100%;padding:13px;
+  background: linear-gradient(135deg, #ffe082, #ffb3d1);
+  color:#150024;border:none;border-radius:50px;font-size:0.98rem;font-weight:700;
+  cursor:pointer;font-family:'Anek Bangla',sans-serif;box-shadow:0 4px 20px rgba(255,224,130,0.5);
+  animation:pulseGlow 2s infinite;display:flex;align-items:center;justify-content:center;gap:6px;
+}}
+
+/* Step 4: নতুন পেজ - মেসেজ লেখার পেজ */
+#feedbackPage{{
+  position:fixed;inset:0;z-index:20;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:22px;text-align:center;
+  background: radial-gradient(circle at 50% 30%, #46002c 0%, #170024 75%, #07000e 100%);
+  animation:fadeInUp 0.5s ease;
+}}
+#feedbackPage.show{{display:flex;}}
+
+.feedback-card{{
+  max-width:390px;width:100%;
+  background: rgba(22, 0, 32, 0.6);
+  border: 1.8px solid rgba(255, 65, 130, 0.65);
+  border-radius: 28px;padding: 28px 20px;
+  backdrop-filter: blur(25px);-webkit-backdrop-filter: blur(25px);
+  box-shadow: 0 0 35px rgba(255, 45, 117, 0.45);
+}}
+
+.feedback-card h3{{
+  font-family: 'Anek Bangla', sans-serif;font-size:1.35rem;color:#ffe082;margin-bottom:10px;
+}}
+.feedback-card p{{
+  font-family: 'Anek Bangla', sans-serif;font-size:0.95rem;color:#ddd;margin-bottom:20px;line-height:1.6;
+}}
+
+.reply-textarea{{
+  width:100%;height:120px;border-radius:18px;
+  background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,179,209,0.4);
+  color:#fff;padding:14px;font-family:'Anek Bangla',sans-serif;font-size:1rem;
+  resize:none;outline:none;box-sizing:border-box;margin-bottom:18px;
+}}
+.reply-textarea:focus{{
+  border-color:#ff2d75;box-shadow:0 0 15px rgba(255,45,117,0.5);
+}}
+
+.send-reply-btn{{
+  width:100%;padding:14px;background:linear-gradient(135deg,#ff2d75,#ff6b9d);
+  color:#fff;border:none;border-radius:50px;font-size:1.05rem;font-weight:700;
+  cursor:pointer;font-family:'Poppins',sans-serif;box-shadow:0 8px 25px rgba(255,45,117,0.6);
+}}
+.send-reply-btn:disabled{{opacity:0.6;cursor:not-allowed;}}
+
+#replySuccessAlert{{
+  display:none;margin-top:15px;color:#85ffb9;font-weight:700;font-size:1rem;
+  font-family:'Anek Bangla',sans-serif;
+}}
+
+@keyframes fadeInUp{{
+  from{{opacity:0;transform:translateY(30px);}}
+  to{{opacity:1;transform:translateY(0);}}
+}}
 </style>
 </head>
 <body>
@@ -396,14 +503,14 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 <audio id="bgMusic" src="{music_src}" preload="auto" loop></audio>
 
 <div id="customBg"></div>
-<div class="giant-heart-bg">❤️</div>
+<div class="giant-heart-bg" id="giantHeart">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
 <!-- Step 1 -->
 <div id="giftScreen">
   <div class="gift-title">
     <span class="first-line">💌 আপনাকে কেউ একটি স্পেশাল চিঠি পাঠিয়েছে</span>
-    তা দেখতে লাভের ওপর ট্যাপ করুন...<br>আশা করি আপনার ভালো লাগবে! 💖✨
+    তা দেখতে নিচের গিফট বক্সে ট্যাপ করুন...<br>আশা করি আপনার ভালো লাগবে! 💖✨
   </div>
   <div class="gift-box" id="giftBox">
     <div class="gift-lid"></div>
@@ -444,20 +551,26 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
   <button class="next-step-btn" id="nextStepBtn">NEXT STEP 👉</button>
 </div>
 
-<!-- Step 3 -->
+<!-- Step 3: Proposal Screen -->
 <div id="proposalScreen">
   <div class="question-box">
+    <!-- শুধুমাত্র পিকচারটি থাকবে -->
     <div class="profile-avatar-wrap">
       <img src="{avatar_src}" alt="Profile" class="profile-avatar">
     </div>
     
-    <div class="proposal-top-text">{proposal_note}</div>
-    <div class="question-title">💖 Do you love me? 💖</div>
-    <div class="question-sub">মনের সব কথা আজ খুলে বলো... 🙈</div>
-    <div class="yn-btn-group" id="btnGroup">
-      <button class="yn-btn btn-yes" id="btnYes">YES 🥰</button>
-      <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
+    <!-- ইয়েস/নো চাপার পর এগুলো মুছে যাবে -->
+    <div id="topTextsWrap">
+      <div class="proposal-top-text">{proposal_note}</div>
+      <div class="question-title">💖 Do you love me? 💖</div>
+      <div class="question-sub">মনের সব কথা আজ খুলে বলো... 🙈</div>
+      <div class="yn-btn-group" id="btnGroup">
+        <button class="yn-btn btn-yes" id="btnYes">YES 🥰</button>
+        <button class="yn-btn btn-no" id="btnNo">NO 🥺</button>
+      </div>
     </div>
+
+    <!-- YES রেসপন্স কার্ড -->
     <div id="yesResult">
       <h3 style="color:#ffb3d1;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">Yay! I Love You So Much! ❤️🥰</h3>
       <p style="font-size:0.95rem;color:#fff;margin-bottom:12px;font-family:'Anek Bangla',sans-serif;">তোমার হ্যাঁ বলাটাই আমার জীবনের সেরা অনুভূতি! সারাজীবন পাশে থেকো। 🌸✨</p>
@@ -465,11 +578,27 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
         <a class="share-btn wa-btn" id="waShare" href="#" target="_blank">💬 WhatsApp</a>
         <a class="share-btn tg-btn" id="tgShare" href="#" target="_blank">✈️ Telegram</a>
       </div>
+      <button class="open-reply-btn" onclick="openNewPage('YES')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
+
+    <!-- NO রেসপন্স কার্ড -->
     <div id="noResult">
       <h3 style="color:#ff8585;font-family:'Anek Bangla',sans-serif;margin-bottom:8px;">মনটা ভেঙে গেল... 🥺💔😭</h3>
       <p style="font-size:0.95rem;color:#ddd;font-family:'Anek Bangla',sans-serif;">"যাকে আপন ভেবেছিলাম সে-ই না বলে দিল... যাই হোক, ভালো থেকো।" 🥀🌧️</p>
+      <button class="open-reply-btn" onclick="openNewPage('NO')">💌 কিছু বলতে চাইলে নিচে ট্যাপ করুন 👉</button>
     </div>
+  </div>
+</div>
+
+<!-- Step 4: নতুন পেজ - মেসেজ লেখার পেজ -->
+<div id="feedbackPage">
+  <div class="feedback-card">
+    <div style="font-size:45px;margin-bottom:10px;">✍️💌</div>
+    <h3>মনের কথাটি লিখে পাঠান</h3>
+    <p>আপনি যা লিখতে চান তা লিখে নিচে সেন্ড করুন, এটি সরাসরি তার কাছে পৌঁছে যাবে...</p>
+    <textarea class="reply-textarea" id="customInputMsg" placeholder="আপনার মনের কথা এখানে লিখুন..."></textarea>
+    <button class="send-reply-btn" id="sendCustomBtn" onclick="submitCustomMessage()">SEND MESSAGE 🚀</button>
+    <div id="replySuccessAlert">✅ আপনার মেসেজটি সফলভাবে পাঠানো হয়েছে! 💖</div>
   </div>
 </div>
 
@@ -480,8 +609,8 @@ html,body{{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans
 var CURRENT_WISH_ID = "{wish_id}";
 var waNumber        = "{wa_num}".replace(/[^0-9]/g, '');
 var tgUsername      = "{tg_user}".replace('@', '').trim();
+var userLastChoice  = "";
 
-// সার্ভারের মাধ্যমে নিশ্চিত টেলিগ্রাম নোটিফিকেশন পাঠানো
 function sendResponseToServer(choice) {{
   if (!CURRENT_WISH_ID) return;
   fetch("/api/response", {{
@@ -490,6 +619,43 @@ function sendResponseToServer(choice) {{
     body: JSON.stringify({{ wish_id: CURRENT_WISH_ID, choice: choice }})
   }}).catch(function(){{}});
 }}
+
+window.openNewPage = function(choice) {{
+  userLastChoice = choice;
+  document.getElementById("proposalScreen").style.display = "none";
+  document.getElementById("feedbackPage").classList.add("show");
+}};
+
+window.submitCustomMessage = function() {{
+  var msgText = document.getElementById("customInputMsg").value.trim();
+  if(!msgText) {{
+    alert("দয়া করে কিছু লিখে তারপর সেন্ড করুন!");
+    return;
+  }}
+  
+  var btn = document.getElementById("sendCustomBtn");
+  btn.disabled = true;
+  btn.textContent = "পাঠানো হচ্ছে...";
+
+  fetch("/api/custom_message", {{
+    method: "POST",
+    headers: {{ "Content-Type": "application/json" }},
+    body: JSON.stringify({{
+      wish_id: CURRENT_WISH_ID,
+      choice: userLastChoice,
+      message: msgText
+    }})
+  }})
+  .then(function(){{
+    btn.style.display = "none";
+    document.getElementById("customInputMsg").style.display = "none";
+    document.getElementById("replySuccessAlert").style.display = "block";
+  }})
+  .catch(function(){{
+    btn.disabled = false;
+    btn.textContent = "SEND MESSAGE 🚀";
+  }});
+}};
 
 var canvas = document.getElementById("heartsCanvas");
 var ctx = canvas.getContext("2d");
@@ -546,6 +712,8 @@ function openGift() {{
     if(audio) {{ audio.play().catch(function(){{}}); }}
   }} catch(e) {{}}
 
+  document.getElementById("giantHeart").classList.add("show");
+
   for(var i=0; i<25; i++) hearts.push(new Heart());
   loop();
 
@@ -569,8 +737,9 @@ document.getElementById("nextStepBtn").addEventListener("click", function(){{
   document.getElementById("proposalScreen").classList.add("show");
 }});
 
+// YES ক্লিক ইভেন্ট: টেক্সটগুলো হাইড করে শুধু পিক ও রেজাল্ট রাখা
 document.getElementById("btnYes").addEventListener("click", function(){{
-  document.getElementById("btnGroup").style.display = "none";
+  document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("yesResult").style.display = "block";
   sendResponseToServer("YES");
 
@@ -588,8 +757,9 @@ document.getElementById("btnYes").addEventListener("click", function(){{
   }}
 }});
 
+// NO ক্লিক ইভেন্ট: টেক্সটগুলো হাইড করে শুধু পিক ও রেজাল্ট রাখা
 document.getElementById("btnNo").addEventListener("click", function(){{
-  document.getElementById("btnGroup").style.display = "none";
+  document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("noResult").style.display = "block";
   sendResponseToServer("NO");
 }});
@@ -639,7 +809,7 @@ def handle_all(message):
         bot.send_message(chat_id, "৩️⃣ উইশ পেজের চিঠির ভেতর *কী লিখতে চান (মেসেজ)* লিখে পাঠান:\n\n_(ডিফল্ট রোমান্টিক টেক্সট রাখতে চাইলে /skip লিখুন)_")
         return
 
-    # ৩. উইশ মেসেজ
+    # ৩. মেসেজ
     if step == 'CUSTOM_MSG' and text:
         if text != "/skip":
             user_data[chat_id]['msg'] = text
@@ -708,7 +878,7 @@ def handle_all(message):
 
         wish_id = uuid.uuid4().hex[:8]
         wish_entry = {
-            "creator_chat_id": chat_id, # আপনার নিজস্ব চ্যাট আইডি
+            "creator_chat_id": chat_id,
             "from": user_data[chat_id].get('sender', 'Emon'),
             "to": user_data[chat_id].get('receiver', 'Kolbalis'),
             "msg": user_data[chat_id].get('msg', 'সবসময় তোমার পাশে থাকতে চাই... 💖✨'),
@@ -726,7 +896,8 @@ def handle_all(message):
             chat_id, 
             f"🎉 *আপনার স্পেশাল উইশ পেজ সফলভাবে তৈরি হয়েছে!*\n\n"
             f"🔗 *লিংক:* {short_link}\n\n"
-            f"✅ এখন এই লিংকে ঢুকে কেউ YES বা NO চাপলে সরাসরি আপনার এই টেলিগ্রাম ইনবক্সে মেসেজ চলে আসবে।"
+            f"✅ YES/NO চাপলে ওপরের টেক্সট সরে শুধু প্রোফাইল পিক ও রেসপন্স শো করবে।\n"
+            f"✅ 'কিছু বলতে চাইলে' বাটনে চাপলে নতুন মেসেজ পেজ খুলবে এবং পাঠানো মেসেজ সরাসরি আপনার এই বটের ইনবক্সে আসবে।"
         )
         user_data.pop(chat_id, None)
         return
