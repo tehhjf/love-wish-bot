@@ -137,7 +137,8 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 </head>
 <body>
 
-<audio id="bgMusic" loop preload="auto"></audio>
+<!-- সরাসরি আপনার আপলোড করা song.mp3 লিঙ্ক ঢুকিয়ে দেওয়া হয়েছে -->
+<audio id="bgMusic" loop preload="auto" src="https://tehhjf.github.io/love-wish-bot/song.mp3"></audio>
 <div id="customBg"></div>
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
@@ -155,9 +156,9 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 
 <div id="wishScreen">
   <div class="names-container">
-    <div><div class="from-to">FROM</div><div class="sender-name" id="sNameDisplay">—</div></div>
+    <div><div class="from-to">FROM</div><div class="sender-name" id="sNameDisplay">Emon</div></div>
     <div class="heart-divider">❤️</div>
-    <div><div class="from-to">TO</div><div class="receiver-name" id="rNameDisplay">—</div></div>
+    <div><div class="from-to">TO</div><div class="receiver-name" id="rNameDisplay">Tamanna</div></div>
   </div>
 
   <div class="message-box">
@@ -179,10 +180,10 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 <div id="proposalScreen">
   <div class="question-box">
     <div class="profile-avatar-wrap">
-      <img src="" id="userAvatar" class="profile-avatar">
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300" id="userAvatar" class="profile-avatar">
     </div>
     <div id="topTextsWrap">
-      <div class="proposal-top-text" id="pNoteDisplay"></div>
+      <div class="proposal-top-text" id="pNoteDisplay">মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈</div>
       <div class="question-title">💖 Do you love me? 💖</div>
       <div class="question-sub">মনের সব কথা আজ খুলে বলো... 🙈</div>
       <div class="yn-btn-group" id="btnGroup">
@@ -228,17 +229,26 @@ const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
 const urlParams = new URLSearchParams(window.location.search);
 const wishId = urlParams.get('id');
 
+const defaultMessage = `গুছিয়ে বলতে পারিনা কোন কিছু..!😅
+তবে যতোটুকু পেরেছি
+মনের অন্তরাল থেকে লিখেছি..🤕
+তুমি আমার মস্তিষ্কে থাকা..!
+এক নীরব অনুভূতি,🙂
+ভালো লাগা নাকি ভালোবাসা
+তা আমি বলতে পারবো না..!
+তবে এটুকু বলতে পারি
+আমাকে ভালোবেসে
+তুমি কখনো ঠকবে না..!💖`;
+
 let senderName = "Emon";
 let receiverName = "Tamanna";
 let waNumber = "";
-let linesData = [];
+let linesData = defaultMessage.split('\n').map(l => l.trim()).filter(l => l);
 let userLastChoice = "";
-let shouldPlayAudio = false;
-
 const audioEl = document.getElementById('bgMusic');
 
-function tryPlayAudio() {
-  if (audioEl.src && audioEl.src !== window.location.href) {
+function playAudioSafe() {
+  if (audioEl) {
     audioEl.play().catch(e => {
       console.log("Audio waiting for user gesture:", e);
     });
@@ -250,28 +260,27 @@ if (wishId) {
     .then(res => res.json())
     .then(data => {
       if (!data) return;
-      senderName = data.sender || "Emon";
-      receiverName = data.receiver || "Tamanna";
-      waNumber = (data.wa || "").replace(/[^0-9]/g, '');
-
-      document.getElementById('sNameDisplay').innerText = senderName;
-      document.getElementById('rNameDisplay').innerText = receiverName;
-      document.getElementById('pNoteDisplay').innerText = data.proposalNote || "";
-      document.getElementById('userAvatar').src = data.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300";
-
-      // অডিও সোর্স সেট করা
-      const audioSource = data.audio || "https://assets.mixkit.co/music/preview/mixkit-romantic-moment-702.mp3";
-      audioEl.src = audioSource;
-      audioEl.load();
-
-      // ইউজার ইতিমধ্যে গিফটে ট্যাপ করে থাকলে অডিও লোড হওয়ামাত্রই প্লে হবে
-      if (shouldPlayAudio) {
-        tryPlayAudio();
+      if (data.sender) {
+        senderName = data.sender;
+        document.getElementById('sNameDisplay').innerText = senderName;
       }
-
-      const rawMsg = data.message || "";
-      linesData = rawMsg.split('\n').map(l => l.trim()).filter(l => l);
-    });
+      if (data.receiver) {
+        receiverName = data.receiver;
+        document.getElementById('rNameDisplay').innerText = receiverName;
+      }
+      if (data.proposalNote) {
+        document.getElementById('pNoteDisplay').innerText = data.proposalNote;
+      }
+      if (data.avatar) {
+        document.getElementById('userAvatar').src = data.avatar;
+      }
+      if (data.wa) {
+        waNumber = data.wa.replace(/[^0-9]/g, '');
+      }
+      if (data.message && data.message.trim() !== "") {
+        linesData = data.message.split('\n').map(l => l.trim()).filter(l => l);
+      }
+    }).catch(()=>{});
 }
 
 function sendResponseToServer(choice) {
@@ -343,7 +352,14 @@ function loop() {
 
 function typeLines(lines, callback) {
   const container = document.getElementById("typedText");
+  container.innerHTML = "";
   let lineIdx = 0;
+  
+  if (!lines || lines.length === 0) {
+    if (callback) callback();
+    return;
+  }
+
   function processNextLine() {
     if(lineIdx >= lines.length) { if(callback) callback(); return; }
     const lineSpan = document.createElement("span");
@@ -371,9 +387,8 @@ function openGift() {
   if(giftBox.classList.contains("open")) return;
   giftBox.classList.add("open");
 
-  // অডিও প্লে কমান্ড ট্রিগার
-  shouldPlayAudio = true;
-  tryPlayAudio();
+  // টাচ করার সাথে সাথে গান বেজে উঠবে
+  playAudioSafe();
 
   for(let i=0; i<25; i++) hearts.push(new Heart());
   loop();
@@ -387,15 +402,11 @@ function openGift() {
   }, 650);
 }
 
-// স্ক্রিনের যেকোনো টাচ ইভেন্টেও অডিও প্রিপেয়ার রাখা
 document.getElementById("giftScreen").addEventListener("click", openGift);
-document.getElementById("giftScreen").addEventListener("touchstart", function() {
-  shouldPlayAudio = true;
-  tryPlayAudio();
-}, { once: true });
+document.getElementById("giftScreen").addEventListener("touchend", openGift, { once: true });
 
 document.getElementById("nextStepBtn").addEventListener("click", () => {
-  tryPlayAudio(); // পরবর্তী ধাপে গেলেও অডিও চালু থাকা নিশ্চিত করা
+  playAudioSafe();
   document.getElementById("wishScreen").classList.remove("show");
   document.getElementById("proposalScreen").classList.add("show");
 });
@@ -418,4 +429,4 @@ document.getElementById("btnNo").addEventListener("click", () => {
 })();
 </script>
 </body>
-  </html>
+</html>
