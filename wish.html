@@ -137,7 +137,6 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 </head>
 <body>
 
-<!-- সরাসরি আপনার আপলোড করা song.mp3 লিঙ্ক ঢুকিয়ে দেওয়া হয়েছে -->
 <audio id="bgMusic" loop preload="auto" src="https://tehhjf.github.io/love-wish-bot/song.mp3"></audio>
 <div id="customBg"></div>
 <div class="giant-heart-bg">❤️</div>
@@ -156,9 +155,9 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 
 <div id="wishScreen">
   <div class="names-container">
-    <div><div class="from-to">FROM</div><div class="sender-name" id="sNameDisplay">Emon</div></div>
+    <div><div class="from-to">FROM</div><div class="sender-name" id="sNameDisplay"></div></div>
     <div class="heart-divider">❤️</div>
-    <div><div class="from-to">TO</div><div class="receiver-name" id="rNameDisplay">Tamanna</div></div>
+    <div><div class="from-to">TO</div><div class="receiver-name" id="rNameDisplay"></div></div>
   </div>
 
   <div class="message-box">
@@ -229,7 +228,22 @@ const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
 const urlParams = new URLSearchParams(window.location.search);
 const wishId = urlParams.get('id');
 
-const defaultMessage = `গুছিয়ে বলতে পারিনা কোন কিছু..!😅
+let senderName = "";
+let receiverName = "";
+let waNumber = "";
+let linesData = [];
+let userLastChoice = "";
+let isDataLoaded = false;
+const audioEl = document.getElementById('bgMusic');
+
+function playAudioSafe() {
+  if (audioEl) {
+    audioEl.play().catch(()=>{});
+  }
+}
+
+// ডিফল্ট ব্যাকআপ মেসেজ
+const fallbackMessage = `গুছিয়ে বলতে পারিনা কোন কিছু..!😅
 তবে যতোটুকু পেরেছি
 মনের অন্তরাল থেকে লিখেছি..🤕
 তুমি আমার মস্তিষ্কে থাকা..!
@@ -240,47 +254,47 @@ const defaultMessage = `গুছিয়ে বলতে পারিনা �
 আমাকে ভালোবেসে
 তুমি কখনো ঠকবে না..!💖`;
 
-let senderName = "Emon";
-let receiverName = "Tamanna";
-let waNumber = "";
-let linesData = defaultMessage.split('\n').map(l => l.trim()).filter(l => l);
-let userLastChoice = "";
-const audioEl = document.getElementById('bgMusic');
-
-function playAudioSafe() {
-  if (audioEl) {
-    audioEl.play().catch(e => {
-      console.log("Audio waiting for user gesture:", e);
-    });
-  }
-}
-
 if (wishId) {
   fetch(`${DB_URL}/wishes/${wishId}.json`)
     .then(res => res.json())
     .then(data => {
-      if (!data) return;
-      if (data.sender) {
-        senderName = data.sender;
+      if (data) {
+        senderName = data.sender || "Special Sender";
+        receiverName = data.receiver || "Special Someone";
+        waNumber = (data.wa || "").replace(/[^0-9]/g, '');
+
         document.getElementById('sNameDisplay').innerText = senderName;
-      }
-      if (data.receiver) {
-        receiverName = data.receiver;
         document.getElementById('rNameDisplay').innerText = receiverName;
+        
+        if (data.proposalNote) {
+          document.getElementById('pNoteDisplay').innerText = data.proposalNote;
+        }
+        if (data.avatar) {
+          document.getElementById('userAvatar').src = data.avatar;
+        }
+
+        const rawMsg = data.message || fallbackMessage;
+        linesData = rawMsg.split('\n').map(l => l.trim()).filter(l => l);
+      } else {
+        applyFallback();
       }
-      if (data.proposalNote) {
-        document.getElementById('pNoteDisplay').innerText = data.proposalNote;
-      }
-      if (data.avatar) {
-        document.getElementById('userAvatar').src = data.avatar;
-      }
-      if (data.wa) {
-        waNumber = data.wa.replace(/[^0-9]/g, '');
-      }
-      if (data.message && data.message.trim() !== "") {
-        linesData = data.message.split('\n').map(l => l.trim()).filter(l => l);
-      }
-    }).catch(()=>{});
+      isDataLoaded = true;
+    })
+    .catch(() => {
+      applyFallback();
+      isDataLoaded = true;
+    });
+} else {
+  applyFallback();
+  isDataLoaded = true;
+}
+
+function applyFallback() {
+  senderName = "Special One";
+  receiverName = "Dear";
+  document.getElementById('sNameDisplay').innerText = senderName;
+  document.getElementById('rNameDisplay').innerText = receiverName;
+  linesData = fallbackMessage.split('\n').map(l => l.trim()).filter(l => l);
 }
 
 function sendResponseToServer(choice) {
@@ -354,12 +368,6 @@ function typeLines(lines, callback) {
   const container = document.getElementById("typedText");
   container.innerHTML = "";
   let lineIdx = 0;
-  
-  if (!lines || lines.length === 0) {
-    if (callback) callback();
-    return;
-  }
-
   function processNextLine() {
     if(lineIdx >= lines.length) { if(callback) callback(); return; }
     const lineSpan = document.createElement("span");
@@ -387,19 +395,24 @@ function openGift() {
   if(giftBox.classList.contains("open")) return;
   giftBox.classList.add("open");
 
-  // টাচ করার সাথে সাথে গান বেজে উঠবে
   playAudioSafe();
 
   for(let i=0; i<25; i++) hearts.push(new Heart());
   loop();
 
-  setTimeout(() => {
-    document.getElementById("giftScreen").classList.add("hide");
-    document.getElementById("wishScreen").classList.add("show");
-    typeLines(linesData, () => {
-      document.getElementById("nextStepBtn").style.display = "inline-block";
-    });
-  }, 650);
+  // ডাটাবেজের সঠিক নাম নিশ্চিত হওয়ার পর ওপেন করা
+  const checkDataTimer = setInterval(() => {
+    if (isDataLoaded) {
+      clearInterval(checkDataTimer);
+      setTimeout(() => {
+        document.getElementById("giftScreen").classList.add("hide");
+        document.getElementById("wishScreen").classList.add("show");
+        typeLines(linesData, () => {
+          document.getElementById("nextStepBtn").style.display = "inline-block";
+        });
+      }, 500);
+    }
+  }, 100);
 }
 
 document.getElementById("giftScreen").addEventListener("click", openGift);
