@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>💖 Special Surprise For You</title>
 <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<!-- Confetti Library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-serif;background:#0d0015;color:#fff;}
@@ -19,7 +21,20 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 @keyframes heartPulse{0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-50%,-50%) scale(1.15);}}
 #heartsCanvas{position:fixed;inset:0;z-index:2;pointer-events:none;}
 
-/* Step 1 */
+/* Touch Ripple Heart Particle */
+.touch-heart {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99999;
+  font-size: 22px;
+  animation: floatHeart 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes floatHeart {
+  0% { transform: scale(0.3) translateY(0); opacity: 1; filter: drop-shadow(0 0 6px #ff2d75); }
+  100% { transform: scale(1.6) translateY(-60px); opacity: 0; filter: drop-shadow(0 0 15px #ffe082); }
+}
+
+/* Step 1: Gift Box */
 #giftScreen{
   position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
   align-items:center;justify-content:space-between;padding:50px 20px 70px 20px;
@@ -27,14 +42,13 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 }
 #giftScreen.hide{opacity:0;pointer-events:none;}
 .top-tap-hint{
-  font-size:1.25rem;color:#ffe082;font-family:'Anek Bangla',sans-serif;font-weight:700;
+  font-size:1.25rem;color:#ffe082;font-weight:700;
   animation:pulseGlow 2s ease-in-out infinite;text-shadow:0 0 15px rgba(255,224,130,0.7);
 }
 .gift-box-wrapper{display:flex;align-items:center;justify-content:center;margin-top:auto;margin-bottom:auto;}
 .gift-box{
   position:relative;width:155px;height:155px;cursor:pointer;
   animation:boxShake 1.4s ease-in-out infinite;filter:drop-shadow(0 20px 40px rgba(255,45,117,0.85));
-  transition:transform 0.3s ease;
 }
 @keyframes boxShake{
   0%,100%{transform:rotate(0) scale(1);}
@@ -49,23 +63,14 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
   background:linear-gradient(135deg,#ff2d75,#ff6b9d);border-radius:8px;
   box-shadow:0 4px 20px rgba(255,45,117,0.7);transition:all 0.9s ease;
 }
-.gift-lid::before{
-  content:"";position:absolute;top:-22px;left:50%;transform:translateX(-50%);
-  width:50px;height:45px;background:linear-gradient(135deg,#ffb3d1,#ff2d75);
-  clip-path:polygon(50% 0%, 0% 100%, 50% 75%, 100% 100%);border-radius:0 0 20px 20px;
-}
 .gift-box.open .gift-lid{transform:translateY(-180px) rotate(-45deg);opacity:0;}
 .gift-body{
   position:absolute;top:30px;left:5px;width:145px;height:125px;
   background:linear-gradient(135deg,#d81b60,#ff4081);border-radius:10px;
   box-shadow:inset 0 0 30px rgba(0,0,0,0.35),0 10px 30px rgba(255,45,117,0.5);overflow:hidden;
 }
-.gift-body::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:22px;height:100%;background:linear-gradient(180deg,#ffe082,#ffb3d1);}
-.gift-body::after{content:"";position:absolute;top:50%;left:0;transform:translateY(-50%);width:100%;height:22px;background:linear-gradient(90deg,#ffe082,#ffb3d1);}
 
-@keyframes pulseGlow{0%,100%{opacity:0.85;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);text-shadow:0 0 25px #ff3d7f;}}
-
-/* Step 2 */
+/* Step 2: Wish Screen */
 #wishScreen{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:12px 16px;text-align:center;
@@ -101,7 +106,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
   font-family:'Poppins',sans-serif;letter-spacing:1.2px;
 }
 
-/* Step 3 */
+/* Step 3: Proposal Screen */
 #proposalScreen{
   position:fixed;inset:0;z-index:9;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:20px;text-align:center;opacity:0;transition:opacity 0.8s ease;
@@ -127,7 +132,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 .wa-btn{background:#25D366;}
 .open-reply-btn{margin-top:15px;width:100%;padding:13px;background:linear-gradient(135deg,#ffe082,#ffb3d1);color:#150024;border:none;border-radius:50px;font-size:0.98rem;font-weight:700;cursor:pointer;}
 
-/* Step 4 */
+/* Step 4: Feedback Screen */
 #feedbackPage{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;background:radial-gradient(circle at 50% 30%, #46002c 0%, #170024 75%, #07000e 100%);}
 #feedbackPage.show{display:flex;}
 .feedback-card{max-width:390px;width:100%;background:rgba(22,0,32,0.6);border:1.8px solid rgba(255,65,130,0.65);border-radius:28px;padding:28px 20px;}
@@ -142,6 +147,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
+<!-- Step 1: Gift Box -->
 <div id="giftScreen">
   <div class="top-tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
   <div class="gift-box-wrapper">
@@ -153,6 +159,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
   <div style="height:20px;"></div>
 </div>
 
+<!-- Step 2: Message Typing -->
 <div id="wishScreen">
   <div class="names-container">
     <div><div class="from-to">FROM</div><div class="sender-name" id="sNameDisplay"></div></div>
@@ -176,6 +183,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
   <button class="next-step-btn" id="nextStepBtn">NEXT STEP 👉</button>
 </div>
 
+<!-- Step 3: Proposal -->
 <div id="proposalScreen">
   <div class="question-box">
     <div class="profile-avatar-wrap">
@@ -209,6 +217,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
   </div>
 </div>
 
+<!-- Step 4: Feedback -->
 <div id="feedbackPage">
   <div class="feedback-card">
     <div style="font-size:45px;margin-bottom:10px;">✍️💌</div>
@@ -232,17 +241,24 @@ let senderName = "";
 let receiverName = "";
 let waNumber = "";
 let linesData = [];
-let userLastChoice = "";
 let isDataLoaded = false;
 const audioEl = document.getElementById('bgMusic');
 
+/* Touch Ripple Heart Particle */
+document.addEventListener('pointerdown', function(e) {
+  const heart = document.createElement('div');
+  heart.className = 'touch-heart';
+  heart.innerText = ['💖', '❤️', '✨', '🌸'][Math.floor(Math.random() * 4)];
+  heart.style.left = (e.clientX - 10) + 'px';
+  heart.style.top = (e.clientY - 15) + 'px';
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), 900);
+});
+
 function playAudioSafe() {
-  if (audioEl) {
-    audioEl.play().catch(()=>{});
-  }
+  if (audioEl) { audioEl.play().catch(()=>{}); }
 }
 
-// ডিফল্ট ব্যাকআপ মেসেজ
 const fallbackMessage = `গুছিয়ে বলতে পারিনা কোন কিছু..!😅
 তবে যতোটুকু পেরেছি
 মনের অন্তরাল থেকে লিখেছি..🤕
@@ -265,13 +281,8 @@ if (wishId) {
 
         document.getElementById('sNameDisplay').innerText = senderName;
         document.getElementById('rNameDisplay').innerText = receiverName;
-        
-        if (data.proposalNote) {
-          document.getElementById('pNoteDisplay').innerText = data.proposalNote;
-        }
-        if (data.avatar) {
-          document.getElementById('userAvatar').src = data.avatar;
-        }
+        if (data.proposalNote) document.getElementById('pNoteDisplay').innerText = data.proposalNote;
+        if (data.avatar) document.getElementById('userAvatar').src = data.avatar;
 
         const rawMsg = data.message || fallbackMessage;
         linesData = rawMsg.split('\n').map(l => l.trim()).filter(l => l);
@@ -280,10 +291,7 @@ if (wishId) {
       }
       isDataLoaded = true;
     })
-    .catch(() => {
-      applyFallback();
-      isDataLoaded = true;
-    });
+    .catch(() => { applyFallback(); isDataLoaded = true; });
 } else {
   applyFallback();
   isDataLoaded = true;
@@ -307,7 +315,6 @@ function sendResponseToServer(choice) {
 }
 
 window.openNewPage = function(choice) {
-  userLastChoice = choice;
   document.getElementById("proposalScreen").style.display = "none";
   document.getElementById("feedbackPage").classList.add("show");
 };
@@ -315,7 +322,6 @@ window.openNewPage = function(choice) {
 window.submitCustomMessage = function() {
   const msgText = document.getElementById("customInputMsg").value.trim();
   if(!msgText) { alert("দয়া করে কিছু লিখে তারপর সেন্ড করুন!"); return; }
-
   const btn = document.getElementById("sendCustomBtn");
   btn.disabled = true;
   btn.textContent = "পাঠানো হচ্ছে...";
@@ -330,12 +336,10 @@ window.submitCustomMessage = function() {
     document.getElementById("customInputMsg").style.display = "none";
     document.getElementById("replySuccessAlert").style.display = "block";
   })
-  .catch(() => {
-    btn.disabled = false;
-    btn.textContent = "SEND MESSAGE 🚀";
-  });
+  .catch(() => { btn.disabled = false; btn.textContent = "SEND MESSAGE 🚀"; });
 };
 
+/* Hearts Canvas */
 const canvas = document.getElementById("heartsCanvas");
 const ctx = canvas.getContext("2d");
 let W = canvas.width = window.innerWidth;
@@ -354,10 +358,7 @@ Heart.prototype.update = function() {
   this.y -= this.speedY;
   if(this.y < -30) { this.y = H + 20; this.x = Math.random() * W; }
 };
-Heart.prototype.draw = function() {
-  ctx.font = this.size + "px serif";
-  ctx.fillText(this.emoji, this.x, this.y);
-};
+Heart.prototype.draw = function() { ctx.font = this.size + "px serif"; ctx.fillText(this.emoji, this.x, this.y); };
 function loop() {
   ctx.clearRect(0,0,W,H);
   for(let i=0; i<hearts.length; i++){ hearts[i].update(); hearts[i].draw(); }
@@ -390,17 +391,16 @@ function typeLines(lines, callback) {
   processNextLine();
 }
 
+/* GIFT BOX CLICK -> DIRECTLY GOES TO WISH CARD */
 function openGift() {
   const giftBox = document.getElementById("giftBox");
   if(giftBox.classList.contains("open")) return;
   giftBox.classList.add("open");
-
   playAudioSafe();
 
   for(let i=0; i<25; i++) hearts.push(new Heart());
   loop();
 
-  // ডাটাবেজের সঠিক নাম নিশ্চিত হওয়ার পর ওপেন করা
   const checkDataTimer = setInterval(() => {
     if (isDataLoaded) {
       clearInterval(checkDataTimer);
@@ -424,10 +424,19 @@ document.getElementById("nextStepBtn").addEventListener("click", () => {
   document.getElementById("proposalScreen").classList.add("show");
 });
 
+/* 🎉 YES CLICK -> CONFETTI BLAST */
 document.getElementById("btnYes").addEventListener("click", () => {
   document.getElementById("topTextsWrap").style.display = "none";
   document.getElementById("yesResult").style.display = "block";
   sendResponseToServer("YES");
+
+  if (typeof confetti === 'function') {
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    setTimeout(() => {
+      confetti({ particleCount: 60, angle: 60, spread: 55, origin: { x: 0 } });
+      confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 1 } });
+    }, 300);
+  }
 
   const replyTxt = encodeURIComponent(`হ্যাঁ ${senderName}! আমিও তোমাকে ভালোবাসি! ❤️🥰`);
   document.getElementById("waShare").href = waNumber ? `https://wa.me/${waNumber}?text=${replyTxt}` : `https://api.whatsapp.com/send?text=${replyTxt}`;
