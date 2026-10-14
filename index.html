@@ -1,260 +1,279 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Wish Master Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Anek Bangla',sans-serif; }
-body { background:radial-gradient(circle at 50% 20%, #3d0026 0%, #150022 60%, #07000e 100%); color:#fff; min-height:100vh; padding:18px 14px; display:flex; justify-content:center; }
-.app-frame { width:100%; max-width:430px; background:rgba(26,0,38,0.65); border:1.8px solid rgba(255,65,130,0.5); border-radius:32px; padding:22px 18px; backdrop-filter:blur(25px); box-shadow:0 10px 40px rgba(0,0,0,0.7); display:flex; flex-direction:column; }
-.app-title { font-family:'Poppins',sans-serif; font-size:1.4rem; font-weight:800; text-align:center; background:linear-gradient(135deg, #fff, #ffb3d1, #ff2d75); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.progress-bar { width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin:14px 0 20px; overflow:hidden; }
-.progress-fill { height:100%; width:25%; background:linear-gradient(90deg, #ffe082, #ff2d75); transition:width 0.4s ease; }
-.step-pane { display:none; }
-.step-pane.active { display:block; animation:slideUp 0.35s ease; }
-label { display:block; font-size:0.95rem; font-weight:700; color:#ffb3d1; margin:12px 0 6px; }
-input[type="text"], textarea { width:100%; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,0.07); border:1.2px solid rgba(255,179,209,0.3); color:#fff; font-size:0.98rem; outline:none; }
-input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 14px rgba(255,45,117,0.45); }
-.upload-card { border:2px dashed rgba(255,65,130,0.5); border-radius:20px; padding:16px; text-align:center; background:rgba(255,45,117,0.05); margin-top:8px; cursor:pointer; }
-.file-input { display:none; }
-.preview-wrap { width:90px; height:90px; border-radius:50%; margin:12px auto 0; border:2.5px solid #ffe082; overflow:hidden; display:none; }
-.preview-img { width:100%; height:100%; object-fit:cover; }
-.audio-info { margin-top:8px; font-size:0.85rem; color:#85ffb9; font-weight:600; display:none; }
-.btn-row { display:flex; gap:12px; margin-top:22px; }
-.app-btn { flex:1; padding:13px; border-radius:50px; border:none; font-weight:700; font-size:0.98rem; cursor:pointer; }
-.btn-primary { background:linear-gradient(135deg,#ff2d75,#ff6b9d); color:#fff; box-shadow:0 6px 20px rgba(255,45,117,0.45); }
-.btn-back { background:rgba(255,255,255,0.12); color:#ddd; }
-.result-box { display:none; margin-top:18px; padding:15px; background:rgba(133,255,185,0.1); border:1.2px solid #85ffb9; border-radius:20px; text-align:center; }
-.result-url { font-family:'Poppins',sans-serif; font-size:0.88rem; color:#85ffb9; word-break:break-all; margin:8px 0; font-weight:600; }
-.copy-btn { width:100%; padding:10px; border-radius:50px; background:#85ffb9; color:#07000e; border:none; font-weight:800; cursor:pointer; }
-.response-board { margin-top:22px; padding:15px; border-radius:20px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,65,130,0.3); }
-.board-header { font-size:0.95rem; color:#ffe082; font-weight:700; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-.log-item { padding:12px 14px; border-radius:14px; font-size:0.92rem; background:rgba(255,255,255,0.08); margin-bottom:10px; border-left:4px solid #ff2d75; animation:slideUp 0.3s ease; }
-.app-footer { margin-top:20px; padding-top:14px; border-top:1px dashed rgba(255,179,209,0.2); text-align:center; }
-@keyframes slideUp { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);} }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Wish Master Emon</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #170024 0%, #08000d 100%);
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 440px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 24px 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .app-icon {
+      width: 95px;
+      height: 95px;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(220, 38, 127, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      object-fit: cover;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff77e9, #9b51e0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sub-text {
+      color: #c9b8db;
+      font-size: 13px;
+    }
+
+    .input-box {
+      width: 100%;
+      text-align: left;
+      margin-top: 5px;
+    }
+
+    .input-box label {
+      display: block;
+      font-size: 13px;
+      color: #ffb74d;
+      margin-bottom: 6px;
+      margin-left: 4px;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-box input:focus {
+      border-color: #e91e63;
+    }
+
+    .audio-upload-wrapper {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .file-btn {
+      display: inline-block;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #00b09b, #96c93d);
+      border-radius: 25px;
+      cursor: pointer;
+    }
+
+    #fileAudioInput {
+      display: none;
+    }
+
+    #audioStatus {
+      display: block;
+      font-size: 12px;
+      color: #a0aec0;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+
+    .action-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      background: linear-gradient(135deg, #e91e63, #8e24aa);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+      transition: transform 0.2s;
+    }
+
+    .action-btn:active {
+      transform: scale(0.97);
+    }
+
+    #resultContainer {
+      width: 100%;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .link-display {
+      background: #000;
+      padding: 10px;
+      border-radius: 10px;
+      color: #00e676;
+      font-size: 12px;
+      word-break: break-all;
+      margin-bottom: 8px;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 25px;
+      border: none;
+      background: #00b09b;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-<div class="app-frame">
-  <div class="app-title">✨ WISH MASTER STUDIO ✨</div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-
-  <!-- ধাপ ১ -->
-  <div class="step-pane active" id="step1">
-    <label>১️⃣ আপনার নাম (Sender):</label>
-    <input type="text" id="sName" placeholder="আপনার নাম লিখুন">
-    <label>২️⃣ তার নাম (Receiver):</label>
-    <input type="text" id="rName" placeholder="তার নাম লিখুন">
-    <div class="btn-row">
-      <button class="app-btn btn-primary" onclick="setStep(2)">পরবর্তী ধাপ 👉</button>
-    </div>
-  </div>
-
-  <!-- ধাপ ২ -->
-  <div class="step-pane" id="step2">
-    <label>৩️⃣ চিঠির বার্তা (প্রতি লাইন আলাদা রাখুন):</label>
-    <textarea id="letterText" rows="6">গুছিয়ে বলতে পারিনা কোন কিছু..!😅
-তবে যতোটুকু পেরেছি
-মনের অন্তরাল থেকে লিখেছি..🤕
-তুমি আমার মস্তিষ্কে থাকা..!
-এক নীরব অনুভূতি,🙂
-ভালো লাগা নাকি ভালোবাসা
-তা আমি বলতে পারবো না..!
-তবে এটুকু বলতে পারি
-আমাকে ভালোবেসে
-তুমি কখনো ঠকবে না..!💖</textarea>
-    <div class="btn-row">
-      <button class="app-btn btn-back" onclick="setStep(1)">👈 পেছনে</button>
-      <button class="app-btn btn-primary" onclick="setStep(3)">পরবর্তী ধাপ 👉</button>
-    </div>
-  </div>
-
-  <!-- ধাপ ৩ -->
-  <div class="step-pane" id="step3">
-    <label>৪️⃣ প্রপোজাল নোট:</label>
-    <input type="text" id="pNote" value="মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈">
-    <label>৫️⃣ WhatsApp নাম্বার (যেমন: 017xxxxxxxx):</label>
-    <input type="text" id="waNum" placeholder="না দিতে চাইলে খালি রাখুন">
-    <div class="btn-row">
-      <button class="app-btn btn-back" onclick="setStep(2)">👈 পেছনে</button>
-      <button class="app-btn btn-primary" onclick="setStep(4)">পরবর্তী ধাপ 👉</button>
-    </div>
-  </div>
-
-  <!-- ধাপ ৪ -->
-  <div class="step-pane" id="step4">
-    <label>৬️⃣ প্রোফাইল ফটো:</label>
-    <div class="upload-card" onclick="document.getElementById('photoInput').click()">
-      <span style="font-size:30px;display:block;">🖼️</span>
-      <span style="font-size:0.85rem;color:#ffe082;">ট্যাপ করে ছবি নির্বাচন করুন</span>
-      <input type="file" id="photoInput" class="file-input" accept="image/*" onchange="previewImage(this)">
-    </div>
-    <div class="preview-wrap" id="previewWrap"><img src="" id="avatarPreview" class="preview-img"></div>
-
-    <label>৭️⃣ ব্যাকগ্রাউন্ড মিউজিক:</label>
-    <div class="upload-card" onclick="document.getElementById('audioInput').click()">
-      <span style="font-size:30px;display:block;">🎵</span>
-      <span style="font-size:0.85rem;color:#ffe082;">ট্যাপ করে গান নির্বাচন করুন</span>
-      <input type="file" id="audioInput" class="file-input" accept="audio/*" onchange="previewAudio(this)">
-    </div>
-    <div class="audio-info" id="audioInfo"></div>
-
-    <div class="btn-row">
-      <button class="app-btn btn-back" onclick="setStep(3)">👈 পেছনে</button>
-      <button class="app-btn btn-primary" id="publishBtn" onclick="createWishLink()">উইশ লিংক বানান 🚀</button>
-    </div>
-  </div>
-
-  <!-- লিংক ফলাফল বক্স -->
-  <div class="result-box" id="resultCard">
-    <div style="font-size:0.95rem;color:#fff;font-weight:700;">🎉 আপনার উইশ লিংক রেডি!</div>
-    <div class="result-url" id="linkText"></div>
-    <button class="copy-btn" onclick="copyFinalLink()">কপি করুন 📋</button>
-  </div>
-
-  <!-- লাইভ রেসপন্স ফিড -->
-  <div class="response-board">
-    <div class="board-header">
-      <span>🔔 লাইভ রেসপন্স ফিড:</span>
-      <span id="liveStatus" style="font-size:0.75rem;color:#85ffb9;">🟢 Active</span>
-    </div>
-    <div id="liveLogs"><div style="color:#aaa;font-size:0.85rem;">এখনো কোনো রেসপন্স আসেনি...</div></div>
-  </div>
-
-  <div class="app-footer">
-    <div style="font-size:0.8rem;color:#ffe082;font-weight:600;">Created by <span style="color:#ff6b9d;">CYBER 67 EMON</span></div>
-  </div>
-</div>
-
-<script>
-const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
-let encodedPhoto = "";
-let encodedAudio = "";
-let notifiedChoice = null;
-let notifiedMessage = null;
-let pollTimer = null;
-
-function setStep(num) {
-  document.querySelectorAll('.step-pane').forEach(el => el.classList.remove('active'));
-  document.getElementById('step' + num).classList.add('active');
-  document.getElementById('progressFill').style.width = (num * 25) + "%";
-}
-
-function previewImage(input) {
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      encodedPhoto = e.target.result;
-      document.getElementById('avatarPreview').src = encodedPhoto;
-      document.getElementById('previewWrap').style.display = "block";
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-function previewAudio(input) {
-  if (input.files && input.files[0]) {
-    document.getElementById('audioInfo').innerText = "✅ গান লোড হয়েছে: " + input.files[0].name;
-    document.getElementById('audioInfo').style.display = "block";
-    const reader = new FileReader();
-    reader.onload = e => { encodedAudio = e.target.result; };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-function createWishLink() {
-  const btn = document.getElementById('publishBtn');
-  btn.disabled = true;
-  btn.innerText = "লিংক তৈরি হচ্ছে...";
-  const wishId = "wish_" + Math.random().toString(36).substring(2, 9);
-  
-  const payload = {
-    sender: document.getElementById('sName').value.trim() || "Anonymous",
-    receiver: document.getElementById('rName').value.trim() || "Special Someone",
-    message: document.getElementById('letterText').value.trim(),
-    proposalNote: document.getElementById('pNote').value.trim(),
-    wa: document.getElementById('waNum').value.trim(),
-    avatar: encodedPhoto || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300",
-    audio: encodedAudio || "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-love-story-112197.mp3",
-    response: null,
-    customFeedback: null
-  };
-
-  fetch(`${DB_URL}/wishes/${wishId}.json`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(() => {
-    btn.disabled = false;
-    btn.innerText = "উইশ লিংক বানান 🚀";
+  <div class="container">
+    <img src="favicon.png" alt="App Logo" class="app-icon" onerror="this.style.display='none'">
     
-    const finalUrl = `https://tehhjf.github.io/love-wish-bot/wish.html?id=${wishId}`;
-    
-    document.getElementById('linkText').innerText = finalUrl;
-    document.getElementById('resultCard').style.display = "block";
-    startLiveTracking(wishId);
-  })
-  .catch(() => {
-    btn.disabled = false;
-    btn.innerText = "উইশ লিংক বানান 🚀";
-    alert("ডাটাবেজ কানেক্ট করা সম্ভব হয়নি।");
-  });
-}
+    <h1>Wish Master Emon</h1>
+    <p class="sub-text">নাম ও অডিও দিয়ে এক ক্লিকে উইশ লিংক তৈরি করুন</p>
 
-function copyFinalLink() {
-  navigator.clipboard.writeText(document.getElementById('linkText').innerText);
-  alert("সারপ্রাইজ লিংক কপি হয়েছে! 💖");
-}
+    <!-- নাম দেওয়ার ঘর -->
+    <div class="input-box">
+      <label>আপনার নাম:</label>
+      <input type="text" id="targetName" placeholder="নাম লিখুন...">
+    </div>
 
-function startLiveTracking(id) {
-  if (pollTimer) clearInterval(pollTimer);
+    <!-- গান যুক্ত করার অপশন -->
+    <div class="input-box">
+      <label>গানের অডিও লিংক (URL) দিন:</label>
+      <input type="text" id="songUrl" placeholder="https://...mp3 (অথবা খালি রাখুন)">
+    </div>
 
-  const fetchLiveStatus = () => {
-    fetch(`${DB_URL}/wishes/${id}.json?t=${Date.now()}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data) return;
-        const logBox = document.getElementById('liveLogs');
-        let logsHtml = "";
+    <div class="audio-upload-wrapper">
+      <label for="fileAudioInput" class="file-btn">📂 ফোন থেকে অডিও ফাইল বেছে নিন</label>
+      <input type="file" id="fileAudioInput" accept="audio/*">
+      <span id="audioStatus">কোনো অডিও ফাইল নির্বাচন করা হয়নি</span>
+    </div>
 
-        if (data.response) {
-          const isYes = data.response === "YES";
-          logsHtml += `<div class="log-item" style="border-left-color:${isYes ? '#85ffb9' : '#ff4d4d'};">
-            💌 <strong>${data.receiver}</strong> উত্তর দিয়েছে: 
-            <span style="color:${isYes ? '#85ffb9' : '#ff4d4d'};font-weight:700;">${data.response} ${isYes ? '🥰' : '🥺'}</span>
-          </div>`;
+    <button class="action-btn" onclick="buildWishLink()">উইশ লিংক তৈরি করুন 🚀</button>
 
-          if (notifiedChoice !== data.response) {
-            notifiedChoice = data.response;
-            alert(`🔔 রেসপন্স অ্যালার্ট:\n${data.receiver} উত্তর দিয়েছেন: ${data.response}!`);
-          }
-        }
+    <!-- লিংক দেখানোর এরিয়া -->
+    <div id="resultContainer">
+      <div class="link-display" id="generatedLink"></div>
+      <button class="copy-btn" onclick="copyResultLink()">📋 লিংক কপি করুন</button>
+    </div>
+  </div>
 
-        if (data.customFeedback) {
-          logsHtml += `<div class="log-item" style="border-left-color:#ffe082;">
-            📝 <strong>${data.receiver}-এর বার্তা:</strong><br>
-            <span style="color:#ffe082;font-style:italic;">"${data.customFeedback}"</span>
-          </div>`;
+  <script>
+    let customAudioData = "";
 
-          if (notifiedMessage !== data.customFeedback) {
-            notifiedMessage = data.customFeedback;
-            alert(`💌 নতুন মেসেজ নোটিফিকেশন:\n"${data.customFeedback}"`);
-          }
-        }
+    // ফোন থেকে গান সিলেক্ট করলে তা স্বয়ংক্রিয়ভাবে প্রসেস হবে
+    document.getElementById('fileAudioInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const statusSpan = document.getElementById('audioStatus');
+      
+      if (file) {
+        statusSpan.innerText = "অডিও লোড হচ্ছে: " + file.name;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          customAudioData = evt.target.result;
+          statusSpan.innerText = "অডিও যুক্ত হয়েছে: " + file.name + " ✔";
+          statusSpan.style.color = "#00e676";
+          // ফাইল সিলেক্ট হলে ইউআরএল ফিল্ড ক্লিয়ার করে দেওয়া
+          document.getElementById('songUrl').value = "";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-        if (logsHtml) {
-          logBox.innerHTML = logsHtml;
-        }
-      })
-      .catch(() => {});
-  };
+    // উইশ লিংক জেনারেট ফাংশন
+    function buildWishLink() {
+      const name = document.getElementById('targetName').value.trim();
+      const songUrlInput = document.getElementById('songUrl').value.trim();
 
-  pollTimer = setInterval(fetchLiveStatus, 2000);
-}
-</script>
+      if (!name) {
+        alert("দয়া করে একটি নাম লিখুন!");
+        return;
+      }
+
+      // wish.html পেজের ফুল লিংক প্রস্তুত
+      const currentUrl = window.location.href.split('?')[0];
+      const targetBase = currentUrl.replace('index.html', 'wish.html');
+
+      let audioSource = "";
+      if (songUrlInput) {
+        audioSource = songUrlInput;
+      } else if (customAudioData) {
+        audioSource = customAudioData;
+      } else {
+        audioSource = "music.mp3"; // ডিফল্ট ফলব্যাক
+      }
+
+      // লিংক প্যারামিটার তৈরি
+      const finalUrl = `${targetBase}?name=${encodeURIComponent(name)}&song=${encodeURIComponent(audioSource)}`;
+
+      document.getElementById('generatedLink').innerText = finalUrl;
+      document.getElementById('resultContainer').style.display = "block";
+    }
+
+    function copyResultLink() {
+      const linkText = document.getElementById('generatedLink').innerText;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(linkText);
+      } else {
+        const dummy = document.createElement("textarea");
+        dummy.value = linkText;
+        document.body.appendChild(dummy);
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+      }
+      alert("উইশ লিংকটি কপি হয়েছে!");
+    }
+  </script>
 </body>
 </html>
