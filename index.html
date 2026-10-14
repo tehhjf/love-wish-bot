@@ -37,6 +37,9 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
 </head>
 <body>
 
+<!-- অ্যাপসের ব্যাকগ্রাউন্ড মিউজিক -->
+<audio id="appBgMusic" loop preload="auto" src="https://tehhjf.github.io/love-wish-bot/song.mp3"></audio>
+
 <div class="app-frame">
   <div class="app-title">✨ WISH MASTER STUDIO ✨</div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -127,6 +130,21 @@ let notifiedChoice = null;
 let notifiedMessage = null;
 let pollTimer = null;
 
+// অ্যাপস ওপেন হলেই গান স্বয়ংক্রিয়ভাবে বাজানোর কোড
+const appAudio = document.getElementById('appBgMusic');
+function playAppMusic() {
+  if (appAudio) {
+    appAudio.play().then(() => {
+      document.removeEventListener('click', playAppMusic);
+      document.removeEventListener('touchstart', playAppMusic);
+    }).catch(() => {});
+  }
+}
+
+window.addEventListener('load', playAppMusic);
+document.addEventListener('click', playAppMusic);
+document.addEventListener('touchstart', playAppMusic);
+
 function setStep(num) {
   document.querySelectorAll('.step-pane').forEach(el => el.classList.remove('active'));
   document.getElementById('step' + num).classList.add('active');
@@ -135,13 +153,25 @@ function setStep(num) {
 
 function previewImage(input) {
   if (input.files && input.files[0]) {
+    const file = input.files[0];
     const reader = new FileReader();
-    reader.onload = e => {
-      encodedPhoto = e.target.result;
-      document.getElementById('avatarPreview').src = encodedPhoto;
-      document.getElementById('previewWrap').style.display = "block";
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 300;
+        const scale = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        encodedPhoto = canvas.toDataURL('image/jpeg', 0.6);
+        document.getElementById('avatarPreview').src = encodedPhoto;
+        document.getElementById('previewWrap').style.display = "block";
+      };
+      img.src = e.target.result;
     };
-    reader.readAsDataURL(input.files[0]);
+    reader.readAsDataURL(file);
   }
 }
 
@@ -167,6 +197,10 @@ function createWishLink() {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
+  })
+  .then(res => {
+    if(!res.ok) throw new Error();
+    return res.json();
   })
   .then(() => {
     btn.disabled = false;
@@ -237,4 +271,4 @@ function startLiveTracking(id) {
 }
 </script>
 </body>
-</html>
+        </html>
