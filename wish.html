@@ -137,7 +137,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 </head>
 <body>
 
-<audio id="bgMusic" loop></audio>
+<audio id="bgMusic" loop preload="auto"></audio>
 <div id="customBg"></div>
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
@@ -216,7 +216,7 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
     <p style="font-size:0.95rem;color:#ddd;">আপনি যা লিখতে চান তা লিখে নিচে সেন্ড করুন, এটি সরাসরি তার কাছে পৌঁছে যাবে...</p>
     <textarea class="reply-textarea" id="customInputMsg" placeholder="আপনার মনের কথা এখানে লিখুন..."></textarea>
     <button class="send-reply-btn" id="sendCustomBtn" onclick="submitCustomMessage()">SEND MESSAGE 🚀</button>
-    <div id="replySuccessAlert" style="display:none;margin-top:15px;color:#85ffb9;font-weight:700;">✅ আপনার মেসেজটি সফলভাবে পাঠানো হয়েছে! 💖</div>
+    <div id="replySuccessAlert" style="display:none;margin-top:15px;color:#85ffb9;font-weight:700;">✅ আপনার মেসেজটি সফলভাবে পাঠানো হয়েছে! 💖</div>
   </div>
 </div>
 
@@ -233,6 +233,17 @@ let receiverName = "Tamanna";
 let waNumber = "";
 let linesData = [];
 let userLastChoice = "";
+let shouldPlayAudio = false;
+
+const audioEl = document.getElementById('bgMusic');
+
+function tryPlayAudio() {
+  if (audioEl.src && audioEl.src !== window.location.href) {
+    audioEl.play().catch(e => {
+      console.log("Audio waiting for user gesture:", e);
+    });
+  }
+}
 
 if (wishId) {
   fetch(`${DB_URL}/wishes/${wishId}.json`)
@@ -248,8 +259,14 @@ if (wishId) {
       document.getElementById('pNoteDisplay').innerText = data.proposalNote || "";
       document.getElementById('userAvatar').src = data.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300";
 
-      if (data.audio) {
-        document.getElementById('bgMusic').src = data.audio;
+      // অডিও সোর্স সেট করা
+      const audioSource = data.audio || "https://assets.mixkit.co/music/preview/mixkit-romantic-moment-702.mp3";
+      audioEl.src = audioSource;
+      audioEl.load();
+
+      // ইউজার ইতিমধ্যে গিফটে ট্যাপ করে থাকলে অডিও লোড হওয়ামাত্রই প্লে হবে
+      if (shouldPlayAudio) {
+        tryPlayAudio();
       }
 
       const rawMsg = data.message || "";
@@ -257,13 +274,12 @@ if (wishId) {
     });
 }
 
-// সরাসরি Firebase ডাটাবেজে PATCH হয়ে অ্যাপসে লাইভ নোটিফিকেশন পাঠাবে
 function sendResponseToServer(choice) {
   if (!wishId) return;
-  fetch(`${DB_URL}/wishes/${wishId}.json`, {
-    method: "PATCH",
+  fetch(`${DB_URL}/wishes/${wishId}/response.json`, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ response: choice })
+    body: JSON.stringify(choice)
   }).catch(()=>{});
 }
 
@@ -273,19 +289,18 @@ window.openNewPage = function(choice) {
   document.getElementById("feedbackPage").classList.add("show");
 };
 
-// স্পেশাল মেসেজও অ্যাপসে PATCH হয়ে চলে যাবে
 window.submitCustomMessage = function() {
   const msgText = document.getElementById("customInputMsg").value.trim();
-  if(!msgText) { alert("দয়া করে কিছু লিখে তারপর সেন্ড করুন!"); return; }
+  if(!msgText) { alert("দয়া করে কিছু লিখে তারপর সেন্ড করুন!"); return; }
 
   const btn = document.getElementById("sendCustomBtn");
   btn.disabled = true;
   btn.textContent = "পাঠানো হচ্ছে...";
 
-  fetch(`${DB_URL}/wishes/${wishId}.json`, {
-    method: "PATCH",
+  fetch(`${DB_URL}/wishes/${wishId}/customFeedback.json`, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customFeedback: msgText })
+    body: JSON.stringify(msgText)
   })
   .then(() => {
     btn.style.display = "none";
@@ -356,10 +371,9 @@ function openGift() {
   if(giftBox.classList.contains("open")) return;
   giftBox.classList.add("open");
 
-  try {
-    const audio = document.getElementById("bgMusic");
-    if(audio && audio.src) { audio.play().catch(()=>{}); }
-  } catch(e) {}
+  // অডিও প্লে কমান্ড ট্রিগার
+  shouldPlayAudio = true;
+  tryPlayAudio();
 
   for(let i=0; i<25; i++) hearts.push(new Heart());
   loop();
@@ -373,9 +387,15 @@ function openGift() {
   }, 650);
 }
 
+// স্ক্রিনের যেকোনো টাচ ইভেন্টেও অডিও প্রিপেয়ার রাখা
 document.getElementById("giftScreen").addEventListener("click", openGift);
+document.getElementById("giftScreen").addEventListener("touchstart", function() {
+  shouldPlayAudio = true;
+  tryPlayAudio();
+}, { once: true });
 
 document.getElementById("nextStepBtn").addEventListener("click", () => {
+  tryPlayAudio(); // পরবর্তী ধাপে গেলেও অডিও চালু থাকা নিশ্চিত করা
   document.getElementById("wishScreen").classList.remove("show");
   document.getElementById("proposalScreen").classList.add("show");
 });
@@ -398,4 +418,4 @@ document.getElementById("btnNo").addEventListener("click", () => {
 })();
 </script>
 </body>
-</html>
+  </html>
