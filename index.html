@@ -4,61 +4,523 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Wish Master Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Anek Bangla',sans-serif; }
-body { background:radial-gradient(circle at 50% 20%, #3d0026 0%, #150022 60%, #07000e 100%); color:#fff; min-height:100vh; padding:18px 14px; display:flex; justify-content:center; }
-.app-frame { width:100%; max-width:430px; background:rgba(26,0,38,0.65); border:1.8px solid rgba(255,65,130,0.5); border-radius:32px; padding:22px 18px; backdrop-filter:blur(25px); box-shadow:0 10px 40px rgba(0,0,0,0.7); display:flex; flex-direction:column; }
-.app-title { font-family:'Poppins',sans-serif; font-size:1.4rem; font-weight:800; text-align:center; background:linear-gradient(135deg, #fff, #ffb3d1, #ff2d75); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.progress-bar { width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin:14px 0 20px; overflow:hidden; }
-.progress-fill { height:100%; width:25%; background:linear-gradient(90deg, #ffe082, #ff2d75); transition:width 0.4s ease; }
-.step-pane { display:none; }
-.step-pane.active { display:block; animation:slideUp 0.35s ease; }
-label { display:block; font-size:0.95rem; font-weight:700; color:#ffb3d1; margin:12px 0 6px; }
-input[type="text"], textarea { width:100%; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,0.07); border:1.2px solid rgba(255,179,209,0.3); color:#fff; font-size:0.98rem; outline:none; }
-input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 14px rgba(255,45,117,0.45); }
-.upload-card { border:2px dashed rgba(255,65,130,0.5); border-radius:20px; padding:16px; text-align:center; background:rgba(255,45,117,0.05); margin-top:8px; cursor:pointer; }
-.file-input { display:none; }
-.preview-wrap { width:90px; height:90px; border-radius:50%; margin:12px auto 0; border:2.5px solid #ffe082; overflow:hidden; display:none; }
-.preview-img { width:100%; height:100%; object-fit:cover; }
-.btn-row { display:flex; gap:12px; margin-top:22px; }
-.app-btn { flex:1; padding:13px; border-radius:50px; border:none; font-weight:700; font-size:0.98rem; cursor:pointer; }
-.btn-primary { background:linear-gradient(135deg,#ff2d75,#ff6b9d); color:#fff; box-shadow:0 6px 20px rgba(255,45,117,0.45); }
-.btn-back { background:rgba(255,255,255,0.12); color:#ddd; }
-.result-box { display:none; margin-top:18px; padding:15px; background:rgba(133,255,185,0.1); border:1.2px solid #85ffb9; border-radius:20px; text-align:center; }
-.result-url { font-family:'Poppins',sans-serif; font-size:0.88rem; color:#85ffb9; word-break:break-all; margin:8px 0; font-weight:600; }
-.copy-btn { width:100%; padding:10px; border-radius:50px; background:#85ffb9; color:#07000e; border:none; font-weight:800; cursor:pointer; }
-.response-board { margin-top:22px; padding:15px; border-radius:20px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,65,130,0.3); }
-.board-header { font-size:0.95rem; color:#ffe082; font-weight:700; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-.log-item { padding:12px 14px; border-radius:14px; font-size:0.92rem; background:rgba(255,255,255,0.08); margin-bottom:10px; border-left:4px solid #ff2d75; animation:slideUp 0.3s ease; }
-.app-footer { margin-top:20px; padding-top:14px; border-top:1px dashed rgba(255,179,209,0.2); text-align:center; }
-@keyframes slideUp { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);} }
+:root {
+  --primary-glow: #ff2d75;
+  --primary-accent: #ff75a0;
+  --gold-accent: #ffe082;
+  --bg-gradient: radial-gradient(circle at 50% 15%, #42002b 0%, #190028 55%, #07000f 100%);
+  --glass-bg: rgba(28, 6, 38, 0.72);
+  --glass-border: rgba(255, 75, 138, 0.45);
+}
+
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent; 
+  font-family: 'Anek Bangla', sans-serif; 
+}
+
+body { 
+  background: var(--bg-gradient); 
+  color: #fff; 
+  min-height: 100vh; 
+  padding: 16px 12px 28px; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  position: relative; 
+  overflow-x: hidden;
+}
+
+#bgCanvas {
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  pointer-events: none; 
+  z-index: 0;
+}
+
+/* Touch Ripple Heart Particle */
+.touch-heart {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99999;
+  font-size: 20px;
+  animation: floatHeart 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes floatHeart {
+  0% { transform: scale(0.3) translateY(0); opacity: 1; filter: drop-shadow(0 0 6px #ff2d75); }
+  100% { transform: scale(1.6) translateY(-60px); opacity: 0; filter: drop-shadow(0 0 15px #ffe082); }
+}
+
+/* SECURITY LOCK OVERLAY */
+#lockOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: radial-gradient(circle at 50% 30%, #300020 0%, #0d0015 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#lockOverlay.unlocked {
+  opacity: 0;
+  transform: scale(1.08);
+  pointer-events: none;
+}
+
+.lock-card {
+  width: 100%;
+  max-width: 360px;
+  background: rgba(28, 5, 38, 0.85);
+  border: 1.8px solid var(--glass-border);
+  border-radius: 32px;
+  padding: 30px 22px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.85), 0 0 35px rgba(255,45,117,0.3);
+  position: relative;
+}
+
+.lock-card.shake {
+  animation: cardShake 0.4s ease-in-out;
+}
+
+@keyframes cardShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+.lock-icon-wrap {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(255, 45, 117, 0.15);
+  border: 2px solid #ff2d75;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  box-shadow: 0 0 25px rgba(255, 45, 117, 0.55);
+  animation: lockFloat 2.6s ease-in-out infinite;
+}
+
+@keyframes lockFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.lock-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.lock-subtitle {
+  font-size: 0.85rem;
+  color: #ffb3d1;
+  margin-bottom: 22px;
+}
+
+.pass-input-box {
+  position: relative;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.pass-input {
+  width: 100%;
+  padding: 13px 44px 13px 16px;
+  border-radius: 20px;
+  background: rgba(14, 0, 22, 0.7);
+  border: 1.5px solid rgba(255, 120, 165, 0.35);
+  color: #ffe082;
+  font-size: 1rem;
+  letter-spacing: 1.2px;
+  outline: none;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.25s ease;
+}
+
+.pass-input:focus {
+  border-color: #ff2d75;
+  box-shadow: 0 0 16px rgba(255, 45, 117, 0.5);
+}
+
+.pass-eye-btn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.15rem;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+}
+
+.lock-error-msg {
+  display: none;
+  font-size: 0.8rem;
+  color: #ff4d6d;
+  font-weight: 600;
+  margin-bottom: 14px;
+  animation: slideFadeIn 0.3s ease;
+}
+
+.unlock-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #ff2d75, #ff6b9d);
+  color: #fff;
+  border: none;
+  font-weight: 800;
+  font-size: 0.98rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255, 45, 117, 0.5);
+}
+
+/* MAIN STUDIO FRAME */
+.app-frame { 
+  width: 100%; 
+  max-width: 420px; 
+  background: var(--glass-bg); 
+  border: 1.5px solid var(--glass-border); 
+  border-radius: 36px; 
+  padding: 24px 20px 20px; 
+  backdrop-filter: blur(28px); 
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(255, 45, 117, 0.22); 
+  display: flex; 
+  flex-direction: column; 
+  position: relative; 
+  z-index: 1;
+}
+
+.header-wrap { text-align: center; margin-bottom: 6px; }
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 45, 117, 0.15);
+  border: 1px solid rgba(255, 45, 117, 0.4);
+  padding: 3px 12px;
+  border-radius: 30px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #ffb3d1;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.app-title { 
+  font-family: 'Outfit', sans-serif; 
+  font-size: 1.5rem; 
+  font-weight: 900; 
+  letter-spacing: 0.5px;
+  text-align: center; 
+  background: linear-gradient(135deg, #ffffff 0%, #ffd0e2 40%, #ff2d75 100%); 
+  -webkit-background-clip: text; 
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 14px rgba(255, 45, 117, 0.45));
+}
+
+.progress-container { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 20px; }
+.step-info-row { display: flex; justify-content: space-between; font-size: 0.76rem; color: #ffb3d1; font-weight: 600; font-family: 'Outfit', sans-serif; }
+.progress-bar { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 12px; overflow: hidden; }
+.progress-fill { height: 100%; width: 25%; background: linear-gradient(90deg, #ffe082 0%, #ff2d75 80%, #ff85ad 100%); border-radius: 12px; transition: width 0.45s ease; }
+
+.step-pane { display: none; }
+.step-pane.active { display: block; animation: slideFadeIn 0.38s ease; }
+
+@keyframes slideFadeIn { 
+  from { opacity: 0; transform: translateY(14px) scale(0.98); } 
+  to { opacity: 1; transform: translateY(0) scale(1); } 
+}
+
+.input-group { margin-bottom: 14px; }
+label { display: block; font-size: 0.92rem; font-weight: 700; color: #ffe6f0; margin-bottom: 6px; }
+
+input[type="text"], textarea { 
+  width: 100%; 
+  padding: 13px 16px; 
+  border-radius: 18px; 
+  background: rgba(14, 0, 22, 0.55); 
+  border: 1.4px solid rgba(255, 120, 165, 0.28); 
+  color: #fff; 
+  font-size: 0.96rem; 
+  outline: none; 
+  transition: all 0.25s ease;
+}
+
+input[type="text"]:focus, textarea:focus { 
+  border-color: #ff337a; 
+  box-shadow: 0 0 18px rgba(255, 45, 117, 0.45); 
+}
+
+.upload-card { 
+  border: 2px dashed rgba(255, 75, 138, 0.45); 
+  border-radius: 24px; 
+  padding: 20px 14px; 
+  text-align: center; 
+  background: rgba(255, 45, 117, 0.04); 
+  margin-top: 6px; 
+  cursor: pointer; 
+}
+
+.upload-icon-anim { font-size: 34px; display: block; margin-bottom: 4px; animation: floatUp 2.5s infinite; }
+@keyframes floatUp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+.file-input { display: none; }
+.preview-wrap { width: 96px; height: 96px; border-radius: 50%; margin: 14px auto 0; border: 3px solid #ffe082; overflow: hidden; display: none; }
+.preview-img { width: 100%; height: 100%; object-fit: cover; }
+
+.btn-row { display: flex; gap: 10px; margin-top: 22px; }
+.app-btn { flex: 1; padding: 13px 18px; border-radius: 50px; border: none; font-weight: 700; font-size: 0.96rem; cursor: pointer; }
+.btn-primary { background: linear-gradient(135deg, #ff2d75, #ff6b9d); color: #fff; box-shadow: 0 8px 24px rgba(255, 45, 117, 0.48); }
+.btn-back { background: rgba(255, 255, 255, 0.1); color: #e5e5e5; border: 1px solid rgba(255, 255, 255, 0.15); }
+
+.result-box { 
+  display: none; 
+  margin-top: 20px; 
+  padding: 18px 14px; 
+  background: rgba(133, 255, 185, 0.08); 
+  border: 1.5px solid rgba(133, 255, 185, 0.5); 
+  border-radius: 24px; 
+  text-align: center; 
+}
+.result-url { 
+  font-family: 'Outfit', sans-serif; 
+  font-size: 0.86rem; 
+  color: #85ffb9; 
+  word-break: break-all; 
+  margin: 10px 0 14px; 
+  background: rgba(0, 0, 0, 0.4); 
+  padding: 10px; 
+  border-radius: 14px; 
+}
+.copy-btn { width: 100%; padding: 11px; border-radius: 50px; background: #85ffb9; color: #07000e; border: none; font-weight: 800; cursor: pointer; }
+
+/* SAVED WISHER HISTORY BOARD */
+.history-section {
+  margin-top: 20px;
+  background: rgba(12, 0, 18, 0.65);
+  border: 1.2px solid rgba(255, 65, 130, 0.35);
+  border-radius: 24px;
+  padding: 16px 14px;
+}
+.history-header {
+  font-size: 0.92rem;
+  color: #ffe082;
+  font-weight: 800;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.history-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(26, 0, 38, 0.85);
+  border: 1.2px solid #ff2d75;
+  color: #ffe082;
+  font-size: 0.88rem;
+  outline: none;
+  margin-bottom: 12px;
+}
+.history-details-card {
+  display: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 12px;
+  border-left: 4px solid #85ffb9;
+  font-size: 0.88rem;
+}
+.history-action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.history-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 30px;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-hist-copy { background: #85ffb9; color: #07000e; }
+.btn-hist-open { background: rgba(255, 255, 255, 0.15); color: #fff; text-decoration: none; text-align: center; }
+
+/* FOOTER */
+.app-footer { 
+  margin-top: 22px; 
+  padding-top: 14px; 
+  border-top: 1px dashed rgba(255, 179, 209, 0.2); 
+  text-align: center; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 10px; 
+}
+.credit-tag { font-size: 0.82rem; color: #ffe082; font-weight: 700; font-family: 'Outfit', sans-serif; }
+
+.fb-copy-btn {
+  background: linear-gradient(135deg, rgba(255, 45, 117, 0.22), rgba(24, 119, 242, 0.28));
+  border: 1.2px solid rgba(255, 120, 165, 0.55);
+  color: #fff;
+  border-radius: 50px;
+  padding: 7px 18px;
+  font-size: 0.84rem;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  backdrop-filter: blur(15px);
+}
+
+/* MUSIC VISUALIZER CONTROLLER */
+.music-control-wrapper {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.music-toggle-btn {
+  width: 44px; 
+  height: 44px; 
+  border-radius: 50%;
+  background: rgba(28, 0, 42, 0.7); 
+  border: 1.8px solid #ff2d75;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-size: 1.18rem; 
+  cursor: pointer; 
+  box-shadow: 0 6px 20px rgba(255, 45, 117, 0.5);
+  backdrop-filter: blur(15px); 
+}
+.music-toggle-btn.playing { animation: rotateDisc 4s linear infinite; }
+@keyframes rotateDisc { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Live Audio Wave Bars */
+.music-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+.music-bar {
+  width: 3px;
+  height: 4px;
+  background: #ff2d75;
+  border-radius: 3px;
+  transition: height 0.2s ease;
+}
+.music-bars.active .b1 { animation: wave 0.8s infinite ease-in-out alternate; }
+.music-bars.active .b2 { animation: wave 1.2s infinite ease-in-out alternate 0.2s; }
+.music-bars.active .b3 { animation: wave 0.9s infinite ease-in-out alternate 0.4s; }
+.music-bars.active .b4 { animation: wave 1.1s infinite ease-in-out alternate 0.1s; }
+@keyframes wave { 0% { height: 4px; background: #ff2d75; } 100% { height: 14px; background: #ffe082; } }
 </style>
 </head>
 <body>
 
-<!-- অ্যাপসের ব্যাকগ্রাউন্ড মিউজিক -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- SECURITY PASS LOCK OVERLAY -->
+<div id="lockOverlay">
+  <div class="lock-card" id="lockCard">
+    <div class="lock-icon-wrap" id="lockIcon">🔒</div>
+    <div class="lock-title">SECURITY ACCESS</div>
+    <div class="lock-subtitle">অ্যাপে প্রবেশ করতে গোপন পাসওয়ার্ডটি দিন</div>
+    
+    <div class="pass-input-box">
+      <input type="password" id="passInput" class="pass-input" placeholder="Enter Password" autocomplete="off">
+      <button class="pass-eye-btn" onclick="togglePassView()" type="button">👁️</button>
+    </div>
+    
+    <div class="lock-error-msg" id="lockError">❌ ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
+    <button class="unlock-btn" onclick="verifyPassword()">UNLOCK APP 🔓</button>
+  </div>
+</div>
+
+<!-- Floating Music Visualizer Button -->
+<div class="music-control-wrapper">
+  <button class="music-toggle-btn playing" id="musicToggle" onclick="toggleAudio()" title="Music On/Off">🎵</button>
+  <div class="music-bars active" id="musicBars">
+    <div class="music-bar b1"></div>
+    <div class="music-bar b2"></div>
+    <div class="music-bar b3"></div>
+    <div class="music-bar b4"></div>
+  </div>
+</div>
 <audio id="appBgMusic" loop preload="auto" src="https://tehhjf.github.io/love-wish-bot/song.mp3"></audio>
 
 <div class="app-frame">
-  <div class="app-title">✨ WISH MASTER STUDIO ✨</div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="header-wrap">
+    <div class="brand-badge">✨ EDITION 2026 ✨</div>
+    <div class="app-title">WISH MASTER STUDIO</div>
+  </div>
 
-  <!-- ধাপ ১ -->
+  <div class="progress-container">
+    <div class="step-info-row">
+      <span id="stepCounterText">ধাপ ১ / ৪</span>
+      <span id="stepPercentText">২৫% সম্পন্ন</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
   <div class="step-pane active" id="step1">
-    <label>১️⃣ আপনার নাম (Sender):</label>
-    <input type="text" id="sName" placeholder="আপনার নাম লিখুন">
-    <label>২️⃣ তার নাম (Receiver):</label>
-    <input type="text" id="rName" placeholder="তার নাম লিখুন">
+    <div class="input-group">
+      <label>১️⃣ আপনার নাম (Sender):</label>
+      <input type="text" id="sName" placeholder="যেমন: Emon">
+    </div>
+    <div class="input-group">
+      <label>২️⃣ তার নাম (Receiver):</label>
+      <input type="text" id="rName" placeholder="যেমন: Tamanna">
+    </div>
     <div class="btn-row">
       <button class="app-btn btn-primary" onclick="setStep(2)">পরবর্তী ধাপ 👉</button>
     </div>
   </div>
 
-  <!-- ধাপ ২ -->
+  <!-- Step 2 -->
   <div class="step-pane" id="step2">
-    <label>৩️⃣ চিঠির বার্তা (প্রতি লাইন আলাদা রাখুন):</label>
-    <textarea id="letterText" rows="6">গুছিয়ে বলতে পারিনা কোন কিছু..!😅
+    <div class="input-group">
+      <label>৩️⃣ চিঠির বার্তা (প্রতি লাইন আলাদা রাখুন):</label>
+      <textarea id="letterText" rows="6">গুছিয়ে বলতে পারিনা কোন কিছু..!😅
 তবে যতোটুকু পেরেছি
 মনের অন্তরাল থেকে লিখেছি..🤕
 তুমি আমার মস্তিষ্কে থাকা..!
@@ -68,33 +530,41 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
 তবে এটুকু বলতে পারি
 আমাকে ভালোবেসে
 তুমি কখনো ঠকবে না..!💖</textarea>
+    </div>
     <div class="btn-row">
       <button class="app-btn btn-back" onclick="setStep(1)">👈 পেছনে</button>
       <button class="app-btn btn-primary" onclick="setStep(3)">পরবর্তী ধাপ 👉</button>
     </div>
   </div>
 
-  <!-- ধাপ ৩ -->
+  <!-- Step 3 -->
   <div class="step-pane" id="step3">
-    <label>৪️⃣ প্রপোজাল নোট:</label>
-    <input type="text" id="pNote" value="মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈">
-    <label>৫️⃣ WhatsApp নাম্বার (যেমন: 017xxxxxxxx):</label>
-    <input type="text" id="waNum" placeholder="না দিতে চাইলে খালি রাখুন">
+    <div class="input-group">
+      <label>৪️⃣ প্রপোজাল নোট:</label>
+      <input type="text" id="pNote" value="মনের গোপন কথাটি আজ সত্যি করে বলে দাও... 🙈">
+    </div>
+    <div class="input-group">
+      <label>৫️⃣ WhatsApp নাম্বার (যেমন: 017xxxxxxxx):</label>
+      <input type="text" id="waNum" placeholder="না দিতে চাইলে খালি রাখুন">
+    </div>
     <div class="btn-row">
       <button class="app-btn btn-back" onclick="setStep(2)">👈 পেছনে</button>
       <button class="app-btn btn-primary" onclick="setStep(4)">পরবর্তী ধাপ 👉</button>
     </div>
   </div>
 
-  <!-- ধাপ ৪ -->
+  <!-- Step 4 -->
   <div class="step-pane" id="step4">
-    <label>৬️⃣ প্রোফাইল ফটো:</label>
-    <div class="upload-card" onclick="document.getElementById('photoInput').click()">
-      <span style="font-size:30px;display:block;">🖼️</span>
-      <span style="font-size:0.85rem;color:#ffe082;">ট্যাপ করে ছবি নির্বাচন করুন</span>
-      <input type="file" id="photoInput" class="file-input" accept="image/*" onchange="previewImage(this)">
+    <div class="input-group">
+      <label>৬️⃣ প্রোফাইল ফটো (ঐচ্ছিক):</label>
+      <div class="upload-card" onclick="document.getElementById('photoInput').click()">
+        <span class="upload-icon-anim">🖼️</span>
+        <span style="font-size:0.9rem;color:#ffe082;font-weight:700;display:block;">ট্যাপ করে ছবি নির্বাচন করুন</span>
+        <span style="font-size:0.75rem;color:#ffb3d1;">ছবি নিজে থেকেই অটো-কম্প্রেস হয়ে যাবে</span>
+        <input type="file" id="photoInput" class="file-input" accept="image/*" onchange="previewImage(this)">
+      </div>
+      <div class="preview-wrap" id="previewWrap"><img src="" id="avatarPreview" class="preview-img" alt="Preview"></div>
     </div>
-    <div class="preview-wrap" id="previewWrap"><img src="" id="avatarPreview" class="preview-img"></div>
 
     <div class="btn-row">
       <button class="app-btn btn-back" onclick="setStep(3)">👈 পেছনে</button>
@@ -102,53 +572,197 @@ input[type="text"]:focus, textarea:focus { border-color:#ff2d75; box-shadow:0 0 
     </div>
   </div>
 
-  <!-- লিংক ফলাফল বক্স -->
+  <!-- Result Box -->
   <div class="result-box" id="resultCard">
-    <div style="font-size:0.95rem;color:#fff;font-weight:700;">🎉 আপনার উইশ লিংক রেডি!</div>
+    <div style="font-size:1.02rem;color:#fff;font-weight:800;">🎉 আপনার উইশ লিংক সম্পূর্ণ রেডি!</div>
     <div class="result-url" id="linkText"></div>
     <button class="copy-btn" onclick="copyFinalLink()">কপি করুন 📋</button>
   </div>
 
-  <!-- লাইভ রেসপন্স ফিড -->
-  <div class="response-board">
-    <div class="board-header">
-      <span>🔔 লাইভ রেসপন্স ফিড:</span>
-      <span id="liveStatus" style="font-size:0.75rem;color:#85ffb9;">🟢 Active</span>
+  <!-- SAVED HISTORY & TRACKING BOARD -->
+  <div class="history-section">
+    <div class="history-header">
+      <span>📂 তৈরি করা উইশের হিস্টোরি:</span>
+      <span style="font-size:0.75rem;color:#85ffb9;">🟢 Tracking</span>
     </div>
-    <div id="liveLogs"><div style="color:#aaa;font-size:0.85rem;">এখনো কোনো রেসপন্স আসেনি...</div></div>
+    <select id="historyDropdown" class="history-select" onchange="onSelectHistoryWish()">
+      <option value="">-- হিস্টোরি থেকে উইশ বেছে নিন --</option>
+    </select>
+    <div id="historyDetails" class="history-details-card">
+      <div id="histReceiverName" style="color:#ffe082;font-weight:700;"></div>
+      <div id="histStatusText" style="margin:5px 0;">রেসপন্স: অপেক্ষা করা হচ্ছে... ⏳</div>
+      <div id="histFeedbackText" style="font-style:italic;color:#ddd;margin-bottom:8px;"></div>
+      <div class="history-action-row">
+        <button class="history-btn btn-hist-copy" onclick="copyHistoryLink()">লিংক কপি 📋</button>
+        <a id="histOpenLink" class="history-btn btn-hist-open" href="#" target="_blank">ওপেন করুন 🔗</a>
+      </div>
+    </div>
   </div>
 
+  <!-- Footer -->
   <div class="app-footer">
-    <div style="font-size:0.8rem;color:#ffe082;font-weight:600;">Created by <span style="color:#ff6b9d;">CYBER 67 EMON</span></div>
+    <div class="credit-tag">Created by <span style="color:#ff6b9d;">CYBER 67 EMON</span></div>
+    
+    <button class="fb-copy-btn" onclick="copyFacebookLink()">
+      <span>🔵</span>
+      <span id="fbBtnText">My FB link</span>
+      <span>📋</span>
+    </button>
   </div>
 </div>
 
 <script>
 const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
-let encodedPhoto = "";
-let notifiedChoice = null;
-let notifiedMessage = null;
-let pollTimer = null;
+const FB_LINK = "https://www.facebook.com/profile.php?id=61594602808084";
+const SECRET_KEY = "@CYBER67EMON";
 
-// অ্যাপস ওপেন হলেই গান স্বয়ংক্রিয়ভাবে বাজানোর কোড
-const appAudio = document.getElementById('appBgMusic');
-function playAppMusic() {
-  if (appAudio) {
-    appAudio.play().then(() => {
-      document.removeEventListener('click', playAppMusic);
-      document.removeEventListener('touchstart', playAppMusic);
-    }).catch(() => {});
+let encodedPhoto = "";
+let pollTimer = null;
+let currentTrackingId = null;
+
+/* 💖 TOUCH RIPPLE HEARTS EFFECT */
+document.addEventListener('pointerdown', function(e) {
+  const heart = document.createElement('div');
+  heart.className = 'touch-heart';
+  heart.innerText = ['💖', '❤️', '✨', '🌸'][Math.floor(Math.random() * 4)];
+  heart.style.left = (e.clientX - 10) + 'px';
+  heart.style.top = (e.clientY - 15) + 'px';
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), 900);
+});
+
+/* PASSWORD VERIFICATION */
+function verifyPassword() {
+  const input = document.getElementById('passInput');
+  const card = document.getElementById('lockCard');
+  const errorMsg = document.getElementById('lockError');
+  const lockIcon = document.getElementById('lockIcon');
+  
+  if (input.value === SECRET_KEY) {
+    lockIcon.innerText = "🔓";
+    lockIcon.style.borderColor = "#85ffb9";
+    lockIcon.style.boxShadow = "0 0 30px rgba(133, 255, 185, 0.7)";
+    errorMsg.style.display = "none";
+    
+    setTimeout(() => {
+      document.getElementById('lockOverlay').classList.add('unlocked');
+      autoStartAudio();
+      loadHistoryDropdown();
+    }, 450);
+  } else {
+    errorMsg.style.display = "block";
+    card.classList.remove('shake');
+    void card.offsetWidth;
+    card.classList.add('shake');
+    input.value = "";
+    input.focus();
   }
 }
 
-window.addEventListener('load', playAppMusic);
-document.addEventListener('click', playAppMusic);
-document.addEventListener('touchstart', playAppMusic);
+document.getElementById('passInput').addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') verifyPassword();
+});
+
+function togglePassView() {
+  const pass = document.getElementById('passInput');
+  pass.type = (pass.type === 'password') ? 'text' : 'password';
+}
+
+/* Background Canvas */
+const canvas = document.getElementById("bgCanvas");
+const ctx = canvas.getContext("2d");
+let cw = canvas.width = window.innerWidth;
+let ch = canvas.height = window.innerHeight;
+window.addEventListener('resize', () => { cw = canvas.width = window.innerWidth; ch = canvas.height = window.innerHeight; });
+
+const animSymbols = ["❤️", "💖", "✨", "🌸", "💕"];
+const particles = [];
+for (let i = 0; i < 22; i++) {
+  particles.push({
+    x: Math.random() * cw,
+    y: Math.random() * ch,
+    size: 14 + Math.random() * 20,
+    speedY: 0.6 + Math.random() * 1.3,
+    speedX: (Math.random() - 0.5) * 0.7,
+    symbol: animSymbols[Math.floor(Math.random() * animSymbols.length)],
+    opacity: 0.22 + Math.random() * 0.45
+  });
+}
+
+function renderBackgroundAnimation() {
+  ctx.clearRect(0, 0, cw, ch);
+  for (let p of particles) {
+    p.y -= p.speedY;
+    p.x += p.speedX;
+    if (p.y < -30) { p.y = ch + 20; p.x = Math.random() * cw; }
+    ctx.globalAlpha = p.opacity;
+    ctx.font = `${p.size}px serif`;
+    ctx.fillText(p.symbol, p.x, p.y);
+  }
+  requestAnimationFrame(renderBackgroundAnimation);
+}
+renderBackgroundAnimation();
+
+/* Music with Visualizer Wave */
+const appAudio = document.getElementById('appBgMusic');
+const musicBtn = document.getElementById('musicToggle');
+const musicBars = document.getElementById('musicBars');
+
+function toggleAudio() {
+  if (appAudio.paused) {
+    appAudio.play().then(() => {
+      musicBtn.innerText = "🎵";
+      musicBtn.classList.add('playing');
+      musicBars.classList.add('active');
+    }).catch(()=>{});
+  } else {
+    appAudio.pause();
+    musicBtn.innerText = "🔇";
+    musicBtn.classList.remove('playing');
+    musicBars.classList.remove('active');
+  }
+}
+
+function autoStartAudio() {
+  appAudio.play().then(() => {
+    musicBtn.innerText = "🎵";
+    musicBtn.classList.add('playing');
+    musicBars.classList.add('active');
+  }).catch(() => {});
+}
+
+/* Reliable Copy Method */
+function copyToClipboardFallback(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.top = "-9999px";
+  textArea.style.left = "-9999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  let successful = false;
+  try { successful = document.execCommand('copy'); } catch (err) { successful = false; }
+  document.body.removeChild(textArea);
+  return successful;
+}
+
+function copyFacebookLink() {
+  if (copyToClipboardFallback(FB_LINK)) {
+    const btnText = document.getElementById('fbBtnText');
+    btnText.innerText = "Copied! ✨";
+    setTimeout(() => { btnText.innerText = "My FB link"; }, 2200);
+    alert("ফেসবুক প্রোফাইল লিঙ্ক কপি হয়েছে! 💙");
+  }
+}
 
 function setStep(num) {
   document.querySelectorAll('.step-pane').forEach(el => el.classList.remove('active'));
   document.getElementById('step' + num).classList.add('active');
-  document.getElementById('progressFill').style.width = (num * 25) + "%";
+  const percent = num * 25;
+  document.getElementById('progressFill').style.width = percent + "%";
+  document.getElementById('stepCounterText').innerText = `ধাপ ${num} / ৪`;
+  document.getElementById('stepPercentText').innerText = `${percent}% সম্পন্ন`;
 }
 
 function previewImage(input) {
@@ -175,15 +789,74 @@ function previewImage(input) {
   }
 }
 
+/* SAVED WISHER LOCAL STORAGE HISTORY */
+function saveWishToHistory(id, rName) {
+  let hist = JSON.parse(localStorage.getItem('wish_history') || '[]');
+  hist.unshift({ id, name: rName, time: new Date().toLocaleDateString('bn-BD') });
+  localStorage.setItem('wish_history', JSON.stringify(hist));
+  loadHistoryDropdown();
+}
+
+function loadHistoryDropdown() {
+  const dropdown = document.getElementById('historyDropdown');
+  let hist = JSON.parse(localStorage.getItem('wish_history') || '[]');
+  dropdown.innerHTML = '<option value="">-- হিস্টোরি থেকে উইশ বেছে নিন --</option>';
+  hist.forEach(item => {
+    dropdown.innerHTML += `<option value="${item.id}">${item.name} (${item.time})</option>`;
+  });
+}
+
+function onSelectHistoryWish() {
+  const wishId = document.getElementById('historyDropdown').value;
+  if (!wishId) {
+    document.getElementById('historyDetails').style.display = 'none';
+    return;
+  }
+  currentTrackingId = wishId;
+  const finalUrl = `https://tehhjf.github.io/love-wish-bot/wish.html?id=${wishId}`;
+  document.getElementById('histOpenLink').href = finalUrl;
+  document.getElementById('historyDetails').style.display = 'block';
+  fetchSingleWishStatus(wishId);
+}
+
+function copyHistoryLink() {
+  if (!currentTrackingId) return;
+  const link = `https://tehhjf.github.io/love-wish-bot/wish.html?id=${currentTrackingId}`;
+  copyToClipboardFallback(link);
+  alert("হিস্টোরি লিংক কপি হয়েছে! 📋");
+}
+
+function fetchSingleWishStatus(id) {
+  fetch(`${DB_URL}/wishes/${id}.json?t=${Date.now()}`)
+    .then(res => res.json())
+    .then(data => {
+      if(!data) return;
+      document.getElementById('histReceiverName').innerText = `👤 কার জন্য: ${data.receiver || 'Unknown'}`;
+      const statusEl = document.getElementById('histStatusText');
+      if (data.response) {
+        statusEl.innerHTML = `রেসপন্স: <strong style="color:${data.response === 'YES' ? '#85ffb9' : '#ff4d4d'}">${data.response}${data.response === 'YES' ? '🥰' : '🥺'}</strong>`;
+      } else {
+        statusEl.innerHTML = `রেসপন্স: অপেক্ষা করা হচ্ছে... ⏳`;
+      }
+      const feedEl = document.getElementById('histFeedbackText');
+      if (data.customFeedback) {
+        feedEl.innerHTML = `💌 মেসেজ: "${data.customFeedback}"`;
+      } else {
+        feedEl.innerHTML = ``;
+      }
+    }).catch(()=>{});
+}
+
 function createWishLink() {
   const btn = document.getElementById('publishBtn');
   btn.disabled = true;
   btn.innerText = "লিংক তৈরি হচ্ছে...";
   const wishId = "wish_" + Math.random().toString(36).substring(2, 9);
+  const rNameVal = document.getElementById('rName').value.trim() || "Special Someone";
   
   const payload = {
     sender: document.getElementById('sName').value.trim() || "Anonymous",
-    receiver: document.getElementById('rName').value.trim() || "Special Someone",
+    receiver: rNameVal,
     message: document.getElementById('letterText').value.trim(),
     proposalNote: document.getElementById('pNote').value.trim(),
     wa: document.getElementById('waNum').value.trim(),
@@ -205,12 +878,12 @@ function createWishLink() {
   .then(() => {
     btn.disabled = false;
     btn.innerText = "উইশ লিংক বানান 🚀";
-    
     const finalUrl = `https://tehhjf.github.io/love-wish-bot/wish.html?id=${wishId}`;
-    
     document.getElementById('linkText').innerText = finalUrl;
     document.getElementById('resultCard').style.display = "block";
-    startLiveTracking(wishId);
+    saveWishToHistory(wishId, rNameVal);
+    document.getElementById('historyDropdown').value = wishId;
+    onSelectHistoryWish();
   })
   .catch(() => {
     btn.disabled = false;
@@ -220,55 +893,10 @@ function createWishLink() {
 }
 
 function copyFinalLink() {
-  navigator.clipboard.writeText(document.getElementById('linkText').innerText);
+  const link = document.getElementById('linkText').innerText;
+  copyToClipboardFallback(link);
   alert("সারপ্রাইজ লিংক কপি হয়েছে! 💖");
-}
-
-function startLiveTracking(id) {
-  if (pollTimer) clearInterval(pollTimer);
-
-  const fetchLiveStatus = () => {
-    fetch(`${DB_URL}/wishes/${id}.json?t=${Date.now()}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data) return;
-        const logBox = document.getElementById('liveLogs');
-        let logsHtml = "";
-
-        if (data.response) {
-          const isYes = data.response === "YES";
-          logsHtml += `<div class="log-item" style="border-left-color:${isYes ? '#85ffb9' : '#ff4d4d'};">
-            💌 <strong>${data.receiver}</strong> উত্তর দিয়েছে: 
-            <span style="color:${isYes ? '#85ffb9' : '#ff4d4d'};font-weight:700;">${data.response} ${isYes ? '🥰' : '🥺'}</span>
-          </div>`;
-
-          if (notifiedChoice !== data.response) {
-            notifiedChoice = data.response;
-            alert(`🔔 রেসপন্স অ্যালার্ট:\n${data.receiver} উত্তর দিয়েছেন: ${data.response}!`);
-          }
-        }
-
-        if (data.customFeedback) {
-          logsHtml += `<div class="log-item" style="border-left-color:#ffe082;">
-            📝 <strong>${data.receiver}-এর বার্তা:</strong><br>
-            <span style="color:#ffe082;font-style:italic;">"${data.customFeedback}"</span>
-          </div>`;
-
-          if (notifiedMessage !== data.customFeedback) {
-            notifiedMessage = data.customFeedback;
-            alert(`💌 নতুন মেসেজ নোটিফিকেশন:\n"${data.customFeedback}"`);
-          }
-        }
-
-        if (logsHtml) {
-          logBox.innerHTML = logsHtml;
-        }
-      })
-      .catch(() => {});
-  };
-
-  pollTimer = setInterval(fetchLiveStatus, 2000);
 }
 </script>
 </body>
-        </html>
+                                                                                                            </html>
