@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>💖 Special Surprise For You</title>
-<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&family=Dancing+Script:wght@700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
 <!-- Confetti Library -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
@@ -13,12 +13,12 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 #customBg{position:fixed;inset:0;z-index:0;background:radial-gradient(circle at 50% 30%, #46002c 0%, #170024 60%, #07000e 100%);}
 
 .giant-heart-bg{
-  position:fixed;top:54%;left:50%;transform:translate(-50%,-50%);
-  z-index:1;font-size:350px;color:rgba(255,45,117,0.22);
-  filter:drop-shadow(0 0 80px rgba(255,45,117,0.55));
+  position:fixed;top:45%;left:50%;transform:translate(-50%,-50%);
+  z-index:1;font-size:360px;color:rgba(255,45,117,0.28);
+  filter:drop-shadow(0 0 90px rgba(255,45,117,0.65));
   animation:heartPulse 2.2s ease-in-out infinite;pointer-events:none;user-select:none;
 }
-@keyframes heartPulse{0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-50%,-50%) scale(1.15);}}
+@keyframes heartPulse{0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-50%,-50%) scale(1.12);}}
 #heartsCanvas{position:fixed;inset:0;z-index:2;pointer-events:none;}
 
 /* Touch Ripple Heart Particle */
@@ -34,40 +34,156 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
   100% { transform: scale(1.6) translateY(-60px); opacity: 0; filter: drop-shadow(0 0 15px #ffe082); }
 }
 
-/* Step 1: Gift Box */
+/* Step 1: Royal Letter Screen (Matches Reference Image) */
 #giftScreen{
   position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
-  align-items:center;justify-content:space-between;padding:50px 20px 70px 20px;
-  text-align:center;transition:opacity 0.8s ease;cursor:pointer;
+  align-items:center;justify-content:center;padding:24px 20px;
+  text-align:center;transition:opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);cursor:pointer;
 }
 #giftScreen.hide{opacity:0;pointer-events:none;}
-.top-tap-hint{
-  font-size:1.25rem;color:#ffe082;font-weight:700;
-  animation:pulseGlow 2s ease-in-out infinite;text-shadow:0 0 15px rgba(255,224,130,0.7);
+
+.envelope-intro-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 26px;
+  animation: floatText 2.5s ease-in-out infinite alternate;
 }
-.gift-box-wrapper{display:flex;align-items:center;justify-content:center;margin-top:auto;margin-bottom:auto;}
-.gift-box{
-  position:relative;width:155px;height:155px;cursor:pointer;
-  animation:boxShake 1.4s ease-in-out infinite;filter:drop-shadow(0 20px 40px rgba(255,45,117,0.85));
+@keyframes floatText {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-7px); }
 }
-@keyframes boxShake{
-  0%,100%{transform:rotate(0) scale(1);}
-  15%{transform:rotate(-6deg) scale(1.03);}
-  30%{transform:rotate(6deg) scale(1.05);}
-  45%{transform:rotate(-4deg) scale(1.03);}
-  60%{transform:rotate(4deg) scale(1.05);}
-  75%{transform:rotate(0) scale(1);}
+
+.tap-open-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffe082;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-shadow: 0 0 18px rgba(255, 224, 130, 0.8), 0 0 35px rgba(255, 45, 117, 0.7);
 }
-.gift-lid{
-  position:absolute;top:-12px;left:-10px;width:175px;height:42px;
-  background:linear-gradient(135deg,#ff2d75,#ff6b9d);border-radius:8px;
-  box-shadow:0 4px 20px rgba(255,45,117,0.7);transition:all 0.9s ease;
+
+.sender-tag-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-top: 6px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 0 14px rgba(255, 120, 165, 0.85);
 }
-.gift-box.open .gift-lid{transform:translateY(-180px) rotate(-45deg);opacity:0;}
-.gift-body{
-  position:absolute;top:30px;left:5px;width:145px;height:125px;
-  background:linear-gradient(135deg,#d81b60,#ff4081);border-radius:10px;
-  box-shadow:inset 0 0 30px rgba(0,0,0,0.35),0 10px 30px rgba(255,45,117,0.5);overflow:hidden;
+
+/* 3D Realistic Royal Love Envelope */
+.envelope-container {
+  position: relative;
+  width: 295px;
+  height: 195px;
+  cursor: pointer;
+  filter: drop-shadow(0 15px 35px rgba(255, 45, 117, 0.75)) drop-shadow(0 0 25px rgba(255, 45, 117, 0.45));
+  transition: transform 0.3s ease;
+  animation: envGlow 2.2s infinite alternate ease-in-out;
+}
+.envelope-container:active { transform: scale(0.96); }
+
+@keyframes envGlow {
+  0% { transform: scale(1); filter: drop-shadow(0 15px 35px rgba(255, 45, 117, 0.65)); }
+  100% { transform: scale(1.03); filter: drop-shadow(0 20px 48px rgba(255, 45, 117, 0.95)) drop-shadow(0 0 30px #ffe082); }
+}
+
+.envelope-base {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #d81b60 0%, #ad1457 60%, #880e4f 100%);
+  border: 1.5px solid rgba(255, 140, 185, 0.55);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+/* Envelope Flaps Effect */
+.envelope-left-fold {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 147px solid #b71550;
+  border-top: 97px solid transparent;
+  border-bottom: 97px solid transparent;
+  z-index: 2;
+  opacity: 0.85;
+}
+.envelope-right-fold {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-right: 147px solid #c2185b;
+  border-top: 97px solid transparent;
+  border-bottom: 97px solid transparent;
+  z-index: 2;
+  opacity: 0.85;
+}
+.envelope-bottom-fold {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-bottom: 110px solid #e91e63;
+  border-left: 147px solid transparent;
+  border-right: 147px solid transparent;
+  z-index: 3;
+}
+.envelope-top-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-top: 115px solid #ff4081;
+  border-left: 147px solid transparent;
+  border-right: 147px solid transparent;
+  transform-origin: top;
+  transition: transform 0.8s ease, z-index 0.3s;
+  z-index: 4;
+}
+.envelope-container.open .envelope-top-flap {
+  transform: rotateX(180deg);
+  z-index: 1;
+}
+
+/* Glowing Gold Heart Wax Seal */
+.wax-seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -35%);
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe082 0%, #ffb300 70%, #d48800 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.5), 0 0 25px rgba(255, 224, 130, 0.95);
+  border: 2px solid #fff;
+  z-index: 5;
+  transition: transform 0.6s ease, opacity 0.6s ease;
+}
+.envelope-container.open .wax-seal {
+  transform: translate(-50%, -120%) scale(0.6);
+  opacity: 0;
 }
 
 /* Step 2: Wish Screen */
@@ -147,16 +263,21 @@ html,body{height:100%;width:100%;overflow:hidden;font-family:'Anek Bangla',sans-
 <div class="giant-heart-bg">❤️</div>
 <canvas id="heartsCanvas"></canvas>
 
-<!-- Step 1: Gift Box -->
+<!-- Step 1: Royal Letter (Visual matches provided screenshot) -->
 <div id="giftScreen">
-  <div class="top-tap-hint">👆 গিফটটি দেখতে ট্যাপ করুন 🎁</div>
-  <div class="gift-box-wrapper">
-    <div class="gift-box" id="giftBox">
-      <div class="gift-lid"></div>
-      <div class="gift-body"></div>
-    </div>
+  <div class="envelope-intro-wrap">
+    <div class="tap-open-title">👉 Tap To Open 🎁</div>
+    <div class="sender-tag-title"><span id="frontSenderName">SPECIAL ONE</span> 💌</div>
   </div>
-  <div style="height:20px;"></div>
+
+  <div class="envelope-container" id="giftBox">
+    <div class="envelope-base"></div>
+    <div class="envelope-left-fold"></div>
+    <div class="envelope-right-fold"></div>
+    <div class="envelope-bottom-fold"></div>
+    <div class="envelope-top-flap"></div>
+    <div class="wax-seal">💛</div>
+  </div>
 </div>
 
 <!-- Step 2: Message Typing -->
@@ -280,6 +401,7 @@ if (wishId) {
         waNumber = (data.wa || "").replace(/[^0-9]/g, '');
 
         document.getElementById('sNameDisplay').innerText = senderName;
+        document.getElementById('frontSenderName').innerText = senderName;
         document.getElementById('rNameDisplay').innerText = receiverName;
         if (data.proposalNote) document.getElementById('pNoteDisplay').innerText = data.proposalNote;
         if (data.avatar) document.getElementById('userAvatar').src = data.avatar;
@@ -301,6 +423,7 @@ function applyFallback() {
   senderName = "Special One";
   receiverName = "Dear";
   document.getElementById('sNameDisplay').innerText = senderName;
+  document.getElementById('frontSenderName').innerText = senderName;
   document.getElementById('rNameDisplay').innerText = receiverName;
   linesData = fallbackMessage.split('\n').map(l => l.trim()).filter(l => l);
 }
@@ -339,7 +462,7 @@ window.submitCustomMessage = function() {
   .catch(() => { btn.disabled = false; btn.textContent = "SEND MESSAGE 🚀"; });
 };
 
-/* Hearts Canvas */
+/* Floating Hearts Canvas */
 const canvas = document.getElementById("heartsCanvas");
 const ctx = canvas.getContext("2d");
 let W = canvas.width = window.innerWidth;
@@ -391,7 +514,7 @@ function typeLines(lines, callback) {
   processNextLine();
 }
 
-/* GIFT BOX CLICK -> DIRECTLY GOES TO WISH CARD */
+/* ROYAL ENVELOPE TAP -> OPENS LETTER SMOOTHLY */
 function openGift() {
   const giftBox = document.getElementById("giftBox");
   if(giftBox.classList.contains("open")) return;
@@ -410,7 +533,7 @@ function openGift() {
         typeLines(linesData, () => {
           document.getElementById("nextStepBtn").style.display = "inline-block";
         });
-      }, 500);
+      }, 700);
     }
   }, 100);
 }
