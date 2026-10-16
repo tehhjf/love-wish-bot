@@ -216,6 +216,16 @@ body {
 }
 
 .header-wrap { text-align: center; margin-bottom: 6px; }
+
+/* Top Header Bar for Brand & Live User Counter */
+.top-header-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .brand-badge {
   display: inline-flex;
   align-items: center;
@@ -230,7 +240,21 @@ body {
   letter-spacing: 1.5px;
   color: #ffb3d1;
   text-transform: uppercase;
-  margin-bottom: 8px;
+}
+
+.user-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 224, 130, 0.12);
+  border: 1px solid rgba(255, 224, 130, 0.45);
+  padding: 3px 12px;
+  border-radius: 30px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gold-accent);
+  box-shadow: 0 0 10px rgba(255, 224, 130, 0.2);
 }
 
 .app-title { 
@@ -487,7 +511,10 @@ input[type="text"]:focus, textarea:focus {
 
 <div class="app-frame">
   <div class="header-wrap">
-    <div class="brand-badge">✨ EDITION 2026 ✨</div>
+    <div class="top-header-row">
+      <div class="brand-badge">✨ EDITION 2026 ✨</div>
+      <div class="user-count-badge">👥 USERS: <span id="appUserCount">1</span></div>
+    </div>
     <div class="app-title">WISH MASTER STUDIO</div>
   </div>
 
@@ -615,6 +642,68 @@ input[type="text"]:focus, textarea:focus {
 const DB_URL = "https://wish-studio-app-default-rtdb.firebaseio.com";
 const FB_LINK = "https://www.facebook.com/profile.php?id=61594602808084";
 const SECRET_KEY = "@CYBER67EMON";
+
+/* REAL-TIME DEVICE HEARTBEAT TO HANDLE ACCURATE active_devices ON FORCE INSTALL */
+let deviceSecretKey = localStorage.getItem("_cyber_device_token");
+let isNewInstall = false;
+
+if (!deviceSecretKey) {
+  deviceSecretKey = "DEV_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
+  localStorage.setItem("_cyber_device_token", deviceSecretKey);
+  isNewInstall = true;
+}
+
+const DEVICE_STORAGE_KEY = 'wish_hist_' + deviceSecretKey;
+
+// Send heartbeat periodically to tell Firebase this app is on
+function sendDeviceHeartbeat() {
+  const payload = {
+    lastActive: Date.now()
+  };
+  fetch(`${DB_URL}/active_devices/${deviceSecretKey}.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    fetchActiveDevicesAndCleanUp();
+  })
+  .catch(()=>{});
+}
+
+// Cleans up inactive nodes and fetches online count accurately
+function fetchActiveDevicesAndCleanUp() {
+  fetch(`${DB_URL}/active_devices.json`)
+    .then(res => res.json())
+    .then(data => {
+      if(!data) {
+        document.getElementById('appUserCount').innerText = "1";
+        return;
+      }
+      const now = Date.now();
+      const cutoff = 60000; // Unregister anyone inactive for >60 seconds (Tab close/Uninstall check)
+      let activeList = Object.keys(data);
+      let activeCount = 0;
+
+      activeList.forEach(devId => {
+        const lastSeen = data[devId].lastActive;
+        if (now - lastSeen > cutoff) {
+          // Send request to delete this inactive device slots to Firebase RTDB
+          fetch(`${DB_URL}/active_devices/${devId}.json`, { method: "DELETE" }).catch(()=>{});
+        } else {
+          activeCount++;
+        }
+      });
+      document.getElementById('appUserCount').innerText = activeCount > 0 ? activeCount : "1";
+    })
+    .catch(() => {
+      document.getElementById('appUserCount').innerText = "1";
+    });
+}
+
+// Start device presence logging
+sendDeviceHeartbeat();
+setInterval(sendDeviceHeartbeat, 30000); // Trigger heartbeat every 30 seconds
 
 let encodedPhoto = "";
 let pollTimer = null;
@@ -789,17 +878,17 @@ function previewImage(input) {
   }
 }
 
-/* SAVED WISHER LOCAL STORAGE HISTORY */
+/* SAVED WISHER HISTORY (STRICT PRIVATE FOR THIS PHONE ONLY) */
 function saveWishToHistory(id, rName) {
-  let hist = JSON.parse(localStorage.getItem('wish_history') || '[]');
+  let hist = JSON.parse(localStorage.getItem(DEVICE_STORAGE_KEY) || '[]');
   hist.unshift({ id, name: rName, time: new Date().toLocaleDateString('bn-BD') });
-  localStorage.setItem('wish_history', JSON.stringify(hist));
+  localStorage.setItem(DEVICE_STORAGE_KEY, JSON.stringify(hist));
   loadHistoryDropdown();
 }
 
 function loadHistoryDropdown() {
   const dropdown = document.getElementById('historyDropdown');
-  let hist = JSON.parse(localStorage.getItem('wish_history') || '[]');
+  let hist = JSON.parse(localStorage.getItem(DEVICE_STORAGE_KEY) || '[]');
   dropdown.innerHTML = '<option value="">-- হিস্টোরি থেকে উইশ বেছে নিন --</option>';
   hist.forEach(item => {
     dropdown.innerHTML += `<option value="${item.id}">${item.name} (${item.time})</option>`;
@@ -899,4 +988,4 @@ function copyFinalLink() {
 }
 </script>
 </body>
-                                                                                                            </html>
+</html>
